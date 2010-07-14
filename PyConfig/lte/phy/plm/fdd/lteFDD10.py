@@ -25,15 +25,27 @@
 #
 ###############################################################################
 
-import openwns.module
-import openwns.simulator
+import lte.phy.plm
 
-# We have a dependency on DLL module, so import it
-import dll
+class LTE:
 
-class lte(openwns.module.Module):
     def __init__(self):
-        super(lte, self).__init__("lte", "lte")
+        self.subCarrierBandwidth = 0.015 # [MHz]
 
-# add the Module in order to get it loaded
-openwns.simulator.OpenWNS.modules.lte = lte()
+        self.subCarrierPerSubChannel = 12
+
+        self.subChannelBandwidth = self.subCarrierPerSubChannel * self.subCarrierBandwidth
+
+        assert self.numSubchannels is not None, "You need to set numSubchannels in your subclass"
+
+        self.bandwidth = self.subChannelBandwidth * self.numSubchannels
+
+class LTEFDD10(LTE):
+
+    def __init__(self):
+        
+        self.numSubchannels = 50
+
+        LTE.__init__(self)
+
+lte.phy.plm.PLMBroker.PLMs["ltefdd10"] = LTEFDD10()

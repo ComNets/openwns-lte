@@ -25,15 +25,5 @@
 #
 ###############################################################################
 
-import openwns.module
-import openwns.simulator
-
-# We have a dependency on DLL module, so import it
-import dll
-
-class lte(openwns.module.Module):
-    def __init__(self):
-        super(lte, self).__init__("lte", "lte")
-
-# add the Module in order to get it loaded
-openwns.simulator.OpenWNS.modules.lte = lte()
+from BS import *
+from UE import *

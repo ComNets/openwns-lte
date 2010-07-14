@@ -25,11 +25,24 @@
 #
 ###############################################################################
 
-from openwns.logger import Logger
+import scenarios.interfaces
 
-class SimulationModel(object):
-    __slots__ = ['nameInFactory', 'logger', 'nodes']
+import lte.nodes
 
-    def __init__(self):
-        self.nameInFactory = 'lte.SimulationModel'
-        self.logger = Logger("LTE", "SimulationModel", True)
+import rise.Mobility
+
+import openwns.geometry.position
+
+class UECreator(scenarios.interfaces.INodeCreator):
+
+    def __init__(self, config):
+        self.config = config
+
+    def create(self):
+
+        position = openwns.geometry.position.Position(x = 0.0, y = 0.0, z = 0.0)
+
+        mobility = rise.Mobility.No(position)
+
+        return lte.nodes.UE(self.config, mobility)
+

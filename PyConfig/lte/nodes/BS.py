@@ -25,15 +25,45 @@
 #
 ###############################################################################
 
-import openwns.module
-import openwns.simulator
+import lte.phy.ofdma
 
-# We have a dependency on DLL module, so import it
-import dll
+import scenarios.interfaces
 
-class lte(openwns.module.Module):
-    def __init__(self):
-        super(lte, self).__init__("lte", "lte")
+import rise.Mobility
 
-# add the Module in order to get it loaded
-openwns.simulator.OpenWNS.modules.lte = lte()
+import openwns.node
+
+class BS(scenarios.interfaces.INode, openwns.node.Node):
+    
+    def __init__(self, config, mobility):
+        openwns.node.Node.__init__(self, "BS")
+
+        self.properties = {}
+        self.properties["Type"] = "BS"
+
+        self.name += str(self.nodeID)
+
+        self.phy = lte.phy.ofdma.BSOFDMAComponent(node = self, config = config)
+
+        self.mobility = rise.Mobility.Component(node = self, 
+                                                name = "BSMobility",
+                                                mobility = mobility)
+
+    def setPosition(self, position):
+        self.mobility.mobility.setCoords(position)      
+
+    def getPosition(self):
+        return self.mobility.mobility.getCoords()
+
+    def setAntenna(self, antenna):
+        self.antenna = antenna
+
+    def setChannelModel(self, channelModel):
+        self.channelModel = channelModel
+
+    def getProperty(self, propertyName):
+        return self.properties[propertyName]
+
+
+    def setProperty(self, propertyName, propertyValue):
+        self.properties[propertyName] = propertyValue

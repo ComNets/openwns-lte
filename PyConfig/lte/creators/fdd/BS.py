@@ -25,15 +25,23 @@
 #
 ###############################################################################
 
-import openwns.module
-import openwns.simulator
+import lte.nodes
 
-# We have a dependency on DLL module, so import it
-import dll
+import scenarios.interfaces
 
-class lte(openwns.module.Module):
-    def __init__(self):
-        super(lte, self).__init__("lte", "lte")
+import rise.Mobility
 
-# add the Module in order to get it loaded
-openwns.simulator.OpenWNS.modules.lte = lte()
+import openwns.geometry.position
+
+class BSCreator(scenarios.interfaces.INodeCreator):
+
+    def __init__(self, config):
+        self.config = config
+
+    def create(self):
+
+        position = openwns.geometry.position.Position(x = 0.0, y = 0.0, z = 0.0)
+
+        mobility = rise.Mobility.No(position)
+
+        return lte.nodes.BS(self.config, mobility)
