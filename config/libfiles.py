@@ -1,18 +1,18 @@
-libname = 'projname'
+libname = 'lte'
 
 srcFiles = [
-    'src/ProjNameModule.cpp',
+    'src/lteModule.cpp',
     'src/SimulationModel.cpp',
     ]
 
 hppFiles = [
-    'src/ProjNameModule.hpp',
+    'src/lteModule.hpp',
     'src/SimulationModel.hpp',
     ]
 
 pyconfigs = [
-    'projname/__init__.py',
-    'projname/simulationmodel.py',
+    'lte/__init__.py',
+    'lte/simulationmodel.py',
 ]
 
 dependencies = []

@@ -25,14 +25,14 @@
  *
  ******************************************************************************/
 
-#ifndef PROJNAME_SIMULATIONMODEL_HPP
-#define PROJNAME_SIMULATIONMODEL_HPP
+#ifndef LTE_SIMULATIONMODEL_HPP
+#define LTE_SIMULATIONMODEL_HPP
 
 #include <WNS/simulator/ISimulationModel.hpp>
 #include <WNS/logger/Logger.hpp>
 #include <WNS/pyconfig/View.hpp>
 
-namespace projname {
+namespace lte {
 
     class SimulationModel :
         public wns::simulator::ISimulationModel
@@ -57,4 +57,4 @@ namespace projname {
     };
 }
 
-#endif // NOT defined PROJNAME_SIMULATIONMODEL_HPP
+#endif // NOT defined LTE_SIMULATIONMODEL_HPP

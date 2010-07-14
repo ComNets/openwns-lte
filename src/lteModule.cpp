@@ -25,33 +25,33 @@
  *
  ******************************************************************************/
 
-#ifndef PROJNAME_PROJNAMEMODULE_HPP
-#define PROJNAME_PROJNAMEMODULE_HPP
+#include <LTE/lteModule.hpp>
 
-#include <WNS/module/Module.hpp>
+using namespace lte;
 
-namespace projname
+STATIC_FACTORY_REGISTER_WITH_CREATOR(
+	lteModule,
+	wns::module::Base,
+	"lte",
+	wns::PyConfigViewCreator);
+
+lteModule::lteModule(const wns::pyconfig::View& _pyco) :
+	wns::module::Module<lteModule>(_pyco)
 {
-	class ProjNameModule :
-		public wns::module::Module<ProjNameModule>
-	{
-	public:
-		ProjNameModule(const wns::pyconfig::View& _pyco);
-
-		virtual
-		~ProjNameModule();
-
-		// Module interface
-		virtual void
-		configure();
-
-		virtual void
-		startUp();
-
-		virtual void
-		shutDown();
-	};
 }
 
-#endif // NOT defined PROJNAME_PROJNAMEMODULE_HPP
+lteModule::~lteModule()
+{
+}
 
+void lteModule::configure()
+{
+}
+
+void lteModule::startUp()
+{
+}
+
+void lteModule::shutDown()
+{
+}

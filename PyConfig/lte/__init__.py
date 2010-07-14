@@ -25,11 +25,12 @@
 #
 ###############################################################################
 
-from openwns.logger import Logger
+import openwns.module
+import openwns.simulator
 
-class SimulationModel(object):
-    __slots__ = ['nameInFactory', 'logger', 'nodes']
-
+class lte(openwns.module.Module):
     def __init__(self):
-        self.nameInFactory = 'projname.SimulationModel'
-        self.logger = Logger("PROJNAME", "SimulationModel", True)
+        super(lte, self).__init__("lte", "lte")
+
+# add the Module in order to get it loaded
+openwns.simulator.OpenWNS.modules.lte = lte()
