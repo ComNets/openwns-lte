@@ -1,16 +1,35 @@
-/******************************************************************************
- * WinProSt (WINNER Protocol Stack)                                           *
- * __________________________________________________________________________ *
- * Copyright (C) 2004-2006                                                    *
- * Chair of Communication Networks (ComNets)                                  *
- * Kopernikusstr. 16, D-52074 Aachen, Germany                                 *
- * phone: ++49-241-80-27910 (phone), fax: ++49-241-80-22242                   *
- * email: wns@comnets.rwth-aachen.de                                          *
- * www: http://wns.comnets.rwth-aachen.de                                     *
+/*******************************************************************************
+ * This file is part of openWNS (open Wireless Network Simulator)
+ * _____________________________________________________________________________
+ *
+ * Copyright (C) 2004-2007
+ * Chair of Communication Networks (ComNets)
+ * Kopernikusstr. 5, D-52074 Aachen, Germany
+ * phone: ++49-241-80-27910,
+ * fax: ++49-241-80-22242
+ * email: info@openwns.org
+ * www: http://www.openwns.org
+ * _____________________________________________________________________________
+ *
+ * openWNS is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License version 2 as published by the
+ * Free Software Foundation;
+ *
+ * openWNS is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  ******************************************************************************/
 
-#include <LTE/phy/PhyUser.hpp>
-//#include <WINPROST/timing/ResourceScheduler.hpp>
+#include <LTE/macr/PhyUser.hpp>
+/* deleted by chen */
+// #include <LTE/macr/WINNERSAR.hpp>
+/* inserted by chen */
+#include <boost/bind.hpp>
 
 #include <WNS/service/dll/StationTypes.hpp>
 #include <WNS/service/phy/ofdma/DataTransmission.hpp>
@@ -29,33 +48,34 @@
 #include <iomanip>
 #include <iostream>
 
-using namespace lte::phy;
+using namespace lte::macr;
 
 #define A2N(a) layer2->getStationManager()->getStationByMAC(a)->getName()
 
-STATIC_FACTORY_REGISTER_WITH_CREATOR(PhyUser, wns::ldk::FunctionalUnit, "winprost.macr.PhyUser", wns::ldk::FUNConfigCreator);
+STATIC_FACTORY_REGISTER_WITH_CREATOR(PhyUser, wns::ldk::FunctionalUnit, "lte.macr.PhyUser", wns::ldk::FUNConfigCreator);
 
 PhyUser::PhyUser(wns::ldk::fun::FUN* fun, const wns::pyconfig::View& pyConfigView) :
-        wns::ldk::fu::Plain<PhyUser, PhyCommand>(fun),
-        lte::helper::HasModeName(pyConfigView),
-#ifndef NDEBUG
-        //schedulerCommandReader_(NULL),
-#endif
-        config_(pyConfigView),
-        layer2(NULL),
-        stateRxTx(Rx),
-        logger(pyConfigView.get("logger")),
-        activeSubBands(),
-        fddCapable((pyConfigView.get<std::string>("plm.mac.duplex") == "FDD")),
-        safetyFraction(pyConfigView.get<simTimeType>("plm.mac.safetyFraction")),
-        es(wns::simulator::getEventScheduler()),
-        iCache(NULL),
-        bfTransmission(NULL),
-        transmission(NULL),
-        notificationService(NULL),
-        mobility(NULL),
-        associationService(NULL),
-        stationManager(NULL)
+    wns::ldk::CommandTypeSpecifier<PhyCommand>(fun),
+    wns::ldk::HasReceptor<>(),
+    wns::ldk::HasConnector<>(),
+    wns::ldk::HasDeliverer<>(),
+    wns::Cloneable<PhyUser>(),
+    lte::helper::HasModeName(pyConfigView),
+    layer2(NULL),
+    stateRxTx(Rx),
+    logger(pyConfigView.get("logger")),
+    activeSubBands(),
+    fddCapable((pyConfigView.get<std::string>("plm.mac.duplex") == "FDD")),
+    safetyFraction(pyConfigView.get<simTimeType>("plm.mac.safetyFraction")),
+    es(wns::simulator::getEventScheduler()),
+    iCache(NULL),
+    bfTransmission(NULL),
+    transmission(NULL),
+    notificationService(NULL),
+    mobility(NULL),
+    associationService(NULL),
+    stationManager(NULL),
+    measurementDelay_(pyConfigView.get<wns::simulator::Time>("measurementDelay"))
 {
     MESSAGE_BEGIN(NORMAL, logger, m, "PhyUser() created.");
     if (fddCapable) m << " fddCapable";
@@ -88,12 +108,6 @@ PhyUser::onFUNCreated()
 
     stationManager =
         layer2->getStationManager();
-
-#ifndef NDEBUG
-    //schedulerCommandReader_ = getFUN()->getCommandReader(config_.get<std::string>("schedulingCommandReaderName"));
-#endif
-
-    //jsonTracingCC_ = wns::probe::bus::ContextCollectorPtr(new wns::probe::bus::ContextCollector(getFUN()->getLayer()->getContextProviderCollection(),  "phyTrace"));
 }
 
 
@@ -137,19 +151,24 @@ PhyUser::doSendData(const wns::ldk::CompoundPtr& compound)
     this->commitSizes(compound->getCommandPool());
 
     PhyCommand* myCommand = getCommand(compound->getCommandPool());
-    if (myCommand->local.modeRxTx == lte::phy::PhyCommand::Tx)
+    if (myCommand->local.modeRxTx == lte::macr::PhyCommand::Tx)
     {
         MESSAGE_SINGLE(NORMAL, logger,"doSendData(Tx): start="<< myCommand->local.start <<"s..stop=" << myCommand->local.stop <<"s => d="<<(myCommand->local.stop-myCommand->local.start)*1e6<<"us, subBand=" << myCommand->local.subBand << ", len="<<compound->getLengthInBits() << "bits");
-
         simTimeType startTime = myCommand->local.start;
-
+        // TODO: check/assure that we don't send FakePDUPtr.
+        // this can happen with compounds from RS-RX, created in RRHandler
+        //assure(dynamic_cast<wns::ldk::helper::FakePDU*>(compound->getData().getPtr())==NULL,"FakePDU in Tx mode");
         es->schedule(StartTxEvent(compound, this), startTime);
+        // Inform FUs that have added a callback that the compound is on air now
+        //dbg: MESSAGE_SINGLE(NORMAL, logger,"doSendData(Tx): start="<< myCommand->local.start <<"s..stop=" << myCommand->local.stop <<"s => d="<<(myCommand->local.stop-myCommand->local.start)*1e6<<"us, subBand=" << myCommand->local.subBand<<", onAirDeferred.callback start");
+        myCommand->local.onAirDeferred.callback();
+        //dbg: MESSAGE_SINGLE(NORMAL, logger,"doSendData(Tx): start="<< myCommand->local.start <<"s..stop=" << myCommand->local.stop <<"s => d="<<(myCommand->local.stop-myCommand->local.start)*1e6<<"us, subBand=" << myCommand->local.subBand<<", onAirDeferred.callback end");
     }
     else
     { // reception (Rx)
-
+        //MESSAGE_SINGLE(NORMAL, logger,"doSendData(Rx): startTime="<< myCommand->local.start <<", stopTime=" << myCommand->local.stop << ", subBand=" << myCommand->local.subBand << ", len="<<compound->getLengthInBits() << "bits");
         MESSAGE_SINGLE(NORMAL, logger,"doSendData(Rx): startTime="<< myCommand->local.start <<", stopTime=" << myCommand->local.stop << ", subBand=" << myCommand->local.subBand << ", len="<<compound->getLengthInBits() << "bits" << " SHALL NOT OCCUR");
-
+        //es->schedule(StartRxEvent(compound, this), myCommand->local.start);
         assure(false,"doSendData(Rx): startTime="<< myCommand->local.start <<", stopTime=" << myCommand->local.stop << ", subBand=" << myCommand->local.subBand << ", len="<<compound->getLengthInBits() << "bits" << " SHALL NOT OCCUR");
     }
 
@@ -165,68 +184,7 @@ PhyUser::doOnData(const wns::ldk::CompoundPtr& compound)
     getDeliverer()->getAcceptor(compound)->onData(compound);
 } // doOnData
 
-/*
-#ifndef NDEBUG
-void
-PhyUser::traceIncoming(wns::ldk::CompoundPtr compound, wns::service::phy::power::PowerMeasurementPtr rxPowerMeasurement)
-{
-    wns::probe::bus::json::Object objdoc;
 
-    PhyCommand* myCommand = getCommand(compound->getCommandPool());
-
-    objdoc["Transmission"]["ReceiverID"] = wns::probe::bus::json::String(getFUN()->getLayer()->getNodeName());
-    objdoc["Transmission"]["SenderID"] = wns::probe::bus::json::String(myCommand->magic.source->getName());
-    objdoc["Transmission"]["SourceID"] = wns::probe::bus::json::String(myCommand->magic.source->getName());
-
-    if(myCommand->magic.destination == NULL)
-    {
-        objdoc["Transmission"]["DestinationID"] = wns::probe::bus::json::String("Broadcast");
-    }
-    else
-    {
-        objdoc["Transmission"]["DestinationID"] = wns::probe::bus::json::String(myCommand->magic.destination->getName());
-    }
-
-    objdoc["Transmission"]["Start"] = wns::probe::bus::json::Number(myCommand->local.start);
-    objdoc["Transmission"]["Stop"] = wns::probe::bus::json::Number(myCommand->local.stop);
-    objdoc["Transmission"]["Subchannel"] = wns::probe::bus::json::Number(myCommand->local.subBand);
-    objdoc["Transmission"]["TxPower"] = wns::probe::bus::json::Number(myCommand->magic.txp.get_dBm());
-    objdoc["Transmission"]["RxPower"] = wns::probe::bus::json::Number(rxPowerMeasurement->getRxPower().get_dBm());
-    objdoc["Transmission"]["InterferencePower"] = wns::probe::bus::json::Number(rxPowerMeasurement->getInterferencePower().get_dBm());
-
-    if (myCommand->magic.estimatedSINR.C != wns::Power() &&
-        myCommand->magic.estimatedSINR.I != wns::Power())
-    {
-        objdoc["SINREst"]["C"] = wns::probe::bus::json::Number(myCommand->magic.estimatedSINR.C.get_dBm());
-        objdoc["SINREst"]["I"] = wns::probe::bus::json::Number(myCommand->magic.estimatedSINR.I.get_dBm());
-    }
-
-    if (schedulerCommandReader_->commandIsActivated(compound->getCommandPool()))
-    {
-
-        // Now we have a look at the scheduling time slot
-        winprost::timing::SchedulerCommand* schedCommand = schedulerCommandReader_->readCommand<winprost::timing::SchedulerCommand>(compound->getCommandPool());
-
-        wns::scheduler::SchedulingTimeSlotPtr ts = schedCommand->magic.schedulingTimeSlotPtr;
-
-        wns::probe::bus::json::Array a;
-        for (wns::scheduler::PhysicalResourceBlockVector::iterator it= ts->physicalResources.begin(); it != ts->physicalResources.end(); ++it)
-        {
-            wns::probe::bus::json::Object pr;
-            pr["NetBits"] = wns::probe::bus::json::Number(it->getNetBlockSizeInBits());
-            a.Insert(pr);
-        }
-        objdoc["SchedulingTimeSlot"]["PhysicalResources"] = a;
-        objdoc["SchedulingTimeSlot"]["HARQ"]["enabled"] = wns::probe::bus::json::Boolean(ts->isHARQEnabled());
-        objdoc["SchedulingTimeSlot"]["HARQ"]["ProcessID"] = wns::probe::bus::json::Number(ts->harq.processID);
-        objdoc["SchedulingTimeSlot"]["HARQ"]["NDI"] = wns::probe::bus::json::Boolean(ts->harq.NDI);
-        objdoc["SchedulingTimeSlot"]["HARQ"]["TransportBlockID"] = wns::probe::bus::json::Number(ts->harq.transportBlockID);
-        objdoc["SchedulingTimeSlot"]["HARQ"]["RetryCounter"] = wns::probe::bus::json::Number(ts->harq.retryCounter);
-    }
-    wns::probe::bus::json::probeJSON(jsonTracingCC_, objdoc);
-}
-#endif
-*/
 void
 PhyUser::onData(wns::osi::PDUPtr pdu, wns::service::phy::power::PowerMeasurementPtr rxPowerMeasurement)
 {
@@ -296,48 +254,50 @@ PhyUser::onData(wns::osi::PDUPtr pdu, wns::service::phy::power::PowerMeasurement
 
     // During Broadcast Phases, Interference is not representative, therefore we
     // do not store it
-    if (broadcast == false)
+    if (broadcast == false && !myCommand->magic.isRetransmission)
     {
         // store pathloss measurement for source station in local InterferenceCache
-        iCache->storePathloss( source,
-                               rxPowerMeasurement->getPathLoss(),
-                               dll::services::management::InterferenceCache::Local );
+        /*iCache->storePathloss( source,
+                               rxPowerMeasurement->getLoss(),
+                               dll::services::management::InterferenceCache::Local );*/
         /* ^ this is ok, but doing the following seems to mix up UL and DL vached values:
            iCache->storeMeasurements( source,
            rxPowerMeasurement,
            dll::services::management::InterferenceCache::Local );
         */
         // "magically" store my measurements in remote InterferenceCache
-        myCommand->magic.remoteCache->storeMeasurements( getFUN()->getLayer<dll::ILayer2*>()->getNode(),
-                rxPowerMeasurement,
-                dll::services::management::InterferenceCache::Remote );
+        /*myCommand->magic.remoteCache->storeMeasurements( getFUN()->getLayer<dll::ILayer2*>()->getNode(),
+                                                         rxPowerMeasurement,
+                                                         dll::services::management::InterferenceCache::Remote,
+                                                         myCommand->local.subBand );*/
 
-        // write values into Probes: ? Where are probes written ? Cannot see it [rs].
+        wns::simulator::getEventScheduler()->scheduleDelay(boost::bind(
+            &dll::services::management::InterferenceCache::storeMeasurements,
+            myCommand->magic.remoteCache,
+            getFUN()->getLayer<dll::ILayer2*>()->getNode(),
+            rxPowerMeasurement,
+            dll::services::management::InterferenceCache::Remote,
+            myCommand->local.subBand), measurementDelay_);
+
+
+
         wns::Ratio sinrEstimation = wns::Ratio::from_dB(0.0);
-        if (myCommand->magic.estimatedSINR.I.get_mW() != 0.0) {
+        if (myCommand->magic.estimatedSINR.I.get_mW() != 0.0){
             sinrEstimation = myCommand->magic.estimatedSINR.C / myCommand->magic.estimatedSINR.I;
             MESSAGE_BEGIN(NORMAL, logger, m, "DataInd: ");
             m << "SINR Estimation was: (S=" << myCommand->magic.estimatedSINR.C
-            << ", I+N=" << myCommand->magic.estimatedSINR.I
-            << ", Error=" << sinrEstimation-rxPowerMeasurement->getSINR() << ")\n";
+              << ", I+N=" << myCommand->magic.estimatedSINR.I
+              << ", Error=" << sinrEstimation-rxPowerMeasurement->getSINR() << ")\n";
             MESSAGE_END();
         }
     }
     /* Use braodcast to determine pathloss */
     else
     {
-        myCommand->magic.remoteCache->storePathloss(getFUN()->getLayer<dll::ILayer2*>()->getNode(),
-                rxPowerMeasurement->getPathLoss(),
-                dll::services::management::InterferenceCache::Remote );
+        /*myCommand->magic.remoteCache->storePathloss(getFUN()->getLayer<dll::ILayer2*>()->getNode(),
+                                                         rxPowerMeasurement->getLoss(),
+                                                         dll::services::management::InterferenceCache::Remote );*/
     }
-
-    /**
-     * @todo dbn: Re-enable tracing by implementing a ITracing strategy and
-     * include it here
-     */
-#ifndef NDEBUG
-    //traceIncoming(compound, rxPowerMeasurement);
-#endif
 
     // deliver compound
     doOnData(compound);
@@ -464,15 +424,15 @@ PhyUser::startTransmission(const wns::ldk::CompoundPtr& compound)
     MESSAGE_SINGLE(NORMAL, logger,"PhyMode="<<*phyModePtr<<" supports "<<phyModePtr->getBitCapacityFractional(1.0)<<" bit/s/subChannel");
     MESSAGE_BEGIN(NORMAL, logger, m, "startTransmission on subBand=");
     m << subBand
-    //<< std::ios::fixed // puts "4" into output!?
-    << ", PhyMode=" << *phyModePtr
-    //<< std::ios::floatfield << std::setprecision(3) // puts "260" into output!?
-    << ", D=" << duration*1e6 << "us"
-    << ", " << compound->getLengthInBits() << " bit"
-    << ", cap=" << capacity << " bit"
-    << ", source=" << myCommand->magic.source->getName()
-    << ", dest=" << (myCommand->magic.destination == NULL ? "BROADCAST" : myCommand->magic.destination->getName())
-    << ", P=" << txPower;
+        //<< std::ios::fixed // puts "4" into output!?
+      << ", PhyMode=" << *phyModePtr
+        //<< std::ios::floatfield << std::setprecision(3) // puts "260" into output!?
+      << ", D=" << duration*1e6 << "us"
+      << ", " << compound->getLengthInBits() << " bit"
+      << ", cap=" << capacity << " bit"
+      << ", source=" << myCommand->magic.source->getName()
+      << ", dest=" << (myCommand->magic.destination == NULL ? "BROADCAST" : myCommand->magic.destination->getName())
+      << ", P=" << txPower;
     MESSAGE_END();
 
     assure(compound->getLengthInBits() <= capacity , "SDU too long: len="<<compound->getLengthInBits()<<" <= cap="<<capacity<<" ("<<phyModePtr->getString()<<", D="<<duration<<"s)");
@@ -483,7 +443,7 @@ PhyUser::startTransmission(const wns::ldk::CompoundPtr& compound)
         transmission->startBroadcast(compound, subBand, txPower, phyModePtr);
     } else {
         // we have a destination, this is not a broadcast
-        if (myCommand->local.beamforming == true) {
+        if (myCommand->local.beamforming == true){
             assure(myCommand->local.pattern, "No Beamforming Pattern set.");
             // call startTransmission method of dataTransmission service
             // which is located in WNS/service/phy/ofdma/Station.cpp: Station::startTransmission
