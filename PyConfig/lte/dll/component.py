@@ -26,7 +26,9 @@
 ###############################################################################
 
 import lte.dll.upperConvergence
+import lte.dll.rlc
 import lte.dll.phyUser
+from lte.support.helper import connectFUs
 
 import dll.Layer2
 import openwns.FUN
@@ -46,8 +48,16 @@ class eNBLayer2( dll.Layer2.Layer2 ):
         upperConvergence = lte.dll.upperConvergence.eNB(self.logger)
         self.fun.add(upperConvergence)
 
+        rlc = lte.dll.rlc.eNBRLC(self.logger)
+        self.fun.add(rlc)
+
         phy = lte.dll.phyUser.PhyUser(plm = plm, parentLogger = self.logger)
         self.fun.add(phy)
+
+        connectFUs([
+                (upperConvergence, rlc),
+                (rlc, phy)
+                ])
 
 class ueLayer2( dll.Layer2.Layer2 ):
 
@@ -64,5 +74,13 @@ class ueLayer2( dll.Layer2.Layer2 ):
         upperConvergence = lte.dll.upperConvergence.UE(self.logger)
         self.fun.add(upperConvergence)
 
+        rlc = lte.dll.rlc.UERLC(self.logger)
+        self.fun.add(rlc)
+
         phy = lte.dll.phyUser.PhyUser(plm = plm, parentLogger = self.logger)
         self.fun.add(phy)
+
+        connectFUs([
+                (upperConvergence, rlc),
+                (rlc, phy)
+                ])

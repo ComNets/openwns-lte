@@ -2,6 +2,16 @@ import lte.phy.plm
 
 from openwns import dBm, dB, fromdB, fromdBm
 
+def connectFUs(pairList):
+    """
+    pairList= [(A,B), (B,C)]
+    
+    results in a FUN like this
+    A - B - C
+    """
+    for source, destination in pairList:
+        source.connect(destination)
+
 def setupPhy(simulator, plmName, scenario):
     import rise.scenario.Pathloss
     from openwns.interval import Interval

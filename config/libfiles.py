@@ -9,6 +9,9 @@ srcFiles = [
     'src/upperconvergence/eNB.cpp',
     'src/upperconvergence/UE.cpp',
 
+    'src/rlc/eNB.cpp',
+    'src/rlc/UE.cpp',
+
     'src/macr/PhyUser.cpp',
 
     'src/timing/TimingScheduler.cpp',
@@ -34,6 +37,8 @@ hppFiles = [
     'src/macg/MACgCommand.hpp',
 
     'src/rlc/RLCCommand.hpp',
+    'src/rlc/eNB.hpp',
+    'src/rlc/UE.hpp',
 
     'src/macr/PhyUser.hpp',
     'src/macr/PhyCommand.hpp',
@@ -82,6 +87,7 @@ pyconfigs = [
     'lte/dll/__init__.py',
     'lte/dll/component.py',
     'lte/dll/upperConvergence.py',
+    'lte/dll/rlc.py',
     'lte/dll/phyUser.py',
     'lte/support/__init__.py',
     'lte/support/helper.py',

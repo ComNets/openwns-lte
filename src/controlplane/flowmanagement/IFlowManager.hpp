@@ -30,6 +30,8 @@
 
 #include <LTE/helper/TransactionID.hpp>
 
+#include <WNS/service/tl/FlowID.hpp>
+
 namespace lte { namespace controlplane { namespace flowmanager {
 
 class IFlowManagerUE
@@ -57,6 +59,33 @@ public:
 
   virtual void
   onFlowReleaseAck(wns::service::dll::FlowID flowIDout) = 0;
+};
+
+class IFlowSwitching
+{
+public:
+  typedef std::map<wns::service::qos::QoSClass,
+		   wns::service::dll::FlowID> ControlPlaneFlowIDs;
+
+  virtual ~IFlowSwitching () {};
+
+  virtual wns::service::dll::FlowID
+  getFlowIDin(wns::service::dll::FlowID flowIDout) = 0;
+
+  virtual wns::service::dll::FlowID
+  getFlowIDout(wns::service::dll::FlowID flowIDin) = 0;
+
+  virtual wns::service::qos::QoSClass
+  getQoSClassForBSFlowID(wns::service::dll::FlowID dllFlowID) const = 0;
+
+  virtual wns::service::qos::QoSClass
+  getQoSClassForUTFlowID(wns::service::dll::FlowID dllFlowID) const = 0;
+
+  virtual ControlPlaneFlowIDs
+  getControlPlaneFlowIDs(wns::service::dll::UnicastAddress peerAddress) = 0;
+
+  virtual void
+  setControlPlaneFlowIDs(wns::service::dll::UnicastAddress peerAddress, ControlPlaneFlowIDs flowIDs) = 0;
 };
 
 } // flowmanager

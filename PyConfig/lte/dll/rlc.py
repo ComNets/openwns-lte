@@ -25,28 +25,27 @@
 #
 ###############################################################################
 
-import openwns.FUN
-import openwns.logger
 import openwns
+import openwns.logger
 
-class eNB(openwns.FUN.FunctionalUnit, openwns.StaticFactoryClass):
+class eNBRLC(openwns.FUN.FunctionalUnit, openwns.StaticFactoryClass):
 
     def __init__(self, parentLogger = None):
-        openwns.StaticFactoryClass.__init__(self, 'lte.eNBUpperConvergence')
-        openwns.FUN.FunctionalUnit.__init__(self, functionalUnitName = "upperConvergence")
+        openwns.StaticFactoryClass.__init__(self, 'lte.rlc.eNB')
+        openwns.FUN.FunctionalUnit.__init__(self, functionalUnitName = "rlc")
 
         self.logger = openwns.logger.Logger(moduleName = "LTE",
-                                            name = "eNBUpperConv",
+                                            name = "RLC",
                                             enabled = True,
                                             parent = parentLogger)
 
-class UE(openwns.FUN.FunctionalUnit, openwns.StaticFactoryClass):
+class UERLC(openwns.FUN.FunctionalUnit, openwns.StaticFactoryClass):
 
     def __init__(self, parentLogger = None):
-        openwns.StaticFactoryClass.__init__(self, 'lte.UEUpperConvergence')
-        openwns.FUN.FunctionalUnit.__init__(self, functionalUnitName = "upperConvergence")
+        openwns.StaticFactoryClass.__init__(self, 'lte.rlc.UE')
+        openwns.FUN.FunctionalUnit.__init__(self, functionalUnitName = "rlc")
 
         self.logger = openwns.logger.Logger(moduleName = "LTE",
-                                            name = "UEUpperConv",
+                                            name = "RLC",
                                             enabled = True,
                                             parent = parentLogger)
