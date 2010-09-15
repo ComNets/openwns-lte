@@ -25,33 +25,19 @@
 #
 ###############################################################################
 
-import lte.phy.plm
-class MAC:
-    def __init__(self):
-        self.duplex = 'FDD'
-        self.safetyFraction = 1.0e-8
+import openwns.FUN
+import openwns.logger
+import openwns
 
-class LTE:
+class PhyUser(openwns.FUN.FunctionalUnit, openwns.StaticFactoryClass):
 
-    def __init__(self):
-        self.subCarrierBandwidth = 0.015 # [MHz]
+    def __init__(self, plm, parentLogger=None):
+        openwns.StaticFactoryClass.__init__(self, 'lte.macr.PhyUser')
+        openwns.FUN.FunctionalUnit.__init__(self, functionalUnitName = "phyUser")
 
-        self.subCarrierPerSubChannel = 12
+        self.plm = plm
 
-        self.subChannelBandwidth = self.subCarrierPerSubChannel * self.subCarrierBandwidth
+        self.measurementDelay = 6.0e-03
 
-        assert self.numSubchannels is not None, "You need to set numSubchannels in your subclass"
+        self.logger = openwns.logger.Logger('LTE','PhyUser', True, parentLogger)
 
-        self.bandwidth = self.subChannelBandwidth * self.numSubchannels
-
-        self.mac = MAC()
-
-class LTEFDD10(LTE):
-
-    def __init__(self):
-        
-        self.numSubchannels = 50
-
-        LTE.__init__(self)
-
-lte.phy.plm.PLMBroker.PLMs["ltefdd10"] = LTEFDD10()

@@ -154,8 +154,8 @@ namespace lte { namespace timing {
         virtual public SchedulerIncoming
     {
     public:
-/* deleted by chen */
-//         virtual ~SlaveScheduler(){};
+
+      virtual ~SlaveScheduler(){};
 
         /**
          * @brief trigger slave scheduling. calls

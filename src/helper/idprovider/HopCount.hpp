@@ -33,64 +33,55 @@
 #include <WNS/ldk/fun/FUN.hpp>
 #include <WNS/ldk/Compound.hpp>
 
-/* deleted by chen */
-// #include <LTE/macg/MACg.hpp>
-/* inserted by chen */
-// #include <LTE/macg/MACgInterface.hpp>
-#include <LTE/lteDummy.hpp>
+#include <LTE/macg/MACgCommand.hpp>
 
-#include <WNS/isClass.hpp>
+namespace lte { namespace helper { namespace idprovider {
 
-namespace lte {
-    namespace helper {
-        namespace idprovider {
+      /** @brief Provides Connection-based hopcount calculation */
+      class HopCount :
+         virtual public wns::probe::bus::CompoundContextProvider
+      {
+	/** @brief to access the PhyCommand */
+	wns::ldk::CommandReaderInterface* macgCommandReader;
+	const std::string key;
 
-            /** @brief Provides Connection-based hopcount calculation */
-            class HopCount :
-        virtual public wns::probe::bus::CompoundContextProvider
-            {
-                /** @brief to access the PhyCommand */
-                wns::ldk::CommandReaderInterface* macgCommandReader;
-                const std::string key;
+      public:
+	HopCount(wns::ldk::fun::FUN* fun):
+	  /**
+	   * @todo dbn: lterelease: Include macgCommandReader once macg is available in new lte module
+	   */
+	  //macgCommandReader(fun->getCommandReader("macg")),
+	  key("MAC.HopCount")
+	{}
 
-            public:
-                HopCount(wns::ldk::fun::FUN* fun):
-                    macgCommandReader(fun->getCommandReader("macg")),
-                    key("MAC.HopCount")
-                {}
+	virtual
+	~HopCount(){}
 
-                virtual
-                ~HopCount(){}
+	virtual const std::string&
+	getKey() const
+	{
+	  return this->key;
+	}
+      private:
 
-                virtual const std::string&
-                getKey() const
-                {
-                    return this->key;
-                }
-            private:
+	virtual void
+	doVisit(wns::probe::bus::IContext& c, const wns::ldk::CompoundPtr& compound) const
+	{
+	  assure(compound, "Received NULL CompoundPtr");
 
-                virtual void
-                doVisit(wns::probe::bus::IContext& c, const wns::ldk::CompoundPtr& compound) const
-                {
-                    assure(compound, "Received NULL CompoundPtr");
+	  if (macgCommandReader->commandIsActivated(compound->getCommandPool()) == true)
+	    {
+	      int hopCount = macgCommandReader->readCommand<lte::macg::MACgCommand>(compound->getCommandPool())->magic.hopCount;
 
-                    if (macgCommandReader->commandIsActivated(compound->getCommandPool()) == true)
-                    {
-                        // and if our command is activated, we add the hopCount to the Context
+	      assure(hopCount >= 1, "number of hops must be >=1, but it is " << hopCount);
+	      assure(hopCount <= 2, "number of hops must be <=2, but it is " << hopCount);
+	      c.insertInt(this->key, hopCount);
+	    }
+	}
+      };
 
-/* deleted by chen */
-//                         int hopCount = macgCommandReader->readCommand<lte::macg::MACgCommand>(compound->getCommandPool())->magic.hopCount;
-/* inserted by chen */
-                        int hopCount = macgCommandReader->readCommand<lte::lteDummy>(compound->getCommandPool())->MACgCommand::magic.hopCount;
-
-                        assure(hopCount >= 1, "number of hops must be >=1, but it is " << hopCount);
-                        assure(hopCount <= 2, "number of hops must be <=2, but it is " << hopCount);
-                        c.insertInt(this->key, hopCount);
-                    }
-                }
-            };
-        }
-    }
-}
+} // idprovider
+} // helper
+} // lte
 
 #endif // not defined LTE_HELPER_IDPROVIDER_HOPCOUNT_HPP

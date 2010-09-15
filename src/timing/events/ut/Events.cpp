@@ -29,15 +29,10 @@
 
 #include <LTE/timing/events/ut/Events.hpp>
 #include <LTE/timing/TimingScheduler.hpp>
-/* deleted by chen */
-// #include <LTE/timing/ResourceScheduler.hpp>
-// #include <LTE/controlplane/MapHandler.hpp>
-// #include <LTE/macr/RACH.hpp>
-/* inserted by chen */
-// #include <LTE/timing/ResourceSchedulerInterface.hpp>
-// #include <LTE/controlplane/MapHandlerInterface.hpp>
-// #include <LTE/macr/RACHInterface.hpp>
-#include <LTE/lteDummy.hpp>
+
+#include <LTE/timing/ResourceSchedulerInterface.hpp>
+#include <LTE/controlplane/MapHandlerInterface.hpp>
+#include <LTE/macr/RACHInterface.hpp>
 
 using namespace lte::timing;
 using namespace lte::timing::events;
@@ -52,13 +47,7 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(ut::StartData, ut::EventBase, "lte.timing.D
 
 ut::StartRACH::StartRACH(wns::ldk::fun::FUN* _fun, const wns::pyconfig::View& config) :
     EventBase(_fun, config),
-
-/* deleted by chen */
-//     rach(_fun->findFriend<lte::macr::IRachTimingTx*>(mode+separator+"rach"))
-
-/* inserted by chen */
-    rach(_fun->findFriend<lte::lteDummy*>(mode+separator+"rach"))
-
+    rach(_fun->findFriend<lte::macr::IRachTimingTx*>(mode+separator+"rach"))
 {}
 
 void
@@ -87,14 +76,8 @@ ut::StartMap::StartMap(wns::ldk::fun::FUN* _fun, const wns::pyconfig::View& conf
     EventBase(_fun, config),
     frameNr(config.get<int>("frameNr")),
     useMapResourcesInUL(config.get<bool>("useMapResourcesInUL")),
-
-/* deleted by chen */
-//     mapHandler(_fun->findFriend<lte::controlplane::IMapHandlerTiming*>(mode+separator+"mapHandler")),
-//     rstx(_fun->findFriend<lte::timing::SlaveScheduler*>(mode+separator+rsNameSuffix+"TX"))
-
-/* inserted by chen */
-    rstx(_fun->findFriend<lte::lteDummy*>(mode+separator+rsNameSuffix+"TX")),
-    mapHandler(_fun->findFriend<lte::lteDummy*>(mode+separator+"mapHandler"))
+    mapHandler(_fun->findFriend<lte::controlplane::IMapHandlerTiming*>(mode+separator+"mapHandler")),
+    rstx(_fun->findFriend<lte::timing::SlaveScheduler*>(mode+separator+rsNameSuffix+"TX"))
 {}
 
 void
@@ -126,15 +109,8 @@ ut::StartMap::execute()
 
 ut::StartData::StartData(wns::ldk::fun::FUN* _fun, const wns::pyconfig::View& config) :
     EventBase(_fun, config),
-
-/* deleted by chen */
-//     rstx(_fun->findFriend<lte::timing::SlaveScheduler*>(mode+separator+rsNameSuffix+"TX")),
-//     mapHandler(_fun->findFriend<lte::controlplane::IMapHandlerTiming*>(mode+separator+"mapHandler")),
-
-/* inserted by chen */
-    rstx(_fun->findFriend<lte::lteDummy*>(mode+separator+rsNameSuffix+"TX")),
-    mapHandler(_fun->findFriend<lte::lteDummy*>(mode+separator+"mapHandler")),
-
+    rstx(_fun->findFriend<lte::timing::SlaveScheduler*>(mode+separator+rsNameSuffix+"TX")),
+    mapHandler(_fun->findFriend<lte::controlplane::IMapHandlerTiming*>(mode+separator+"mapHandler")),
     mySwitchingPointEvent(_fun, config),
     myStopDataEvent(_fun, config),
     frameNr(config.get<int>("frameNr")),
@@ -201,17 +177,9 @@ ut::StartData::execute()
 
 ut::StartData::SwitchingPoint::SwitchingPoint(wns::ldk::fun::FUN* _fun, const wns::pyconfig::View& config) :
     EventBase(_fun, config),
-
-/* deleted by chen */
-//     rstxSlave(_fun->findFriend<lte::timing::SlaveScheduler*>(mode+separator+rsNameSuffix+"TX")),
-//     rstxIncoming(_fun->findFriend<lte::timing::SchedulerIncoming*>(mode+separator+rsNameSuffix+"TX")),
-//     mapHandler(_fun->findFriend<lte::controlplane::IMapHandlerTiming*>(mode+separator+"mapHandler")),
-
-/* inserted by chen */
-    rstxSlave(_fun->findFriend<lte::lteDummy*>(mode+separator+rsNameSuffix+"TX")),
-    rstxIncoming(_fun->findFriend<lte::lteDummy*>(mode+separator+rsNameSuffix+"TX")),
-    mapHandler(_fun->findFriend<lte::lteDummy*>(mode+separator+"mapHandler")),
-
+    rstxSlave(_fun->findFriend<lte::timing::SlaveScheduler*>(mode+separator+rsNameSuffix+"TX")),
+    rstxIncoming(_fun->findFriend<lte::timing::SchedulerIncoming*>(mode+separator+rsNameSuffix+"TX")),
+    mapHandler(_fun->findFriend<lte::controlplane::IMapHandlerTiming*>(mode+separator+"mapHandler")),
     frameNr(config.get<int>("frameNr"))
 {
 }
@@ -228,19 +196,12 @@ ut::StartData::SwitchingPoint::execute()
     //wns::scheduler::MapInfoCollectionPtr ulMapInfo = mapHandler->getTxResources(frameNr);
     //rstxSlave->startCollection(frameNr, ulMapInfo); // start+finish inclusive
     rstxSlave->startCollection(frameNr); // start+finish inclusive
-    rstxSlave->SlaveScheduler::startCollection(frameNr); // start+finish inclusive
     mapHandler->resetResources(frameNr);
 }
 
 ut::StartData::StopData::StopData(wns::ldk::fun::FUN* _fun, const wns::pyconfig::View& config) :
     EventBase(_fun, config),
-
-/* deleted by chen */
-//     rstx(_fun->findFriend<lte::timing::SchedulerIncoming*>(mode+separator+rsNameSuffix+"TX"))
-
-/* inserted by chen */
-    rstx(_fun->findFriend<lte::lteDummy*>(mode+separator+rsNameSuffix+"TX"))
-
+    rstx(_fun->findFriend<lte::timing::SchedulerIncoming*>(mode+separator+rsNameSuffix+"TX"))
 {}
 
 void

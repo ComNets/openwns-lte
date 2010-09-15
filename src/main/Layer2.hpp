@@ -37,12 +37,10 @@
 
 namespace lte {
 
-/* deleted by chen */
-//   namespace controlplane { namespace flowmanagement {
-//       class FlowManagerBS;
-//     }}
-/* inserted by chen */
-    class lteDummy;
+
+  namespace controlplane { namespace flowmanagement {
+       class FlowManagerBS;
+    }}
 
   namespace main {
 
@@ -68,34 +66,12 @@ namespace lte {
       virtual void onShutdown();
       //@}
 
-      std::vector<std::string>
-      getTasks() const;
-
-/* deleted by chen */
-//       lte::controlplane::flowmanagement::FlowManagerBS*
-//       getFlowManagerOfMasterBS() const;
-/* inserted by chen */
-      lte::lteDummy*
-      getFlowManagerOfMasterBS() const;
-
     private:
       Layer2(const Layer2&);	//!< disallow copy constructor
       Layer2& operator=(const Layer2&); //!< disallow assignment
 
       virtual void
       doStartup();
-
-      std::vector<std::string> tasks;
-
-      /** @brief Will be used magic by the AssociationhandlerRN to get
-       * the DCCH FlowID for forwarding associationReqs
-       */
-
-/* deleted by chen */
-//       lte::controlplane::flowmanagement::FlowManagerBS* flowManagerOfMasterBS;
-/* inserted by chen */
-      lte::lteDummy* flowManagerOfMasterBS;
-
     };
   }}
 #endif // NOT defined LTE_MAIN_LAYER2_HPP

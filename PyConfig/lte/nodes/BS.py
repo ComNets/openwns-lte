@@ -26,27 +26,38 @@
 ###############################################################################
 
 import lte.phy.ofdma
+import lte.dll.component
 
 import scenarios.interfaces
 
 import rise.Mobility
 
 import openwns.node
+import openwns.logger
 
 class BS(scenarios.interfaces.INode, openwns.node.Node):
     
     def __init__(self, config, mobility):
-        openwns.node.Node.__init__(self, "BS")
+        openwns.node.Node.__init__(self, "eNB")
+
+        self.logger = openwns.logger.Logger("LTE", "eNB%d" % self.nodeID, True)
 
         self.properties = {}
-        self.properties["Type"] = "BS"
+        self.properties["Type"] = "eNB"
+        self.properties["Ring"] = 1
 
         self.name += str(self.nodeID)
 
-        self.phy = lte.phy.ofdma.BSOFDMAComponent(node = self, config = config)
+        plm = lte.phy.plm.getByName(config.plmName)
+
+        self.phy = lte.phy.ofdma.BSOFDMAComponent(node = self, plm = plm)
+
+        self.dll = lte.dll.component.eNBLayer2(node = self, name = "LTE", plm = plm, parentLogger = self.logger)
+        self.dll.setPhyDataTransmission(self.phy.dataTransmission)
+        self.dll.setPhyNotification(self.phy.notification)
 
         self.mobility = rise.Mobility.Component(node = self, 
-                                                name = "BSMobility",
+                                                name = "eNBMobility",
                                                 mobility = mobility)
 
     def setPosition(self, position):

@@ -25,33 +25,5 @@
 #
 ###############################################################################
 
-import lte.phy.plm
-class MAC:
-    def __init__(self):
-        self.duplex = 'FDD'
-        self.safetyFraction = 1.0e-8
+pairs = [("AP", "AP"), ("AP","UT"), ("UT","UT"), ("UT","AP")]
 
-class LTE:
-
-    def __init__(self):
-        self.subCarrierBandwidth = 0.015 # [MHz]
-
-        self.subCarrierPerSubChannel = 12
-
-        self.subChannelBandwidth = self.subCarrierPerSubChannel * self.subCarrierBandwidth
-
-        assert self.numSubchannels is not None, "You need to set numSubchannels in your subclass"
-
-        self.bandwidth = self.subChannelBandwidth * self.numSubchannels
-
-        self.mac = MAC()
-
-class LTEFDD10(LTE):
-
-    def __init__(self):
-        
-        self.numSubchannels = 50
-
-        LTE.__init__(self)
-
-lte.phy.plm.PLMBroker.PLMs["ltefdd10"] = LTEFDD10()

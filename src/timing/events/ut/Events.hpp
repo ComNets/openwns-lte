@@ -28,6 +28,7 @@
 #ifndef LTE_TIMING_EVENTS_UT_EVENTS_HPP
 #define LTE_TIMING_EVENTS_UT_EVENTS_HPP
 
+#include <LTE/timing/ResourceSchedulerInterface.hpp>
 #include <LTE/timing/events/Base.hpp>
 
 namespace lte {
@@ -40,8 +41,6 @@ namespace lte {
 	}
 
 	namespace timing {
-		class SlaveScheduler;
-		class SchedulerIncoming;
 
 		namespace events {
 			namespace ut {

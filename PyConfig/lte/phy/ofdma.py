@@ -79,7 +79,7 @@ class Propagation:
 
 class BSOFDMAComponent(ofdmaSTA.OFDMAComponent):
 
-    def __init__(self, node, config):
+    def __init__(self, node, plm):
         bsReceiver = BSReceiver(prop = Propagation.getInstance(),
                                  propch = node.getProperty("Type"),
                                  parentLogger = node.logger)
@@ -90,8 +90,6 @@ class BSOFDMAComponent(ofdmaSTA.OFDMAComponent):
 
         phyStation = ofdmaSTA.OFDMAStation([bsReceiver], [bsTransmitter], node.logger, eirpLimited = True)
         phyStation.beamformingAntenna = None
-
-        plm = lte.phy.plm.getByName(config.plmName)
 
         #phyStation.txFrequency = plm.phy.ulCenterFreq * 1E-6
         #phyStation.rxFrequency = plm.phy.dlCenterFreq * 1E-6
@@ -106,7 +104,7 @@ class BSOFDMAComponent(ofdmaSTA.OFDMAComponent):
 
 class UEOFDMAComponent(ofdmaSTA.OFDMAComponent):
 
-    def __init__(self, node, config):
+    def __init__(self, node, plm):
         ueReceiver = BSReceiver(prop = Propagation.getInstance(),
                                 propch = node.getProperty("Type"),
                                 parentLogger = node.logger)
@@ -117,8 +115,6 @@ class UEOFDMAComponent(ofdmaSTA.OFDMAComponent):
 
         phyStation = ofdmaSTA.OFDMAStation([ueReceiver], [ueTransmitter], node.logger, eirpLimited = True)
         phyStation.beamformingAntenna = None
-
-        plm = lte.phy.plm.getByName(config.plmName)
 
         #phyStation.txFrequency = mode.plm.phy.ulCenterFreq * 1E-6
         #phyStation.rxFrequency = mode.plm.phy.dlCenterFreq * 1E-6

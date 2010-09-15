@@ -34,12 +34,11 @@
 // #include <LTE/controlplane/MapHandler.hpp>
 // #include <LTE/macr/RACH.hpp>
 // #include <LTE/controlplane/bch/BCHUnit.hpp>
-/* inserted by chen */
-// #include <LTE/timing/ResourceSchedulerInterface.hpp>
-// #include <LTE/controlplane/MapHandlerInterface.hpp>
-// #include <LTE/macr/RACHInterface.hpp>
-// #include <LTE/controlplane/bch/BCHUnitInterface.hpp>
-#include <LTE/lteDummy.hpp>
+
+#include <LTE/timing/ResourceSchedulerInterface.hpp>
+#include <LTE/controlplane/MapHandlerInterface.hpp>
+#include <LTE/macr/RACHInterface.hpp>
+#include <LTE/controlplane/bch/BCHUnitInterface.hpp>
 
 using namespace lte::timing;
 using namespace lte::timing::events;
@@ -54,12 +53,7 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(rap::StartData, rap::EventBase, "lte.timing
 
 rap::StartRACH::StartRACH(wns::ldk::fun::FUN* _fun, const wns::pyconfig::View& config) :
     EventBase(_fun, config),
-
-/* deleted by chen */
-//     rach(_fun->findFriend<lte::macr::IRachTimingRx*>(mode+separator+"rach"))
-
-/* inserted by chen */
-    rach(_fun->findFriend<lte::lteDummy*>(mode+separator+"rach"))
+    rach(_fun->findFriend<lte::macr::IRachTimingRx*>(mode+separator+"rach"))
 {}
 
 void
@@ -74,13 +68,7 @@ rap::StartRACH::execute()
 
 rap::StartBCH::StartBCH(wns::ldk::fun::FUN* _fun, const wns::pyconfig::View& config) :
     EventBase(_fun, config),
-
-/* deleted by chen */
-//     bch(_fun->findFriend<lte::controlplane::bch::IBCHTimingTx*>(mode+separator+"bch"))
-
-/* inserted by chen */
-    bch(_fun->findFriend<lte::lteDummy*>(mode+separator+"bch"))
-
+    bch(_fun->findFriend<lte::controlplane::bch::IBCHTimingTx*>(mode+separator+"bch"))
 {}
 
 void
@@ -95,17 +83,9 @@ rap::StartBCH::execute()
 
 rap::StartMap::StartMap(wns::ldk::fun::FUN* _fun, const wns::pyconfig::View& config) :
     EventBase(_fun, config),
-
-/* deleted by chen */
-//     rstx(_fun->findFriend<lte::timing::MasterScheduler*>(mode+separator+rsNameSuffix+"TX")),
-//     rsrx(_fun->findFriend<lte::timing::MasterScheduler*>(mode+separator+rsNameSuffix+"RX")),
-//     mapHandler(_fun->findFriend<lte::controlplane::IMapHandlerTiming*>(mode+separator+"mapHandler")),
-
-/* inserted by chen */
-    rstx(_fun->findFriend<lte::lteDummy*>(mode+separator+rsNameSuffix+"TX")),
-    rsrx(_fun->findFriend<lte::lteDummy*>(mode+separator+rsNameSuffix+"RX")),
-    mapHandler(_fun->findFriend<lte::lteDummy*>(mode+separator+"mapHandler")),
-
+    rstx(_fun->findFriend<lte::timing::MasterScheduler*>(mode+separator+rsNameSuffix+"TX")),
+    rsrx(_fun->findFriend<lte::timing::MasterScheduler*>(mode+separator+rsNameSuffix+"RX")),
+    mapHandler(_fun->findFriend<lte::controlplane::IMapHandlerTiming*>(mode+separator+"mapHandler")),
     frameNr(config.get<int>("frameNr")),
     framesPerSuperFrame(config.get<int>("framesPerSuperFrame")),
     useMapResourcesInUL(config.get<bool>("useMapResourcesInUL"))
@@ -178,17 +158,9 @@ rap::StartMap::execute()
 
 rap::StartData::StartData(wns::ldk::fun::FUN* _fun, const wns::pyconfig::View& config) :
     EventBase(_fun, config),
-
-/* deleted by chen */
-//     rstx(_fun->findFriend<lte::timing::MasterScheduler*>(mode+separator+rsNameSuffix+"TX")),
-//     rsrx(_fun->findFriend<lte::timing::MasterScheduler*>(mode+separator+rsNameSuffix+"RX")),
-//     mapHandler(_fun->findFriend<lte::controlplane::IMapHandlerTiming*>(mode+separator+"mapHandler")),
-
-/* inserted by chen */
-    rstx(_fun->findFriend<lte::lteDummy*>(mode+separator+rsNameSuffix+"TX")),
-    rsrx(_fun->findFriend<lte::lteDummy*>(mode+separator+rsNameSuffix+"RX")),
-    mapHandler(_fun->findFriend<lte::lteDummy*>(mode+separator+"mapHandler")),
-
+    rstx(_fun->findFriend<lte::timing::MasterScheduler*>(mode+separator+rsNameSuffix+"TX")),
+    rsrx(_fun->findFriend<lte::timing::MasterScheduler*>(mode+separator+rsNameSuffix+"RX")),
+    mapHandler(_fun->findFriend<lte::controlplane::IMapHandlerTiming*>(mode+separator+"mapHandler")),
     mySwitchingPointEvent(_fun, config),
     myStopDataEvent(_fun, config),
     frameNr(config.get<int>("frameNr")),
@@ -255,15 +227,8 @@ rap::StartData::execute()
 
 rap::StartData::SwitchingPoint::SwitchingPoint(wns::ldk::fun::FUN* _fun, const wns::pyconfig::View& config) :
     EventBase(_fun, config),
-
-/* deleted by chen */
-//     rsrx(_fun->findFriend<lte::timing::MasterScheduler*>(mode+separator+rsNameSuffix+"RX")),
-//     mapHandler(_fun->findFriend<lte::controlplane::IMapHandlerTiming*>(mode+separator+"mapHandler")),
-
-/* inserted by chen */
-    rsrx(_fun->findFriend<lte::lteDummy*>(mode+separator+rsNameSuffix+"RX")),
-    mapHandler(_fun->findFriend<lte::lteDummy*>(mode+separator+"mapHandler")),
-
+    rsrx(_fun->findFriend<lte::timing::MasterScheduler*>(mode+separator+rsNameSuffix+"RX")),
+    mapHandler(_fun->findFriend<lte::controlplane::IMapHandlerTiming*>(mode+separator+"mapHandler")),
     frameNr(config.get<int>("frameNr"))
 {
 }
@@ -282,13 +247,7 @@ rap::StartData::SwitchingPoint::execute()
 
 rap::StartData::StopData::StopData(wns::ldk::fun::FUN* _fun, const wns::pyconfig::View& config) :
     EventBase(_fun, config),
-
-/* deleted by chen */
-//     rstx(_fun->findFriend<lte::timing::SchedulerIncoming*>(mode+separator+rsNameSuffix+"TX"))
-
-/* inserted by chen */
-    rstx(_fun->findFriend<lte::lteDummy*>(mode+separator+rsNameSuffix+"TX"))
-
+    rstx(_fun->findFriend<lte::timing::SchedulerIncoming*>(mode+separator+rsNameSuffix+"TX"))
 {}
 
 void

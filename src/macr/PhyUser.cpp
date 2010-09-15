@@ -42,7 +42,6 @@
 #include <DLL/services/management/InterferenceCache.hpp>
 #include <DLL/Layer2.hpp>
 #include <DLL/StationManager.hpp>
-#include <DLL/services/control/Association.hpp>
 
 #include <cmath>
 #include <iomanip>
@@ -60,7 +59,6 @@ PhyUser::PhyUser(wns::ldk::fun::FUN* fun, const wns::pyconfig::View& pyConfigVie
     wns::ldk::HasConnector<>(),
     wns::ldk::HasDeliverer<>(),
     wns::Cloneable<PhyUser>(),
-    lte::helper::HasModeName(pyConfigView),
     layer2(NULL),
     stateRxTx(Rx),
     logger(pyConfigView.get("logger")),
@@ -73,7 +71,6 @@ PhyUser::PhyUser(wns::ldk::fun::FUN* fun, const wns::pyconfig::View& pyConfigVie
     transmission(NULL),
     notificationService(NULL),
     mobility(NULL),
-    associationService(NULL),
     stationManager(NULL),
     measurementDelay_(pyConfigView.get<wns::simulator::Time>("measurementDelay"))
 {
@@ -90,7 +87,6 @@ PhyUser::~PhyUser()
     transmission = NULL;
     notificationService = NULL;
     mobility = NULL;
-    associationService = NULL;
     stationManager = NULL;
 } // ~PhyUser
 
@@ -101,36 +97,13 @@ PhyUser::onFUNCreated()
 
     layer2 = fun->getLayer<dll::ILayer2*>();
 
-    iCache = layer2->getManagementService<dll::services::management::InterferenceCache>("INTERFERENCECACHE"+modeBase);
-
-    associationService =
-        layer2->getControlService<dll::services::control::Association>("ASSOCIATION"+modeBase);
+    /**
+     * @todo : dbn : lterelease enable interference cache when it is available
+     */
+    // iCache = layer2->getManagementService<dll::services::management::InterferenceCache>("INTERFERENCECACHE");
 
     stationManager =
         layer2->getStationManager();
-}
-
-
-std::string
-PhyUser::getTaskForCompound(const wns::ldk::CompoundPtr& compound) const
-{
-    PhyCommand* myCommand = getCommand(compound->getCommandPool());
-
-    wns::service::dll::UnicastAddress source =
-        stationManager->getStationByNode(myCommand->magic.source)->getDLLAddress();
-
-    if (associationService->hasAssociated(source))
-        // the source is hierarchically lower, it is an uplink packet
-        return std::string("BS");
-    else if (associationService->hasAssociation())
-    {
-        // the source is hierarchically higher, it is a downlink packet
-        if (associationService->getAssociation() == source)
-            return std::string("UT");
-    }
-    // we are neither associated to the source of the packet nor is the source
-    // associated to us.
-    return std::string("BS");
 }
 
 bool

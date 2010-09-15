@@ -26,13 +26,9 @@
  ******************************************************************************/
 
 #include <LTE/helper/idprovider/PeerId.hpp>
-/* deleted by chen */
-// #include <LTE/rlc/RLC.hpp>
-// #include <LTE/macg/MACg.hpp>
-/* inserted by chen */
-// #include <LTE/macg/MACgInterface.hpp>
-// #include <LTE/rlc/RLCInterface.hpp>
-#include <LTE/lteDummy.hpp>
+
+#include <LTE/rlc/RLCCommand.hpp>
+#include <LTE/macg/MACgCommand.hpp>
 
 #include <WNS/service/Service.hpp>
 #include <WNS/ldk/CommandReaderInterface.hpp>
@@ -43,8 +39,14 @@ using namespace lte::helper::idprovider;
 
 PeerId::PeerId(wns::ldk::fun::FUN* fun) :
   layer2(fun->getLayer<dll::ILayer2*>()),
-  rlcCommandReader(fun->getCommandReader("rlc")),
-  macgCommandReader(fun->getCommandReader("macg")),
+  /**
+   * @todo dbn: lterelease: Include rlcCommandReader once macg is available in new lte module
+   */
+  //rlcCommandReader(fun->getCommandReader("rlc")),
+  /**
+   * @todo dbn: lterelease: Include macgCommandReader once macg is available in new lte module
+   */
+  //macgCommandReader(fun->getCommandReader("macg")),
   key("MAC.PeerId"),
   stationType(layer2->getStationType())
 {
@@ -67,19 +69,11 @@ PeerId::doVisit(wns::probe::bus::IContext& c, const wns::ldk::CompoundPtr& compo
 
   if ( rlcCommandReader->commandIsActivated(compound->getCommandPool()) ) {
 
-/* deleted by chen */
-//     rlc::RLCCommand* rlcCommand =
-//       rlcCommandReader->readCommand<rlc::RLCCommand>(compound->getCommandPool());
-/* inserted by chen */
-    lte::lteDummy* rlcCommand =
-      rlcCommandReader->readCommand<lte::lteDummy>(compound->getCommandPool());
+    rlc::RLCCommand* rlcCommand =
+      rlcCommandReader->readCommand<rlc::RLCCommand>(compound->getCommandPool());
 
-/* deleted by chen */
-//     sourceAddress = rlcCommand->peer.source;
-//     destinationAddress = rlcCommand->peer.destination;
-/* inserted by chen */
-    sourceAddress = rlcCommand->RLCCommand::peer.source;
-    destinationAddress = rlcCommand->RLCCommand::peer.destination;
+    sourceAddress = rlcCommand->peer.source;
+    destinationAddress = rlcCommand->peer.destination;
 
     if (myAddress == destinationAddress)
       {
@@ -95,19 +89,12 @@ PeerId::doVisit(wns::probe::bus::IContext& c, const wns::ldk::CompoundPtr& compo
   // no RLC E2E peer address available, then ask the MACg next-hop address
   if ( peerAddress == wns::service::dll::UnicastAddress() && macgCommandReader->commandIsActivated(compound->getCommandPool())) {
 
-/* deleted by chen */
-//     macg::MACgCommand* macgCommand =
-//       macgCommandReader->readCommand<macg::MACgCommand>(compound->getCommandPool());
-/* inserted by chen */
-    lte::lteDummy* macgCommand =
-      macgCommandReader->readCommand<lte::lteDummy>(compound->getCommandPool());
+    macg::MACgCommand* macgCommand =
+      macgCommandReader->readCommand<macg::MACgCommand>(compound->getCommandPool());
 
-/* deleted by chen */
-//     sourceAddress = macgCommand->peer.source;
-//     destinationAddress = macgCommand->peer.dest;
-/* inserted by chen */
-    sourceAddress = macgCommand->MACgCommand::peer.source;
-    destinationAddress = macgCommand->MACgCommand::peer.dest;
+
+    sourceAddress = macgCommand->peer.source;
+    destinationAddress = macgCommand->peer.dest;
 
     if (myAddress == destinationAddress)
       {

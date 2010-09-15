@@ -27,11 +27,7 @@
 
 #include <LTE/helper/idprovider/QoSClass.hpp>
 #include <LTE/helper/QoSClasses.hpp>
-/* deleted by chen */
-// #include <LTE/rlc/RLC.hpp>
-/* inserted by chen */
-// #include <LTE/rlc/RLCInterface.hpp>
-#include <LTE/lteDummy.hpp>
+#include <LTE/rlc/RLCCommand.hpp>
 
 #include <WNS/service/Service.hpp>
 #include <WNS/ldk/CommandReaderInterface.hpp>
@@ -42,8 +38,11 @@
 using namespace lte::helper::idprovider;
 
 QoSClass::QoSClass(wns::ldk::fun::FUN* fun) :
-    rlcCommandReader(fun->getCommandReader("rlc")),
-    key("MAC.QoSClass")
+  /**
+   * @todo dbn: lterelease: Include rlcCommandReader once macg is available in new lte module
+   */
+  //rlcCommandReader(fun->getCommandReader("rlc")),
+  key("MAC.QoSClass")
 {
 }
 
@@ -59,22 +58,16 @@ QoSClass::doVisit(wns::probe::bus::IContext& c, const wns::ldk::CompoundPtr& com
 
     if (rlcCommandReader->commandIsActivated(compound->getCommandPool())) {
 
-/* deleted by chen */
-//         rlc::RLCCommand* rlcCommand = rlcCommandReader->readCommand<rlc::RLCCommand>(compound->getCommandPool());
-/* inserted by chen */
-        lte::lteDummy* rlcCommand = rlcCommandReader->readCommand<lte::lteDummy>(compound->getCommandPool());
-
-/* deleted by chen */
-//         wns::service::qos::QoSClass qosClass = rlcCommand->peer.qosClass;
-/* inserted by chen */
-        wns::service::qos::QoSClass qosClass = rlcCommand->RLCCommand::peer.qosClass;
-
-        // No assure here, because assure is already in lte::helper::ThroughputProbe
-        // Maybe we do NOT want to sort by the QoSClass and do NOT use lte::helper::ThroughputProbe,
-        // but wns::probe::bus::Window/Packet, then QoSClass may not be set
-        if (qosClass!=lte::helper::QoSClasses::UNDEFINED())
+      rlc::RLCCommand* rlcCommand = rlcCommandReader->readCommand<rlc::RLCCommand>(compound->getCommandPool());
+      
+      wns::service::qos::QoSClass qosClass = rlcCommand->peer.qosClass;
+      
+      // No assure here, because assure is already in lte::helper::ThroughputProbe
+      // Maybe we do NOT want to sort by the QoSClass and do NOT use lte::helper::ThroughputProbe,
+      // but wns::probe::bus::Window/Packet, then QoSClass may not be set
+      if (qosClass!=lte::helper::QoSClasses::UNDEFINED())
         {
-            c.insertInt(this->key, qosClass);
+	  c.insertInt(this->key, qosClass);
         }
     }
 }

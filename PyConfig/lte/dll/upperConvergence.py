@@ -25,33 +25,31 @@
 #
 ###############################################################################
 
-import lte.phy.plm
-class MAC:
-    def __init__(self):
-        self.duplex = 'FDD'
-        self.safetyFraction = 1.0e-8
+import openwns.logger
+import openwns
 
-class LTE:
+class eNB(openwns.StaticFactoryClass):
 
-    def __init__(self):
-        self.subCarrierBandwidth = 0.015 # [MHz]
+    def __init__(self, parentLogger = None):
+        openwns.StaticFactoryClass.__init__(self, 'lte.eNBUpperConvergence')
 
-        self.subCarrierPerSubChannel = 12
+        self.functionalUnitName = "upperConvergence"
+        self.commandName = "upperConvergence"
 
-        self.subChannelBandwidth = self.subCarrierPerSubChannel * self.subCarrierBandwidth
+        self.logger = openwns.logger.Logger(moduleName = "LTE",
+                                            name = "eNBUpperConv",
+                                            enabled = True,
+                                            parent = parentLogger)
 
-        assert self.numSubchannels is not None, "You need to set numSubchannels in your subclass"
+class UE(openwns.StaticFactoryClass):
 
-        self.bandwidth = self.subChannelBandwidth * self.numSubchannels
+    def __init__(self, parentLogger = None):
+        openwns.StaticFactoryClass.__init__(self, 'lte.UEUpperConvergence')
 
-        self.mac = MAC()
+        self.functionalUnitName = "upperConvergence"
+        self.commandName = "upperConvergence"
 
-class LTEFDD10(LTE):
-
-    def __init__(self):
-        
-        self.numSubchannels = 50
-
-        LTE.__init__(self)
-
-lte.phy.plm.PLMBroker.PLMs["ltefdd10"] = LTEFDD10()
+        self.logger = openwns.logger.Logger(moduleName = "LTE",
+                                            name = "UEUpperConv",
+                                            enabled = True,
+                                            parent = parentLogger)

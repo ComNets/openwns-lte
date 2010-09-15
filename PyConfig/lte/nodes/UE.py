@@ -11,12 +11,21 @@ class UE(scenarios.interfaces.INode, openwns.node.Node):
     def __init__(self, config, mobility):
         openwns.node.Node.__init__(self, "UE")
 
+        self.logger = openwns.logger.Logger("LTE", "UE%d" % self.nodeID, True)
+
         self.name += str(self.nodeID)
 
         self.properties = {}
         self.properties["Type"] = "UE"
+        self.properties["Ring"] = 1
 
-        self.phy = lte.phy.ofdma.UEOFDMAComponent(node = self, config = config)
+        plm = lte.phy.plm.getByName(config.plmName)
+
+        self.phy = lte.phy.ofdma.UEOFDMAComponent(node = self, plm = plm)
+
+        self.dll = lte.dll.component.ueLayer2(node = self, name = "LTE", plm = plm, parentLogger = self.logger)
+        self.dll.setPhyDataTransmission(self.phy.dataTransmission)
+        self.dll.setPhyNotification(self.phy.notification)
 
         self.mobility = rise.Mobility.Component(node = self, 
                                                 name = "UEMobility",

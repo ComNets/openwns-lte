@@ -29,8 +29,6 @@
 #define LTE_MACR_PHYUSER_HPP
 
 #include <LTE/macr/PhyCommand.hpp>
-#include <LTE/controlplane/TaskDispatcher.hpp>
-#include <LTE/helper/HasModeName.hpp>
 
 #include <WNS/ldk/FunctionalUnit.hpp>
 #include <WNS/ldk/Compound.hpp>
@@ -98,9 +96,7 @@ namespace lte{
                 public wns::ldk::HasConnector<>,
                 public wns::ldk::HasDeliverer<>,
                 public wns::Cloneable<PhyUser>,
-                virtual public lte::controlplane::TaskInfoInterface,
                 virtual public wns::service::phy::ofdma::Handler,
-                public lte::helper::HasModeName,
                 public IRxTxSettable
         {
             /** @brief Event triggering the start of a PHY transmission */
@@ -164,12 +160,6 @@ namespace lte{
             //@{
             virtual void
             onFUNCreated();
-            //@}
-
-            /** @name TaskInfoInterface */
-            //@{
-            virtual std::string
-            getTaskForCompound(const wns::ldk::CompoundPtr& compound) const;
             //@}
 
             /** @name CompoundHandlerInterface */
@@ -291,9 +281,6 @@ namespace lte{
 
             /** @brief pointer to mobility component */
             wns::PositionableInterface* mobility;
-
-            /** @brief pointer to the association info service */
-            dll::services::control::Association* associationService;
 
             /** @brief pointer to the station Manager info service */
             dll::StationManager* stationManager;

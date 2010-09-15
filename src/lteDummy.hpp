@@ -50,7 +50,7 @@ namespace lte
 
 /* included in LTE/timing/ResourceSchedulerInterface.hpp */
         public lte::timing::MasterScheduler,
-        public lte::timing::SlaveScheduler,
+        //public lte::timing::SlaveScheduler,
 /* @chen already inherited by lte::timing::MasterScheduler or lte::timing::SlaveScheduler */
 //         public lte::timing::SchedulerIncoming,
         public lte::timing::SchedulerFUInterface,

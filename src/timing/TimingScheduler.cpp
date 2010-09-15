@@ -32,10 +32,10 @@
 #include <LTE/main/Layer2.hpp>
 /* deleted by chen */
 // #include <LTE/controlplane/associationHandler/AssociationHandler.hpp>
-// #include <LTE/controlplane/bch/LTEBCHUnit.hpp>
-/* inserted by chen */
-// #include <LTE/controlplane/bch/LTEBCHUnitInterface.hpp>
-#include <LTE/lteDummy.hpp>
+//#include <LTE/controlplane/bch/LTEBCHUnit.hpp>
+
+#include <LTE/controlplane/bch/BCHUnitInterface.hpp>
+
 
 #include <DLL/StationManager.hpp>
 
@@ -132,21 +132,12 @@ TimingScheduler::onWorldCreated()
         MESSAGE_SINGLE(NORMAL, logger, "onWorldCreated(): getting timingScheduler of peer "<<A2N(peerAddress));
         dll::ILayer2* peer = layer2->getStationManager()->getStationByMAC(peerAddress);
 
-        std::vector<std::string> tasks = static_cast<lte::main::Layer2*>(peer)->getTasks();
-
         lte::timing::TimingScheduler* peerTimingScheduler = NULL;
-        if (tasks.empty())
-        {
-            peerTimingScheduler =
-                peer->
-                getManagementService<lte::timing::TimingScheduler>(getTimerName());
-        }
-        else
-        {
-            peerTimingScheduler =
-                peer->
-                getManagementService<lte::timing::TimingScheduler>(getTaskTimerName("UT"));
-        }
+
+	peerTimingScheduler =
+	  peer->
+	  getManagementService<lte::timing::TimingScheduler>(getTimerName());
+
         assure(peerTimingScheduler,"No valid peerTimingScheduler!");
         peerTimingSchedulers.insert(peerAddress, peerTimingScheduler);
     }
@@ -398,21 +389,11 @@ TimingScheduler::onAssociated(wns::service::dll::UnicastAddress userAdr, wns::se
     {
         dll::ILayer2* newUser = layer2->getStationManager()->getStationByMAC(userAdr);
 
-        std::vector<std::string> tasks = static_cast<lte::main::Layer2*>(newUser)->getTasks();
-
         TimingScheduler* userTimingScheduler = NULL;
-        if (tasks.empty())
-        {
-            userTimingScheduler =
-                newUser->
-                getManagementService<lte::timing::TimingScheduler>(getTimerName());
-        }
-        else
-        {
-            userTimingScheduler =
-                newUser->
-                getManagementService<lte::timing::TimingScheduler>(getTaskTimerName("UT"));
-        }
+
+	userTimingScheduler =
+	  newUser->
+	  getManagementService<lte::timing::TimingScheduler>(getTimerName());
 
         addPeerTimingScheduler(userAdr, userTimingScheduler);
         MESSAGE_SINGLE(NORMAL, logger, "Successfully added Peer TimingScheduler for user=" << A2N(userAdr));
@@ -437,12 +418,7 @@ TimingScheduler::superFrameTrigger()
      * @todo dbn: Move this to the data phases and make it happen every 0th and 5th frame
      */
     try {
-/* deleted by chen */
-//         lte::controlplane::bch::LTEBCHUnitRAP* bch = this->fun->findFriend<lte::controlplane::bch::LTEBCHUnitRAP*>(mode+separator+"bch");
-
-/* inserted by chen */
-        lte::lteDummy* bch = this->fun->findFriend<lte::lteDummy*>(mode+separator+"bch");
-
+        lte::controlplane::bch::IBCHTimingTx* bch = this->fun->findFriend<lte::controlplane::bch::IBCHTimingTx*>(mode+separator+"bch");
         if (bch != NULL)
         {
             bch->sendBCH(0.0005);
