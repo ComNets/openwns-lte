@@ -91,11 +91,11 @@ class BSOFDMAComponent(ofdmaSTA.OFDMAComponent):
         phyStation = ofdmaSTA.OFDMAStation([bsReceiver], [bsTransmitter], node.logger, eirpLimited = True)
         phyStation.beamformingAntenna = None
 
-        #phyStation.txFrequency = plm.phy.ulCenterFreq * 1E-6
-        #phyStation.rxFrequency = plm.phy.dlCenterFreq * 1E-6
-        #phyStation.txPower = mode.plm.phy.txPwrUT.nominalPerSubband
+        phyStation.txFrequency = plm.phy.ulCenterFreq * 1E-6
+        phyStation.rxFrequency = plm.phy.dlCenterFreq * 1E-6
+        phyStation.txPower = plm.phy.txPwrUT.nominalPerSubband
         # overall Power
-        #phyStation.totalPower = mode.plm.phy.txPwrUT.maxOverall
+        phyStation.totalPower = plm.phy.txPwrUT.maxOverall
         phyStation.numberOfSubCarrier = plm.numSubchannels
         phyStation.bandwidth = plm.bandwidth
         #phyStation.systemManagerName = 'ofdma_'+mode.modeName
@@ -116,11 +116,11 @@ class UEOFDMAComponent(ofdmaSTA.OFDMAComponent):
         phyStation = ofdmaSTA.OFDMAStation([ueReceiver], [ueTransmitter], node.logger, eirpLimited = True)
         phyStation.beamformingAntenna = None
 
-        #phyStation.txFrequency = mode.plm.phy.ulCenterFreq * 1E-6
-        #phyStation.rxFrequency = mode.plm.phy.dlCenterFreq * 1E-6
-        #phyStation.txPower = mode.plm.phy.txPwrUT.nominalPerSubband
+        phyStation.txFrequency = plm.phy.ulCenterFreq * 1E-6
+        phyStation.rxFrequency = plm.phy.dlCenterFreq * 1E-6
+        phyStation.txPower = plm.phy.txPwrUT.nominalPerSubband
         # overall Power
-        #phyStation.totalPower = mode.plm.phy.txPwrUT.maxOverall
+        phyStation.totalPower = plm.phy.txPwrUT.maxOverall
         phyStation.numberOfSubCarrier = plm.numSubchannels
         phyStation.bandwidth = plm.bandwidth
         #phyStation.systemManagerName = 'ofdma_'+mode.modeName

@@ -82,6 +82,7 @@ pyconfigs = [
     'lte/phy/__init__.py',
     'lte/phy/plm/__init__.py',
     'lte/phy/plm/fdd/__init__.py',
+    'lte/phy/plm/fdd/default.py',
     'lte/phy/plm/fdd/lteFDD10.py',
     'lte/phy/ofdma.py',
     'lte/dll/__init__.py',
