@@ -130,10 +130,7 @@ AssociationsProxyBS::onCSRCreated()
 
   myUpperConvergence = layer2->getFUN()->findFriend<dll::APUpperConvergence*>("upperConvergence");
 
-  /**
-   * @todo dbn: lterelease: Enable fetching of upperSynchronizer when it is available
-   */
-  //upperSynchronizer = layer2->getFUN()->findFriend<wns::ldk::tools::Synchronizer*>("upperSynchronizer");
+  upperSynchronizer = layer2->getFUN()->findFriend<wns::ldk::tools::Synchronizer*>("upperSynchronizer");
 
   /**
    * @todo dbn: lterelease: Enable periodic timeout when timing is used
@@ -326,10 +323,7 @@ AssociationsProxyUT::onCSRCreated()
 
   rlc = layer2->getFUN()->findFriend<lte::rlc::UERLC*>("rlc");
 
-  /**
-   * @todo dbn: lterelease: Enable upperSynchronizer when available
-   */  
-  //upperSynchronizer = layer2->getFUN()->findFriend<wns::ldk::tools::Synchronizer*>("upperSynchronizer");
+  upperSynchronizer = layer2->getFUN()->findFriend<wns::ldk::tools::Synchronizer*>("upperSynchronizer");
 
   // Only interested in the receptacle aspect of the macg FU to send a wakeup
   /**

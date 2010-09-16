@@ -102,6 +102,7 @@ pyconfigs = [
     'lte/dll/phyUser.py',
     'lte/dll/controlplane/__init__.py',
     'lte/dll/controlplane/association.py',
+    'lte/dll/controlplane/flowmanager.py',
     'lte/support/__init__.py',
     'lte/support/helper.py',
 

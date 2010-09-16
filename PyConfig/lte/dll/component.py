@@ -29,11 +29,14 @@ import lte.dll.upperConvergence
 import lte.dll.rlc
 import lte.dll.phyUser
 import lte.dll.controlplane.association
-
+import lte.dll.controlplane.flowmanager
 from lte.support.helper import connectFUs
 
 import dll.Layer2
+
 import openwns.FUN
+import openwns.Tools
+import openwns.FlowSeparator
 
 class eNBLayer2( dll.Layer2.Layer2 ):
 
@@ -56,6 +59,14 @@ class eNBLayer2( dll.Layer2.Layer2 ):
         upperConvergence = lte.dll.upperConvergence.eNB(self.logger)
         self.fun.add(upperConvergence)
 
+        upperSynchronizer = openwns.Tools.Synchronizer(commandName='upperSynchronizer')
+        self.fun.add(upperSynchronizer)
+
+        upperFlowGate = openwns.FlowSeparator.FlowGate(fuName = 'upperFlowGate',
+                                                       keyBuilder = lte.dll.controlplane.flowmanager.FlowID(),
+                                                       parentLogger = self.logger)
+        self.fun.add(upperFlowGate)
+
         rlc = lte.dll.rlc.eNBRLC(self.logger)
         self.fun.add(rlc)
 
@@ -70,6 +81,8 @@ class eNBLayer2( dll.Layer2.Layer2 ):
 
         connectFUs([
                 (upperConvergence, rlc),
+                (rlc, upperSynchronizer),
+                (upperSynchronizer, upperFlowGate),
                 ])
 
     def _setupControlServices(self):
@@ -103,6 +116,14 @@ class ueLayer2( dll.Layer2.Layer2 ):
         upperConvergence = lte.dll.upperConvergence.UE(self.logger)
         self.fun.add(upperConvergence)
 
+        upperSynchronizer = openwns.Tools.Synchronizer(commandName='upperSynchronizer')
+        self.fun.add(upperSynchronizer)
+
+        upperFlowGate = openwns.FlowSeparator.FlowGate(fuName = 'upperFlowGate',
+                                                       keyBuilder = lte.dll.controlplane.flowmanager.FlowID(),
+                                                       parentLogger = self.logger)
+        self.fun.add(upperFlowGate)
+
         rlc = lte.dll.rlc.UERLC(self.logger)
         self.fun.add(rlc)
 
@@ -117,6 +138,8 @@ class ueLayer2( dll.Layer2.Layer2 ):
 
         connectFUs([
                 (upperConvergence, rlc),
+                (rlc, upperSynchronizer),
+                (upperSynchronizer, upperFlowGate),
                 ])
 
     def _setupControlServices(self):
