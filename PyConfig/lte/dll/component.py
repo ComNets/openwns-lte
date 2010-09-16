@@ -28,6 +28,8 @@
 import lte.dll.upperConvergence
 import lte.dll.rlc
 import lte.dll.phyUser
+import lte.dll.controlplane.association
+
 from lte.support.helper import connectFUs
 
 import dll.Layer2
@@ -46,6 +48,9 @@ class eNBLayer2( dll.Layer2.Layer2 ):
         self.phyDataTransmission = {}
         self.phyNotification = {}
 
+        self._setupControlServices()
+
+        # Build the FUN
         self.fun = openwns.FUN.FUN(self.logger)
 
         upperConvergence = lte.dll.upperConvergence.eNB(self.logger)
@@ -67,6 +72,10 @@ class eNBLayer2( dll.Layer2.Layer2 ):
                 (upperConvergence, rlc),
                 ])
 
+    def _setupControlServices(self):
+        self.associationsProxy = lte.dll.controlplane.association.ENBAssociationsProxy(self.logger)
+        self.controlServices.append(self.associationsProxy)
+
     def setPhyDataTransmission(self, modeName, serviceName):
         """set the name of the PHY component for a certain mode"""
         self.phyDataTransmission[modeName] = serviceName
@@ -86,6 +95,8 @@ class ueLayer2( dll.Layer2.Layer2 ):
         self.phyUsers = {}
         self.phyDataTransmission = {}
         self.phyNotification = {}
+
+        self._setupControlServices()
 
         self.fun = openwns.FUN.FUN(self.logger)
 
@@ -107,6 +118,10 @@ class ueLayer2( dll.Layer2.Layer2 ):
         connectFUs([
                 (upperConvergence, rlc),
                 ])
+
+    def _setupControlServices(self):
+        self.associationsProxy = lte.dll.controlplane.association.UEAssociationsProxy(self.logger)
+        self.controlServices.append(self.associationsProxy)
 
     def setPhyDataTransmission(self, modeName, serviceName):
         """set the name of the PHY component for a certain mode"""

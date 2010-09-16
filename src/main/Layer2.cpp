@@ -36,12 +36,6 @@
 #include <LTE/macr/PhyUser.hpp>
 #include <LTE/timing/ResourceSchedulerInterface.hpp>
 
-/* deleted by chen */
-// #include <LTE/helper/Exception.hpp>
-//#include <LTE/macr/CQIMeasurement.hpp>
-// #include <LTE/controlplane/AssociationsProxy.hpp>
-// #include <LTE/controlplane/flowmanagement/FlowManager.hpp>
-/* inserted by chen */
 #include <LTE/macr/Mode.hpp>
 #include <LTE/macr/CQIMeasurementInterface.hpp>
 #include <LTE/controlplane/AssociationsProxyInterface.hpp>
@@ -51,7 +45,7 @@
 #include <WNS/service/phy/ofdma/DataTransmission.hpp>
 #include <WNS/ldk/utils.hpp>
 #include <WNS/pyconfig/Parser.hpp>
-/* inserted by chen */
+
 #include <WNS/service/phy/ofdma/Measurements.hpp>
 
 #include <DLL/services/control/Association.hpp>

@@ -29,8 +29,6 @@
 #define LTE_MAIN_LAYER2_HPP
 
 #include <DLL/Layer2.hpp>
-/* deleted by chen */
-// #include <LTE/macr/Mode.hpp>
 
 #include <vector>
 

@@ -39,7 +39,7 @@
 #include <WNS/ldk/HasDeliverer.hpp>
 #include <WNS/logger/Logger.hpp>
 
-namespace lte {	namespace controlplane{ namespace flowmanager { class IFlowSwitching;}}}
+namespace lte {	namespace controlplane{ namespace flowmanagement { class IFlowSwitching;}}}
 
 namespace lte { namespace rlc {
 
@@ -74,7 +74,7 @@ public:
 private:
 
   struct {
-    lte::controlplane::flowmanager::IFlowSwitching* flowswitching;
+    lte::controlplane::flowmanagement::IFlowSwitching* flowswitching;
   } friends;
 
   wns::ldk::CommandReaderInterface* upperConvergenceReader;

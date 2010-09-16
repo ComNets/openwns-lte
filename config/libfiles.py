@@ -14,6 +14,8 @@ srcFiles = [
 
     'src/macr/PhyUser.cpp',
 
+    'src/controlplane/AssociationsProxy.cpp',
+
     'src/timing/TimingScheduler.cpp',
     'src/timing/events/Base.cpp',
     'src/timing/events/rap/Events.cpp',
@@ -49,6 +51,8 @@ hppFiles = [
     'src/controlplane/MapHandlerInterface.hpp',
     'src/controlplane/bch/BCHUnitInterface.hpp',
     'src/controlplane/AssociationsProxyInterface.hpp',
+    'src/controlplane/AssociationsProxy.hpp',
+    'src/controlplane/associationHandler/IAssociationHandler.hpp',
     'src/controlplane/flowmanagement/IFlowManager.hpp',
 
     'src/timing/TimingScheduler.hpp',
@@ -96,6 +100,8 @@ pyconfigs = [
     'lte/dll/upperConvergence.py',
     'lte/dll/rlc.py',
     'lte/dll/phyUser.py',
+    'lte/dll/controlplane/__init__.py',
+    'lte/dll/controlplane/association.py',
     'lte/support/__init__.py',
     'lte/support/helper.py',
 

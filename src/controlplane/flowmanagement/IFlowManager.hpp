@@ -30,36 +30,10 @@
 
 #include <LTE/helper/TransactionID.hpp>
 
+#include <WNS/service/dll/Address.hpp>
 #include <WNS/service/tl/FlowID.hpp>
 
-namespace lte { namespace controlplane { namespace flowmanager {
-
-class IFlowManagerUE
-{
-public:
-
-  virtual bool
-  isValidFlow(const wns::ldk::ConstKeyPtr& key) const = 0;
-
-  virtual void
-  buildFlow(wns::service::tl::FlowID,
-	    wns::service::qos::QoSClass) = 0;
-
-  virtual void
-  releaseFlow(wns::service::tl::FlowID flowID) = 0;
-};
-
-class IFlowManagerENB
-{
-public:
-  virtual void
-  registerFlowID(lte::helper::TransactionID _transactionId,
-		 wns::service::dll::FlowID _flowIDout,
-		 wns::service::dll::UnicastAddress utAddress) = 0;
-
-  virtual void
-  onFlowReleaseAck(wns::service::dll::FlowID flowIDout) = 0;
-};
+namespace lte { namespace controlplane { namespace flowmanagement {
 
 class IFlowSwitching
 {
@@ -86,6 +60,52 @@ public:
 
   virtual void
   setControlPlaneFlowIDs(wns::service::dll::UnicastAddress peerAddress, ControlPlaneFlowIDs flowIDs) = 0;
+};
+
+class IFlowManagerUE:
+public IFlowSwitching
+{
+public:
+  typedef std::string ModeName;
+  virtual bool
+  isValidFlow(const wns::ldk::ConstKeyPtr& key) const = 0;
+
+  virtual void
+  buildFlow(wns::service::tl::FlowID,
+	    wns::service::qos::QoSClass) = 0;
+
+  virtual void
+  releaseFlow(wns::service::tl::FlowID flowID) = 0;
+
+  virtual void
+  onAssociatedPerMode(wns::service::dll::UnicastAddress rapAdr, bool preserved) = 0;
+
+  virtual void
+  onPlainDisassociation(ModeName mode) = 0;
+
+  virtual void
+  onDisassociatedPerMode(wns::service::dll::UnicastAddress bsAdr, ModeName mode, bool preserved) = 0;
+
+  virtual void
+  disassociating(ModeName mode) = 0;
+
+};
+
+class IFlowManagerENB:
+public IFlowSwitching
+{
+public:
+  typedef std::string ModeName;
+  virtual void
+  registerFlowID(lte::helper::TransactionID _transactionId,
+		 wns::service::dll::FlowID _flowIDout,
+		 wns::service::dll::UnicastAddress utAddress) = 0;
+
+  virtual void
+  onFlowReleaseAck(wns::service::dll::FlowID flowIDout) = 0;
+    
+  virtual void
+  onDisassociationReq(wns::service::dll::UnicastAddress userAdr, ModeName mode, bool preserved) = 0;
 };
 
 } // flowmanager

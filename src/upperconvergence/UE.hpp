@@ -33,7 +33,7 @@
 
 #include <WNS/ldk/FunctionalUnit.hpp>
 
-namespace lte { namespace controlplane { namespace flowmanager { class IFlowManagerUE; }}}
+namespace lte { namespace controlplane { namespace flowmanagement { class IFlowManagerUE; }}}
 
 namespace lte { namespace upperconvergence {
 
@@ -85,7 +85,7 @@ private:
   
   dll::ILayer2* layer2;
   
-  lte::controlplane::flowmanager::IFlowManagerUE* flowManager;
+  lte::controlplane::flowmanagement::IFlowManagerUE* flowManager;
   
   wns::service::dll::FlowHandler* tlFlowHandler;
 };
