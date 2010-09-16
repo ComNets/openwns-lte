@@ -107,41 +107,80 @@ Layer2::onNodeCreated()
   getMSR()->onMSRCreated();
   getCSR()->onCSRCreated();
 
-  lte::macr::PhyUser* phyUser =
-    getFUN()->findFriend<lte::macr::PhyUser*>("phyUser");
 
-  // Set services in PhyUser to establish the connection of my FUN with lower layer
-  // obtain and set DataTransmission Service
-  std::string transServiceName = getConfig().get<std::string>("phyDataTransmission");
-  std::string notifyServiceName = getConfig().get<std::string>("phyNotification");
 
-  wns::service::phy::ofdma::DataTransmission* phyDataTx =
-    getService<wns::service::phy::ofdma::DataTransmission*>( transServiceName );
+  // First obtain the dicts with the PHY service names.
+  wns::pyconfig::View phyDataTransView(config, "phyDataTransmission");
+  wns::pyconfig::View phyNotifyView(config, "phyNotification");
+  wns::pyconfig::View phyMeasurementsView(config, "phyMeasurements");
 
-  // obtain and set Notification Service
-  wns::service::phy::ofdma::Notification* phyNotification =
-    getService<wns::service::phy::ofdma::Notification*>( notifyServiceName );
-  
-  // Inject dependencies to PhyUser
-  phyUser->setDataTransmissionService( phyDataTx );  
-  phyUser->setNotificationService( phyNotification );
+  // Check whether the dicts are complete (i.e., contain equal number of modes.)
+  int numModes  = phyDataTransView.get<int>("__len__()");
+  int numModes2 = phyNotifyView.get<int>("__len__()");
 
-  // Inform PhyUser about our MAC Address
-  phyUser->setMACAddress(address);
-  // Inform PhyUser about our Mobility Service
-  phyUser->setMobility( getNode()->getService<wns::PositionableInterface*>("mobility") );
+  assure(numModes == numModes2, "unequal size of phyDataTransmission and phyNotification service dicts");
 
-  /**
-   * @todo dbn: lterelease enable scheduler creation in layer2 once the scheduler is available
-   */
-  /*lte::timing::SchedulerFUInterface* rstx =
-    getFUN()->findFriend<lte::timing::SchedulerFUInterface*>("resourceSchedulerTX");
+  for(int i=0; i<numModes; i++) // forall modes
+    {
+      // obtain mode name from keys() list in the dict
+      std::string modeName = phyDataTransView.get<std::string>("keys()", i);
 
-  lte::timing::SchedulerFUInterface* rsrx =
-    getFUN()->findFriend<lte::timing::SchedulerFUInterface*>("resourceSchedulerRX");
+      // Safety check: make sure that the ordering [i] is the same for both Dicts
+      assure( modeName == phyNotifyView.get<std::string>("keys()", i),
+	      "mode name mismatch between phyDataTransmission and phyNotification service dicts" );
 
-  rstx->onNodeCreated();
-  rsrx->onNodeCreated();*/
+      // obtain PHY service names from values() list in the dicts
+      std::string transServiceName       = phyDataTransView.get<std::string>("values()", i);
+      std::string notifyServiceName      = phyNotifyView.get<std::string>("values()", i);
+
+      MESSAGE_SINGLE(NORMAL, logger, "onNodeCreated(): setting physical layer for mode " << modeName);
+
+      // obtain pointer to mode-specific PhyUser in the FUN
+      lte::macr::PhyUser* phyUser =
+	getFUN()->findFriend<lte::macr::PhyUser*>(modeName+"_phyUser");
+
+      // Set services in PhyUser to establish the connection of my FUN with lower layer
+      // obtain and set DataTransmission Service
+      wns::service::phy::ofdma::DataTransmission* phyDataTx =
+	getService<wns::service::phy::ofdma::DataTransmission*>( transServiceName );
+      phyUser->setDataTransmissionService( phyDataTx );
+      // obtain and set Notification Service
+      wns::service::phy::ofdma::Notification* phyNotification =
+	getService<wns::service::phy::ofdma::Notification*>( notifyServiceName );
+      phyUser->setNotificationService( phyNotification );
+
+      // Inform PhyUser about our MAC Address
+      phyUser->setMACAddress(address);
+      // Inform PhyUser about our Mobility Service
+      phyUser->setMobility( getNode()->getService<wns::PositionableInterface*>("mobility") );
+
+      /**
+       * @todo dbn: lterelease: Enable dependency resolution for resource scheduler when available
+       */
+      // dependency resolution in TX and RX ResourceScheduler
+      /*if (tasks.empty())
+	{
+	  winprost::timing::SchedulerFUInterface* rstx =
+	    getFUN()->findFriend<winprost::timing::SchedulerFUInterface*>(modeName+"_resourceSchedulerTX");
+	  rstx->onNodeCreated();
+	  winprost::timing::SchedulerFUInterface* rsrx =
+	    getFUN()->findFriend<winprost::timing::SchedulerFUInterface*>(modeName+"_resourceSchedulerRX");
+	  rsrx->onNodeCreated();
+	}
+      else
+	{
+	  for (unsigned int rr=0; rr<tasks.size(); ++rr){ // forall tasks in a relay (BS,UT)
+	    std::string taskName = tasks.at(rr);
+
+	    winprost::timing::SchedulerFUInterface* rstx =
+	      getFUN()->findFriend<winprost::timing::SchedulerFUInterface*>(modeName+"_"+taskName+"_resourceSchedulerTX");
+	    rstx->onNodeCreated();
+	    winprost::timing::SchedulerFUInterface* rsrx =
+	      getFUN()->findFriend<winprost::timing::SchedulerFUInterface*>(modeName+"_"+taskName+"_resourceSchedulerRX");
+	    rsrx->onNodeCreated();
+	  }
+	  }*/
+    }
 }
 
 void

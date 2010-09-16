@@ -25,25 +25,16 @@
 #
 ###############################################################################
 
-import lte.modes.hasModeName
-
-import openwns.FUN
+import dll.Services
 import openwns.logger
-import openwns
 
-class PhyUser(openwns.FUN.FunctionalUnit,
-              openwns.StaticFactoryClass,
-              lte.modes.hasModeName.HasModeName):
+class PartitioningInfo(dll.Services.Service):
+   scheme = None
+   logger = None
 
-    def __init__(self, modeName, plm, functionalUnitName = "phyUser", parentLogger=None):
-        openwns.StaticFactoryClass.__init__(self, 'lte.macr.PhyUser')
-        openwns.FUN.FunctionalUnit.__init__(self, functionalUnitName = functionalUnitName)
-
-        self.modeName = modeName
-
-        self.plm = plm
-
-        self.measurementDelay = 6.0e-03
-
-        self.logger = openwns.logger.Logger('LTE','PhyUser', True, parentLogger)
-
+   def __init__(self, scheme, name='', parentLogger = None):
+      self.nameInServiceFactory = "lte.timing.partitioning.PartitioningInfo"
+      self.serviceName = 'PARTITIONINGINFO'+name
+      self.scheme = scheme
+      self.scheme.setParentLogger(parentLogger);
+      self.logger = openwns.logger.Logger("WinProSt", "PartInfo", True, parentLogger)

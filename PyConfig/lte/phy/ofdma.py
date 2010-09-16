@@ -67,62 +67,50 @@ class UETransmitter(ofdmaTRM.OFDMATransmitter):
                                            propagationCharacteristicName = propch,
                                            parentLogger = parentLogger)
 
-class Propagation:
-
-    propagation = None
-
-    @staticmethod
-    def getInstance():
-        if Propagation.propagation is None:
-            Propagation.propagation = rise.scenario.Propagation.Propagation()
-        return Propagation.propagation
-
 class BSOFDMAComponent(ofdmaSTA.OFDMAComponent):
 
-    def __init__(self, node, plm):
-        bsReceiver = BSReceiver(prop = Propagation.getInstance(),
-                                 propch = node.getProperty("Type"),
-                                 parentLogger = node.logger)
+    def __init__(self, node, mode):
+        bsReceiver = BSReceiver(prop = rise.scenario.Propagation.Propagation(),
+                                propch = node.getProperty("Type"),
+                                parentLogger = node.logger)
         
-        bsTransmitter = BSTransmitter(prop = Propagation.getInstance(),
+        bsTransmitter = BSTransmitter(prop = rise.scenario.Propagation.Propagation(),
                                       propch = node.getProperty("Type"),
                                       parentLogger = node.logger,)
 
         phyStation = ofdmaSTA.OFDMAStation([bsReceiver], [bsTransmitter], node.logger, eirpLimited = True)
         phyStation.beamformingAntenna = None
 
-        phyStation.txFrequency = plm.phy.ulCenterFreq * 1E-6
-        phyStation.rxFrequency = plm.phy.dlCenterFreq * 1E-6
-        phyStation.txPower = plm.phy.txPwrUT.nominalPerSubband
+        phyStation.txFrequency = mode.plm.phy.ulCenterFreq * 1E-6
+        phyStation.rxFrequency = mode.plm.phy.dlCenterFreq * 1E-6
+        phyStation.txPower = mode.plm.phy.txPwrUT.nominalPerSubband
         # overall Power
-        phyStation.totalPower = plm.phy.txPwrUT.maxOverall
-        phyStation.numberOfSubCarrier = plm.numSubchannels
-        phyStation.bandwidth = plm.bandwidth
-        #phyStation.systemManagerName = 'ofdma_'+mode.modeName
+        phyStation.totalPower = mode.plm.phy.txPwrUT.maxOverall
+        phyStation.numberOfSubCarrier = mode.plm.numSubchannels
+        phyStation.bandwidth = mode.plm.bandwidth
         #phyStation.antennas = [rise.Antenna.Isotropic([0,0,1.5])]
-        ofdmaSTA.OFDMAComponent.__init__(self, node, "OFDMA", phyStation, node.logger)
+        ofdmaSTA.OFDMAComponent.__init__(self, node, mode.modeName, phyStation, node.logger)
 
 class UEOFDMAComponent(ofdmaSTA.OFDMAComponent):
 
-    def __init__(self, node, plm):
-        ueReceiver = BSReceiver(prop = Propagation.getInstance(),
+    def __init__(self, node, mode):
+        ueReceiver = BSReceiver(prop = rise.scenario.Propagation.Propagation(),
                                 propch = node.getProperty("Type"),
                                 parentLogger = node.logger)
         
-        ueTransmitter = BSTransmitter(prop = Propagation.getInstance(),
+        ueTransmitter = BSTransmitter(prop = rise.scenario.Propagation.Propagation(),
                                       propch = node.getProperty("Type"),
                                       parentLogger = node.logger)
 
         phyStation = ofdmaSTA.OFDMAStation([ueReceiver], [ueTransmitter], node.logger, eirpLimited = True)
         phyStation.beamformingAntenna = None
 
-        phyStation.txFrequency = plm.phy.ulCenterFreq * 1E-6
-        phyStation.rxFrequency = plm.phy.dlCenterFreq * 1E-6
-        phyStation.txPower = plm.phy.txPwrUT.nominalPerSubband
+        phyStation.txFrequency = mode.plm.phy.ulCenterFreq * 1E-6
+        phyStation.rxFrequency = mode.plm.phy.dlCenterFreq * 1E-6
+        phyStation.txPower = mode.plm.phy.txPwrUT.nominalPerSubband
         # overall Power
-        phyStation.totalPower = plm.phy.txPwrUT.maxOverall
-        phyStation.numberOfSubCarrier = plm.numSubchannels
-        phyStation.bandwidth = plm.bandwidth
-        #phyStation.systemManagerName = 'ofdma_'+mode.modeName
+        phyStation.totalPower = mode.plm.phy.txPwrUT.maxOverall
+        phyStation.numberOfSubCarrier = mode.plm.numSubchannels
+        phyStation.bandwidth = mode.plm.bandwidth
         #phyStation.antennas = [rise.Antenna.Isotropic([0,0,1.5])]
-        ofdmaSTA.OFDMAComponent.__init__(self, node, "OFDMA", phyStation, node.logger)
+        ofdmaSTA.OFDMAComponent.__init__(self, node, mode.modeName, phyStation, node.logger)

@@ -27,6 +27,7 @@
 
 import lte.phy.ofdma
 import lte.dll.component
+import lte.modes
 
 import scenarios.interfaces
 
@@ -45,20 +46,25 @@ class BS(scenarios.interfaces.INode, openwns.node.Node):
         self.properties = {}
         self.properties["Type"] = "eNB"
         self.properties["Ring"] = 1
+        self.phys = {}
 
         self.name += str(self.nodeID)
 
-        plm = lte.phy.plm.getByName(config.plmName)
-
-        self.phy = lte.phy.ofdma.BSOFDMAComponent(node = self, plm = plm)
-
-        self.dll = lte.dll.component.eNBLayer2(node = self, name = "LTE", plm = plm, parentLogger = self.logger)
-        self.dll.setPhyDataTransmission(self.phy.dataTransmission)
-        self.dll.setPhyNotification(self.phy.notification)
+        self.dll = lte.dll.component.eNBLayer2(node = self, name = "eNB", modetypes = config.modes, parentLogger = self.logger)
 
         self.mobility = rise.Mobility.Component(node = self, 
                                                 name = "eNBMobility",
                                                 mobility = mobility)
+
+        # Each mode has its own OFDMA subsystem
+        for mt in config.modes:
+            modeCreator = lte.modes.getModeCreator(mt)
+            aMode = modeCreator(parentLogger = self.logger, default=False)
+
+            self.phys[aMode.modeName] = lte.phy.ofdma.BSOFDMAComponent(node = self, mode = aMode)
+
+            self.dll.setPhyDataTransmission(aMode.modeName, self.phys[aMode.modeName].dataTransmission)
+            self.dll.setPhyNotification(aMode.modeName, self.phys[aMode.modeName].notification)
 
     def setPosition(self, position):
         self.mobility.mobility.setCoords(position)      
@@ -70,11 +76,12 @@ class BS(scenarios.interfaces.INode, openwns.node.Node):
         self.antenna = antenna
 
     def setChannelModel(self, channelModel):
-        self.channelModel = channelModel
+        for phy in self.phys.values():
+            phy.ofdmaStation.receiver[0].propagation.configure(channelModel)
+            phy.ofdmaStation.transmitter[0].propagation.configure(channelModel)
 
     def getProperty(self, propertyName):
         return self.properties[propertyName]
-
 
     def setProperty(self, propertyName, propertyValue):
         self.properties[propertyName] = propertyValue

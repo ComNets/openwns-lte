@@ -35,13 +35,16 @@ import openwns.FUN
 
 class eNBLayer2( dll.Layer2.Layer2 ):
 
-    def __init__(self, node, name, plm, parentLogger=None):
+    def __init__(self, node, name, modetypes, parentLogger=None):
         dll.Layer2.Layer2.__init__(self, node, name, parentLogger)
         self.nameInComponentFactory = "lte.Layer2"
         self.setStationID(node.nodeID)
         self.setStationType(node.getProperty("Type"))
         self.ring = node.getProperty("Ring")
         self.associations = []
+        self.phyUsers = {}
+        self.phyDataTransmission = {}
+        self.phyNotification = {}
 
         self.fun = openwns.FUN.FUN(self.logger)
 
@@ -51,23 +54,38 @@ class eNBLayer2( dll.Layer2.Layer2 ):
         rlc = lte.dll.rlc.eNBRLC(self.logger)
         self.fun.add(rlc)
 
-        phy = lte.dll.phyUser.PhyUser(plm = plm, parentLogger = self.logger)
-        self.fun.add(phy)
+        # Each mode has its own PhyUser
+        for mt in modetypes:
+            modeCreator = lte.modes.getModeCreator(mt)
+            aMode = modeCreator(parentLogger = self.logger, default=False)
+
+            self.phyUsers[aMode.modeName] = aMode.phyUser
+
+            self.fun.add(self.phyUsers[aMode.modeName])
 
         connectFUs([
                 (upperConvergence, rlc),
-                (rlc, phy)
                 ])
+
+    def setPhyDataTransmission(self, modeName, serviceName):
+        """set the name of the PHY component for a certain mode"""
+        self.phyDataTransmission[modeName] = serviceName
+
+    def setPhyNotification(self, modeName, serviceName):
+        self.phyNotification[modeName] = serviceName
 
 class ueLayer2( dll.Layer2.Layer2 ):
 
-    def __init__(self, node, name, plm, parentLogger=None):
+    def __init__(self, node, name, modetypes, parentLogger=None):
         dll.Layer2.Layer2.__init__(self, node, name, parentLogger)
         self.nameInComponentFactory = "lte.Layer2"
         self.setStationID(node.nodeID)
         self.setStationType(node.getProperty("Type"))
         self.ring = node.getProperty("Ring")
         self.associations = []
+        self.phyUsers = {}
+        self.phyDataTransmission = {}
+        self.phyNotification = {}
 
         self.fun = openwns.FUN.FUN(self.logger)
 
@@ -77,10 +95,22 @@ class ueLayer2( dll.Layer2.Layer2 ):
         rlc = lte.dll.rlc.UERLC(self.logger)
         self.fun.add(rlc)
 
-        phy = lte.dll.phyUser.PhyUser(plm = plm, parentLogger = self.logger)
-        self.fun.add(phy)
+        # Each mode has its own PhyUser
+        for mt in modetypes:
+            modeCreator = lte.modes.getModeCreator(mt)
+            aMode = modeCreator(parentLogger = self.logger, default=False)
+
+            self.phyUsers[aMode.modeName] = aMode.phyUser
+
+            self.fun.add(self.phyUsers[aMode.modeName])
 
         connectFUs([
                 (upperConvergence, rlc),
-                (rlc, phy)
                 ])
+
+    def setPhyDataTransmission(self, modeName, serviceName):
+        """set the name of the PHY component for a certain mode"""
+        self.phyDataTransmission[modeName] = serviceName
+
+    def setPhyNotification(self, modeName, serviceName):
+        self.phyNotification[modeName] = serviceName
