@@ -56,11 +56,8 @@ void
 ENBUpperConvergence::onFUNCreated()
 {
   layer2 = getFUN()->getLayer<dll::ILayer2*>();
-  /**
-   * @todo dbn: lterelease Enable fetching of rlcReader once RLC is included in new lte module
-   */
-  //rlcReader   = getFUN()->getCommandReader("rlc");
-  //assure(rlcReader, "RlcReader not set");
+  rlcReader   = getFUN()->getCommandReader("rlc");
+  assure(rlcReader, "rlcReader not set");
   dll::UpperConvergence::onFUNCreated();
 }
 

@@ -39,10 +39,7 @@ using namespace lte::helper::idprovider;
 
 PeerId::PeerId(wns::ldk::fun::FUN* fun) :
   layer2(fun->getLayer<dll::ILayer2*>()),
-  /**
-   * @todo dbn: lterelease: Include rlcCommandReader once macg is available in new lte module
-   */
-  //rlcCommandReader(fun->getCommandReader("rlc")),
+  rlcCommandReader(fun->getCommandReader("rlc")),
   /**
    * @todo dbn: lterelease: Include macgCommandReader once macg is available in new lte module
    */

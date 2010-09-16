@@ -38,10 +38,7 @@
 using namespace lte::helper::idprovider;
 
 QoSClass::QoSClass(wns::ldk::fun::FUN* fun) :
-  /**
-   * @todo dbn: lterelease: Include rlcCommandReader once macg is available in new lte module
-   */
-  //rlcCommandReader(fun->getCommandReader("rlc")),
+  rlcCommandReader(fun->getCommandReader("rlc")),
   key("MAC.QoSClass")
 {
 }

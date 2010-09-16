@@ -66,11 +66,8 @@ UEUpperConvergence::onFUNCreated()
      */
     //flowManager = layer2->getControlService<lte::controlplane::flowmanagement::IFlowManagerUE>("FlowManagerUE");
 
-    /**
-     * @todo dbn: lterelease: enable rlc reader when available
-     */
-    //rlcReader   = fun->getCommandReader("rlc");
-    //assure(rlcReader, "RlcReader not set");
+    rlcReader   = fun->getCommandReader("rlc");
+    assure(rlcReader, "rlcReader not set");
     MESSAGE_SINGLE(NORMAL, logger,"onFUNCreated(): FlowManager set to: "<< flowManager);
 }
 
