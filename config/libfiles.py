@@ -20,6 +20,9 @@ srcFiles = [
     'src/macr/PhyUser.cpp',
 
     'src/controlplane/AssociationsProxy.cpp',
+    'src/controlplane/associationHandler/AssociationHandler.cpp',
+    'src/controlplane/associationHandler/AssociationHandlerBS.cpp',
+    'src/controlplane/associationHandler/AssociationHandlerUT.cpp',
 
     'src/timing/TimingScheduler.cpp',
     'src/timing/events/Base.cpp',
@@ -30,6 +33,7 @@ srcFiles = [
     'src/helper/idprovider/QoSClass.cpp',
     'src/helper/idprovider/PeerId.cpp',
     'src/helper/Keys.cpp',
+    'src/helper/SwitchConnector.cpp',
 ]
 
 hppFiles = [
@@ -64,6 +68,9 @@ hppFiles = [
     'src/controlplane/AssociationsProxyInterface.hpp',
     'src/controlplane/AssociationsProxy.hpp',
     'src/controlplane/associationHandler/IAssociationHandler.hpp',
+    'src/controlplane/associationHandler/AssociationHandler.hpp',
+    'src/controlplane/associationHandler/AssociationHandlerBS.hpp',
+    'src/controlplane/associationHandler/AssociationHandlerUT.hpp',
     'src/controlplane/flowmanagement/IFlowManager.hpp',
 
     'src/timing/TimingScheduler.hpp',
@@ -82,6 +89,8 @@ hppFiles = [
     'src/helper/idprovider/PeerId.hpp',
     'src/helper/Route.hpp',
     'src/helper/TransactionID.hpp',
+    'src/helper/SwitchConnector.hpp',
+    'src/helper/SwitchLink.hpp',
 ]
 
 pyconfigs = [
@@ -94,6 +103,10 @@ pyconfigs = [
     'lte/modes/__init__.py',
     'lte/modes/hasModeName.py',
     'lte/modes/mode.py',
+    'lte/modes/taskfun/__init__.py',
+    'lte/modes/taskfun/default/__init__.py',
+    'lte/modes/taskfun/default/BS.py',
+    'lte/modes/taskfun/default/UT.py',
     'lte/nodes/__init__.py',
     'lte/nodes/BS.py',
     'lte/nodes/UE.py',

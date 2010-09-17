@@ -25,6 +25,7 @@
 #
 ###############################################################################
 
+import lte.modes.hasModeName
 import dll.Services
 import openwns.logger
 
@@ -44,3 +45,32 @@ class UEAssociationsProxy(dll.Services.Service):
         self.modeNames = []
         self.modePriority = {}
         self.logger = openwns.logger.Logger("LTE", "AssociationsProxy", True, parentLogger)
+
+class AssociationHandler(openwns.FUN.FunctionalUnit, lte.modes.hasModeName.HasModeName):
+
+    def __init__(self, modeName, functionalUnitName, commandName, parentLogger):
+        super(AssociationHandler, self).__init__(functionalUnitName, commandName)
+        self.flowSeparators = []
+        self.modeName = modeName
+        self.commandSize = 12
+        self.logger = openwns.logger.Logger('LTE','AssociationHandler',True, parentLogger)
+
+    def addFlowSeparator(self, flowSeparatorName):
+        self.flowSeparators.append(flowSeparatorName)
+
+class AssociationHandlerUT(AssociationHandler, openwns.StaticFactoryClass):
+    
+    def __init__(self, modeName, mode, functionalUnitName, commandName, parentLogger):
+        AssociationHandler.__init__(self, modeName, functionalUnitName, commandName, parentLogger)
+        openwns.StaticFactoryClass.__init__(self, 'lte.controlplane.AssociationHandler.UserTerminal')
+
+        self.timeout = 1.0
+
+        self.capabilities = mode.capabilities
+
+class AssociationHandlerBS(AssociationHandler, openwns.StaticFactoryClass):
+
+    def __init__(self, modeName, mode, functionalUnitName, commandName, parentLogger, **kw):
+        AssociationHandler.__init__(self, modeName, functionalUnitName, commandName, parentLogger)
+        openwns.StaticFactoryClass.__init__(self, 'lte.controlplane.AssociationHandler.BaseStation')
+        self.capabilities = mode.capabilities

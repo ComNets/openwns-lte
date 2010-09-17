@@ -51,7 +51,7 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(AssociationsProxyUT,
 				     wns::ldk::CSRConfigCreator);
 
 AssociationsProxy::AssociationsProxy(wns::ldk::ControlServiceRegistry* csr, const wns::pyconfig::View& config) :
-  ControlService(csr),
+  wns::ldk::ControlService(csr),
   layer2(NULL),
   rlcReader(NULL),
   myModes(),

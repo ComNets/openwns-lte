@@ -26,6 +26,8 @@
 ###############################################################################
 
 import lte.modes.hasModeName
+import lte.modes.taskfun.default
+
 import lte.partitioning.fdd
 import lte.phy.plm
 
@@ -78,7 +80,7 @@ class Mode(lte.modes.hasModeName.HasModeName):
 	capabilities = None
 
 	def __init__(self, name, PLM, parentLogger=None):
-		self.taskFUNModule = None #lte.TaskFUNs
+		self.taskFUNModule = lte.modes.taskfun.default
 		self.fullConnects = []
 		self.nodes = []
 		self.modeName = name
@@ -96,8 +98,12 @@ class Mode(lte.modes.hasModeName.HasModeName):
                 #                                             self.modeName + self.separator + 'TaskDispatcher', self.logger)
 		self.mapModeNameToNumber(name)
 
-	# Add TaskFUN Information
-	def addTaskFUN(self,taskFUN):
+	def createTaskFUN(self, fun, stationType, taskFUNModule = lte.modes.taskfun.default):
+		if stationType == "BS":
+			taskFUN = taskFUNModule.BS(fun = fun, mode = self, parentLogger = self.logger)
+		if stationType == "UT":
+			taskFUN = taskFUNModule.UT(fun = fun, mode = self, parentLogger = self.logger)
+
 		self.taskFUNs[taskFUN.taskID] = taskFUN
 
 ltefdd10 = lte.phy.plm.getByName("ltefdd10") 

@@ -31,6 +31,7 @@
 #include <LTE/helper/TransactionID.hpp>
 
 #include <WNS/service/dll/Address.hpp>
+#include <WNS/service/dll/FlowID.hpp>
 #include <WNS/service/tl/FlowID.hpp>
 
 namespace lte { namespace controlplane { namespace flowmanagement {

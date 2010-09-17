@@ -34,6 +34,7 @@ import lte.dll.controlplane.flowmanager
 from lte.support.helper import connectFUs
 
 import dll.Layer2
+import dll.Services
 
 import openwns.FUN
 import openwns.Tools
@@ -78,6 +79,11 @@ class eNBLayer2( dll.Layer2.Layer2 ):
         for mt in modetypes:
             modeCreator = lte.modes.getModeCreator(mt)
             aMode = modeCreator(parentLogger = self.logger, default=False)
+
+            # Each mode provides association information service
+            self.controlServices.append(dll.Services.Association(aMode.modeName, aMode.logger))
+            
+            aMode.createTaskFUN(self.fun, "BS")
 
             self.phyUsers[aMode.modeName] = aMode.phyUser
 
@@ -139,6 +145,11 @@ class ueLayer2( dll.Layer2.Layer2 ):
         for mt in modetypes:
             modeCreator = lte.modes.getModeCreator(mt)
             aMode = modeCreator(parentLogger = self.logger, default=False)
+
+            # Each mode provides association information service
+            self.controlServices.append(dll.Services.Association(aMode.modeName, aMode.logger))
+
+            aMode.createTaskFUN(self.fun, "UT")
 
             self.phyUsers[aMode.modeName] = aMode.phyUser
 
