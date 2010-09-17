@@ -69,6 +69,11 @@ class eNBLayer2( dll.Layer2.Layer2 ):
                                                        parentLogger = self.logger)
         self.fun.add(upperFlowGate)
 
+        arqFlowGate = openwns.FlowSeparator.FlowGate(fuName = 'arqFlowGate',
+                                                     keyBuilder = lte.dll.controlplane.flowmanager.FlowID(),
+                                                     parentLogger = self.logger)
+        self.fun.add(arqFlowGate)
+
         macg = lte.dll.macg.BaseStation(fuName='macg', commandName='macg', parentLogger = self.logger)
         self.fun.add(macg)
 
@@ -93,12 +98,16 @@ class eNBLayer2( dll.Layer2.Layer2 ):
                 (upperConvergence, rlc),
                 (rlc, upperSynchronizer),
                 (upperSynchronizer, upperFlowGate),
-                (upperFlowGate, macg)
+                (upperFlowGate, arqFlowGate),
+                (arqFlowGate, macg)
                 ])
 
     def _setupControlServices(self):
         self.associationsProxy = lte.dll.controlplane.association.ENBAssociationsProxy(self.logger)
         self.controlServices.append(self.associationsProxy)
+
+        self.flowManager = lte.dll.controlplane.flowmanager.FlowManagerBS(self.logger)
+        self.controlServices.append(self.flowManager)
 
     def setPhyDataTransmission(self, modeName, serviceName):
         """set the name of the PHY component for a certain mode"""
@@ -135,6 +144,11 @@ class ueLayer2( dll.Layer2.Layer2 ):
                                                        parentLogger = self.logger)
         self.fun.add(upperFlowGate)
 
+        arqFlowGate = openwns.FlowSeparator.FlowGate(fuName = 'arqFlowGate',
+                                                     keyBuilder = lte.dll.controlplane.flowmanager.FlowID(),
+                                                     parentLogger = self.logger)
+        self.fun.add(arqFlowGate)
+
         macg = lte.dll.macg.UserTerminal(fuName='macg', commandName='macg', parentLogger = self.logger)
         self.fun.add(macg)
 
@@ -159,12 +173,16 @@ class ueLayer2( dll.Layer2.Layer2 ):
                 (upperConvergence, rlc),
                 (rlc, upperSynchronizer),
                 (upperSynchronizer, upperFlowGate),
-                (upperFlowGate, macg)
+                (upperFlowGate, arqFlowGate),
+                (arqFlowGate, macg),
                 ])
 
     def _setupControlServices(self):
         self.associationsProxy = lte.dll.controlplane.association.UEAssociationsProxy(self.logger)
         self.controlServices.append(self.associationsProxy)
+
+        self.flowManager = lte.dll.controlplane.flowmanager.FlowManagerUT(self.logger)
+        self.controlServices.append(self.flowManager)
 
     def setPhyDataTransmission(self, modeName, serviceName):
         """set the name of the PHY component for a certain mode"""

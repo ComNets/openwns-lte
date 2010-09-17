@@ -61,10 +61,8 @@ UEUpperConvergence::onFUNCreated()
 {
     layer2 = fun->getLayer<dll::Layer2*>();
     assure(layer2, "Layer2 not set");
-    /**
-     * @todo dbn: lterelease: enable flow manager when available
-     */
-    //flowManager = layer2->getControlService<lte::controlplane::flowmanagement::IFlowManagerUE>("FlowManagerUE");
+
+    flowManager = layer2->getControlService<lte::controlplane::flowmanagement::IFlowManagerUE>("FlowManagerUT");
 
     rlcReader   = fun->getCommandReader("rlc");
     assure(rlcReader, "rlcReader not set");

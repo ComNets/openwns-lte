@@ -28,6 +28,7 @@
 import lte.modes.hasModeName
 import dll.Services
 import openwns.logger
+import openwns.FUN
 
 class ENBAssociationsProxy(dll.Services.Service):
 
@@ -70,7 +71,7 @@ class AssociationHandlerUT(AssociationHandler, openwns.StaticFactoryClass):
 
 class AssociationHandlerBS(AssociationHandler, openwns.StaticFactoryClass):
 
-    def __init__(self, modeName, mode, functionalUnitName, commandName, parentLogger, **kw):
+    def __init__(self, modeName, mode, functionalUnitName, commandName, parentLogger):
         AssociationHandler.__init__(self, modeName, functionalUnitName, commandName, parentLogger)
         openwns.StaticFactoryClass.__init__(self, 'lte.controlplane.AssociationHandler.BaseStation')
         self.capabilities = mode.capabilities

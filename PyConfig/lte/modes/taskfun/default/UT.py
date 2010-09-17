@@ -26,7 +26,13 @@
 ###############################################################################
 
 import lte.dll.controlplane.association
+import lte.dll.controlplane.flowmanager
+
+from lte.support.helper import connectFUs
+import openwns.FlowSeparator
+
 import openwns.logger
+
 
 class UT:
 
@@ -43,3 +49,19 @@ class UT:
             self.logger)
         associationHandler.taskID = self.taskID
         fun.add(associationHandler)
+
+        flowHandler = lte.dll.controlplane.flowmanager.FlowHandlerUT(
+            self.mode.modeName,
+            self.mode.modeName + self.mode.separator + 'FlowHandler',
+            self.mode.modeBase + self.mode.separator + 'FlowHandlerCommand',
+            self.logger)
+        flowHandler.taskID = self.taskID
+        fun.add(flowHandler)
+
+        lowerFlowGate = openwns.FlowSeparator.FlowGate(fuName = self.mode.modeName + self.mode.separator + 'lowerFlowGate',
+                                                       keyBuilder = lte.dll.controlplane.flowmanager.FlowID(),
+                                                       parentLogger = self.logger)
+        fun.add(lowerFlowGate)
+  
+
+

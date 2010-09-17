@@ -95,18 +95,16 @@ AssociationHandler::onFUNCreated()
 
   std::string flowmanagername="FlowManager";
 
-  if (layer2->getStationType() == wns::service::dll::StationTypes::UT()) {
+  if (layer2->getStationType() == wns::service::dll::StationTypes::UE()) {
     flowmanagername += "UT";
   } else { // BS
     flowmanagername += "BS";
   }
   // in the BS we don't activate the connector since we don't send anything
 
-  /**
-   * @todo dbn: lterelease: Enable flow manager when available
-   */
-  //friends.flowManager = layer2->getControlService<lte::controlplane::flowmanagement::IFlowSwitching>(flowmanagername);
-  //assure(friends.flowManager, "FlowManager not set.");
+  friends.flowManager = layer2->getControlService<lte::controlplane::flowmanagement::IFlowSwitching>(flowmanagername);
+  assure(friends.flowManager, "FlowManager not set.");
+
   rlcReader = fun->getCommandReader("rlc");
 }
 

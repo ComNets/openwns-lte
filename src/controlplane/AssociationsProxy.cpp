@@ -121,10 +121,9 @@ AssociationsProxyBS::onCSRCreated()
 {
   AssociationsProxy::onCSRCreated();
 
-  /**
-   * @todo dbn: lterelease: Enable fetching of flowmanger when it is available
-   */
-  //flowManagerENB = layer2->getControlService<lte::controlplane::flowmanagement::IFlowManagerENB>("FlowManagerBS");
+  wns::ldk::ControlServiceInterface* csi = layer2->getControlService<wns::ldk::ControlServiceInterface>("FlowManagerBS");
+  flowManagerENB = dynamic_cast<lte::controlplane::flowmanagement::IFlowManagerENB*>(csi);
+  assureNotNull(flowManagerENB);
 
   // Add my own address to the list of RAPs in my REC
   this->addRAPofREC(layer2->getDLLAddress());
@@ -317,10 +316,7 @@ AssociationsProxyUT::onCSRCreated()
 {
   AssociationsProxy::onCSRCreated();
 
-  /**
-   * @todo dbn: lterelease: Enable flowmanager when available
-   */
-  //flowManagerUE = layer2->getControlService<lte::controlplane::flowmanagement::IFlowManagerUE>("FlowManagerUT");
+  flowManagerUE = layer2->getControlService<lte::controlplane::flowmanagement::IFlowManagerUE>("FlowManagerUT");
 
   rlc = layer2->getFUN()->findFriend<lte::rlc::UERLC*>("rlc");
 

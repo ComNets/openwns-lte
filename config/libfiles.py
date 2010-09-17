@@ -23,6 +23,10 @@ srcFiles = [
     'src/controlplane/associationHandler/AssociationHandler.cpp',
     'src/controlplane/associationHandler/AssociationHandlerBS.cpp',
     'src/controlplane/associationHandler/AssociationHandlerUT.cpp',
+    'src/controlplane/flowmanagement/FlowManager.cpp',
+    'src/controlplane/flowmanagement/flowhandler/FlowHandler.cpp',
+    'src/controlplane/flowmanagement/flowhandler/FlowHandlerBS.cpp',
+    'src/controlplane/flowmanagement/flowhandler/FlowHandlerUT.cpp',
 
     'src/timing/TimingScheduler.cpp',
     'src/timing/events/Base.cpp',
@@ -65,6 +69,7 @@ hppFiles = [
 
     'src/controlplane/MapHandlerInterface.hpp',
     'src/controlplane/bch/BCHUnitInterface.hpp',
+
     'src/controlplane/AssociationsProxyInterface.hpp',
     'src/controlplane/AssociationsProxy.hpp',
     'src/controlplane/associationHandler/IAssociationHandler.hpp',
@@ -72,6 +77,10 @@ hppFiles = [
     'src/controlplane/associationHandler/AssociationHandlerBS.hpp',
     'src/controlplane/associationHandler/AssociationHandlerUT.hpp',
     'src/controlplane/flowmanagement/IFlowManager.hpp',
+    'src/controlplane/flowmanagement/FlowManager.hpp',
+    'src/controlplane/flowmanagement/flowhandler/FlowHandler.hpp',
+    'src/controlplane/flowmanagement/flowhandler/FlowHandlerBS.hpp',
+    'src/controlplane/flowmanagement/flowhandler/FlowHandlerUT.hpp',
 
     'src/timing/TimingScheduler.hpp',
     'src/timing/ResourceSchedulerInterface.hpp',

@@ -61,10 +61,7 @@ ENBRLC::onFUNCreated()
 
     upperConvergenceReader = getFUN()->getCommandReader("upperConvergence");
 
-    /**
-     * @todo dbn: lterelease: Enable flow manager when it is available
-     */
-    // friends.flowswitching = layer2->getControlService<lte::controlplane::flowmanagement::IFlowSwitching>("FlowManagerBS");
+    friends.flowswitching = layer2->getControlService<lte::controlplane::flowmanagement::IFlowSwitching>("FlowManagerBS");
 
     MESSAGE_SINGLE(VERBOSE, logger, "onFUNCreated(): complete");
 }

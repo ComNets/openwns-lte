@@ -50,10 +50,10 @@ UERLC::onFUNCreated()
 {
     upperConvergenceReader = getFUN()->getCommandReader("upperConvergence");
 
-    /**
-     * @todo dbn: lterelease: Enable flow manager when it is available
-     */
-    //friends.flowswitching = getFUN()->getLayer<dll::ILayer2*>->getControlService<lte::controlplane::flowmanagement::IFlowSwitching>("FlowManagerUT");
+    wns::ldk::ControlServiceInterface* csi = getFUN()->getLayer<dll::ILayer2*>()->getControlService<wns::ldk::ControlServiceInterface>("FlowManagerUT");
+    friends.flowswitching = dynamic_cast<lte::controlplane::flowmanagement::IFlowSwitching*>(csi);
+    assureNotNull(friends.flowswitching);
+
     MESSAGE_SINGLE(VERBOSE, logger, "onFUNCreated(): complete");
 }
 

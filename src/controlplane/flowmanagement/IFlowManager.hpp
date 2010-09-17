@@ -39,6 +39,7 @@ namespace lte { namespace controlplane { namespace flowmanagement {
 class IFlowSwitching
 {
 public:
+  typedef std::string ModeName;
   typedef std::map<wns::service::qos::QoSClass,
 		   wns::service::dll::FlowID> ControlPlaneFlowIDs;
 
@@ -61,15 +62,15 @@ public:
 
   virtual void
   setControlPlaneFlowIDs(wns::service::dll::UnicastAddress peerAddress, ControlPlaneFlowIDs flowIDs) = 0;
+
+  virtual bool
+  isValidFlow(const wns::ldk::ConstKeyPtr& key) const = 0;
 };
 
 class IFlowManagerUE:
-public IFlowSwitching
+	virtual public IFlowSwitching
 {
 public:
-  typedef std::string ModeName;
-  virtual bool
-  isValidFlow(const wns::ldk::ConstKeyPtr& key) const = 0;
 
   virtual void
   buildFlow(wns::service::tl::FlowID,
@@ -93,18 +94,11 @@ public:
 };
 
 class IFlowManagerENB:
-public IFlowSwitching
+	virtual public IFlowSwitching
 {
 public:
   typedef std::string ModeName;
-  virtual void
-  registerFlowID(lte::helper::TransactionID _transactionId,
-		 wns::service::dll::FlowID _flowIDout,
-		 wns::service::dll::UnicastAddress utAddress) = 0;
 
-  virtual void
-  onFlowReleaseAck(wns::service::dll::FlowID flowIDout) = 0;
-    
   virtual void
   onDisassociationReq(wns::service::dll::UnicastAddress userAdr, ModeName mode, bool preserved) = 0;
 };
