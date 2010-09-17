@@ -84,10 +84,11 @@ class eNBLayer2( dll.Layer2.Layer2 ):
         for mt in modetypes:
             modeCreator = lte.modes.getModeCreator(mt)
             aMode = modeCreator(parentLogger = self.logger, default=False)
-
-            # Each mode provides association information service
-            self.controlServices.append(dll.Services.Association(aMode.modeName, aMode.logger))
             
+            self._setupControlServicesPerMode(aMode)
+
+            self._setupManagementServicesPerMode(aMode)
+
             aMode.createTaskFUN(self.fun, "BS")
 
             self.phyUsers[aMode.modeName] = aMode.phyUser
@@ -108,6 +109,27 @@ class eNBLayer2( dll.Layer2.Layer2 ):
 
         self.flowManager = lte.dll.controlplane.flowmanager.FlowManagerBS(self.logger)
         self.controlServices.append(self.flowManager)
+
+    def _setupControlServicesPerMode(self, mode):
+        # Each mode provides association information service
+        self.controlServices.append(dll.Services.Association(mode.modeName, mode.logger))
+
+    def _setupManagementServicesPerMode(self, mode):
+        i = dll.Services.InterferenceCache("INTERFERENCECACHE"+mode.modeName,
+                                           alphaLocal = 0.2,
+                                           alphaRemote= 0.05,
+                                           parent = mode.logger)
+        # If we have no value, we assume that we are located at the cell edge
+        # and have an SINR of 1dB with interference set to background noise
+        pathloss = float(mode.plm.phy.txPwrUT.nominalPerSubband.replace(" dBm","")) + 99.00
+        i.notFoundStrategy.averageCarrier = "-99.0 dBm"
+        i.notFoundStrategy.averageInterference = "-100.0 dBm"
+        i.notFoundStrategy.deviationCarrier = "0.0 mW"
+        i.notFoundStrategy.deviationInterference = "0.0 mW"
+        i.notFoundStrategy.averagePathloss = "%f dB" % pathloss
+
+        mode.interfCache = i
+        self.managementServices.append(i)
 
     def setPhyDataTransmission(self, modeName, serviceName):
         """set the name of the PHY component for a certain mode"""
@@ -160,8 +182,9 @@ class ueLayer2( dll.Layer2.Layer2 ):
             modeCreator = lte.modes.getModeCreator(mt)
             aMode = modeCreator(parentLogger = self.logger, default=False)
 
-            # Each mode provides association information service
-            self.controlServices.append(dll.Services.Association(aMode.modeName, aMode.logger))
+            self._setupControlServicesPerMode(aMode)
+
+            self._setupManagementServicesPerMode(aMode)
 
             aMode.createTaskFUN(self.fun, "UT")
 
@@ -183,6 +206,28 @@ class ueLayer2( dll.Layer2.Layer2 ):
 
         self.flowManager = lte.dll.controlplane.flowmanager.FlowManagerUT(self.logger)
         self.controlServices.append(self.flowManager)
+
+
+    def _setupControlServicesPerMode(self, mode):
+        # Each mode provides association information service
+        self.controlServices.append(dll.Services.Association(mode.modeName, mode.logger))
+
+    def _setupManagementServicesPerMode(self, mode):
+        i = dll.Services.InterferenceCache("INTERFERENCECACHE"+mode.modeName,
+                                           alphaLocal = 0.2,
+                                           alphaRemote= 0.05,
+                                           parent = mode.logger)
+        # If we have no value, we assume that we are located at the cell edge
+        # and have an SINR of 1dB with interference set to background noise
+        pathloss = float(mode.plm.phy.txPwrUT.nominalPerSubband.replace(" dBm","")) + 99.00
+        i.notFoundStrategy.averageCarrier = "-99.0 dBm"
+        i.notFoundStrategy.averageInterference = "-100.0 dBm"
+        i.notFoundStrategy.deviationCarrier = "0.0 mW"
+        i.notFoundStrategy.deviationInterference = "0.0 mW"
+        i.notFoundStrategy.averagePathloss = "%f dB" % pathloss
+
+        mode.interfCache = i
+        self.managementServices.append(i)
 
     def setPhyDataTransmission(self, modeName, serviceName):
         """set the name of the PHY component for a certain mode"""
