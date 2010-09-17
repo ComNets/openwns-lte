@@ -30,7 +30,7 @@ import lte.dll.controlplane.flowmanager
 
 from lte.support.helper import connectFUs
 import openwns.FlowSeparator
-
+import openwns.ldk
 import openwns.logger
 
 class BS:
@@ -57,8 +57,19 @@ class BS:
         flowHandler.taskID = self.taskID
         fun.add(flowHandler)
 
+        controlPlaneDispatcher = openwns.ldk.Multiplexer.Dispatcher(
+            opcodeSize = 0,
+            functionalUnitName = mode.modeName + mode.separator + 'controlPlaneDispatcher',
+            commandName = mode.modeBase + mode.separator + 'controlPlaneDispatcher')
+
+        fun.add(controlPlaneDispatcher)
+
         lowerFlowGate = openwns.FlowSeparator.FlowGate(fuName = self.mode.modeName + self.mode.separator + 'lowerFlowGate',
                                                        keyBuilder = lte.dll.controlplane.flowmanager.FlowID(),
                                                        parentLogger = self.logger)
         fun.add(lowerFlowGate)
 
+        connectFUs([
+                (flowHandler, controlPlaneDispatcher),
+                (associationHandler, controlPlaneDispatcher),
+                ])
