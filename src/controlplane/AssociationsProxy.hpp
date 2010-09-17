@@ -199,7 +199,7 @@ namespace lte { namespace controlplane {
 
       lte::rlc::UERLC* rlc;
       wns::ldk::tools::Synchronizer* upperSynchronizer;
-      wns::ldk::Receptor* macg;
+      lte::macg::MACg* macg;
       AssociationInfo activeAssociation;
       std::map<ModeName, wns::service::dll::UnicastAddress> detectedModes;
       ModeInfo interMode;

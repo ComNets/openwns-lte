@@ -12,6 +12,11 @@ srcFiles = [
     'src/rlc/eNB.cpp',
     'src/rlc/UE.cpp',
 
+    'src/macg/MACg.cpp',
+    'src/macg/MACgUT.cpp',
+    'src/macg/MACgBS.cpp',
+    'src/macg/modeselection/Best.cpp',
+
     'src/macr/PhyUser.cpp',
 
     'src/controlplane/AssociationsProxy.cpp',
@@ -36,17 +41,23 @@ hppFiles = [
     'src/upperconvergence/eNB.hpp',
     'src/upperconvergence/UE.hpp',
 
-    'src/macg/MACgCommand.hpp',
-
     'src/rlc/RLCCommand.hpp',
     'src/rlc/eNB.hpp',
     'src/rlc/UE.hpp',
+
+    'src/macg/MACgCommand.hpp',
+    'src/macg/MACg.hpp',
+    'src/macg/MACgUT.hpp',
+    'src/macg/MACgBS.hpp',
+    'src/macg/modeselection/Strategy.hpp',
+    'src/macg/modeselection/Best.hpp',
 
     'src/macr/PhyUser.hpp',
     'src/macr/PhyCommand.hpp',
     'src/macr/Mode.hpp',
     'src/macr/RACHInterface.hpp',
     'src/macr/CQIMeasurementInterface.hpp',
+    'src/macr/ScorerInterface.hpp',
 
     'src/controlplane/MapHandlerInterface.hpp',
     'src/controlplane/bch/BCHUnitInterface.hpp',
@@ -99,6 +110,7 @@ pyconfigs = [
     'lte/dll/component.py',
     'lte/dll/upperConvergence.py',
     'lte/dll/rlc.py',
+    'lte/dll/macg.py',
     'lte/dll/phyUser.py',
     'lte/dll/controlplane/__init__.py',
     'lte/dll/controlplane/association.py',

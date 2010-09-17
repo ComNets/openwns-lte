@@ -25,43 +25,30 @@
  *
  ******************************************************************************/
 
-#ifndef LTE_MACG_MACGCOMMAND_HPP
-#define LTE_MACG_MACGCOMMAND_HPP
+#ifndef LTE_MACR_SCORERINTERFACE_HPP
+#define LTE_MACR_SCORERINTERFACE_HPP
 
-#include <WNS/ldk/Command.hpp>
-#include <WNS/service/dll/Address.hpp>
+#include <LTE/helper/Route.hpp>
 
-namespace lte { namespace macg {
+#include <WNS/ldk/Compound.hpp>
 
-    class MACgCommand :
-       public wns::ldk::Command
-    {
-    public:
-      MACgCommand()
-      {
-	local.modeID = -1;
-	local.modeName = "";
-	peer.source = wns::service::dll::UnicastAddress();
-	peer.dest   = wns::service::dll::UnicastAddress();
-	magic.hopCount = 1;
-      }
+namespace lte { namespace macr {
 
-      struct {
-	int modeID;
-	std::string modeName;
-      } local;
+/** @brief Interface to support the MACg scheduling (mode selection) */
+class ScorerInterface
+{
+public:
 
-      struct {
-	wns::service::dll::UnicastAddress source;
-	wns::service::dll::UnicastAddress dest; // next hop address
-      } peer;
+    virtual ~ScorerInterface(){};
 
-      struct {
-	unsigned int hopCount;
-      } magic;
-    }; // MACgCommand
+    /** @brief return a route (including) the score for this compound to support
+     * the MACg scheduling process */
+    virtual lte::helper::Route
+    score(const wns::ldk::CompoundPtr& compound) = 0;
+};
 
-} // macg
-} // lte
+}}
 
-#endif // LTE_MACG_MACGCOMMAND_HPP
+#endif // NOT defined LTE_MACR_SCORERINTERFACE_HPP
+
+

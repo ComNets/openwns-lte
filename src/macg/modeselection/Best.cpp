@@ -25,43 +25,38 @@
  *
  ******************************************************************************/
 
-#ifndef LTE_MACG_MACGCOMMAND_HPP
-#define LTE_MACG_MACGCOMMAND_HPP
+#include <LTE/macg/modeselection/Best.hpp>
+#include <LTE/helper/Route.hpp>
 
-#include <WNS/ldk/Command.hpp>
-#include <WNS/service/dll/Address.hpp>
+using namespace lte::macg::modeselection;
 
-namespace lte { namespace macg {
+STATIC_FACTORY_REGISTER(Best, Strategy, "lte.macg.strategy.Best");
 
-    class MACgCommand :
-       public wns::ldk::Command
-    {
-    public:
-      MACgCommand()
-      {
-	local.modeID = -1;
-	local.modeName = "";
-	peer.source = wns::service::dll::UnicastAddress();
-	peer.dest   = wns::service::dll::UnicastAddress();
-	magic.hopCount = 1;
-      }
+lte::helper::Route
+Best::getRoute(const wns::ldk::CompoundPtr& compound, LayerContainer layers, ScorerContainer scorers)
+{
+    lte::helper::Route route;
+    lte::helper::Route preferredRoute;
 
-      struct {
-	int modeID;
-	std::string modeName;
-      } local;
+    for(unsigned int modeCounter = 0 ; modeCounter < layers.size(); ++modeCounter)
+	{
+	    route = scorers.at(modeCounter)->score(compound);
 
-      struct {
-	wns::service::dll::UnicastAddress source;
-	wns::service::dll::UnicastAddress dest; // next hop address
-      } peer;
+	    // first check the association (route is valid only if association of the mode exists)
+	    // then check the compound is accepting
+	    if (route.valid())
+		{
+		    if (layers.at(modeCounter)->isAccepting(compound))
+			{
+			    route.mode = modeCounter;
+			    if (route.score > preferredRoute.score)
+				// update preferredRoute which always has the best score
+				preferredRoute = route;
+			} // else do nothing.
+		}
+	}
 
-      struct {
-	unsigned int hopCount;
-      } magic;
-    }; // MACgCommand
+    return preferredRoute;
+} // getRoute
 
-} // macg
-} // lte
 
-#endif // LTE_MACG_MACGCOMMAND_HPP

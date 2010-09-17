@@ -25,43 +25,35 @@
  *
  ******************************************************************************/
 
-#ifndef LTE_MACG_MACGCOMMAND_HPP
-#define LTE_MACG_MACGCOMMAND_HPP
+#ifndef LTE_MACG_MODESELECTION_STRATEGY_HPP
+#define LTE_MACG_MODESELECTION_STRATEGY_HPP
 
-#include <WNS/ldk/Command.hpp>
-#include <WNS/service/dll/Address.hpp>
+#include <LTE/macg/MACg.hpp>
 
-namespace lte { namespace macg {
+#include <WNS/StaticFactory.hpp>
 
-    class MACgCommand :
-       public wns::ldk::Command
-    {
-    public:
-      MACgCommand()
-      {
-	local.modeID = -1;
-	local.modeName = "";
-	peer.source = wns::service::dll::UnicastAddress();
-	peer.dest   = wns::service::dll::UnicastAddress();
-	magic.hopCount = 1;
-      }
+namespace lte { namespace macg { namespace modeselection {
 
-      struct {
-	int modeID;
-	std::string modeName;
-      } local;
+	    /** @brief abstract interface class for the mode selection
+	     * strategies. */
+	    class Strategy 
+	    {
+	    public:
+		virtual ~Strategy(){};
 
-      struct {
-	wns::service::dll::UnicastAddress source;
-	wns::service::dll::UnicastAddress dest; // next hop address
-      } peer;
+		virtual lte::helper::Route
+		getRoute(const wns::ldk::CompoundPtr& compound,  
+			 lte::macg::LayerContainer layers, 
+			 lte::macg::ScorerContainer scorers) = 0;
+	    };
+			
+	    typedef wns::Creator<Strategy> StrategyCreator;
+	    typedef wns::StaticFactory<StrategyCreator> StrategyFactory;
 
-      struct {
-	unsigned int hopCount;
-      } magic;
-    }; // MACgCommand
-
-} // macg
+	} // modeselection
+    } // macg
 } // lte
 
-#endif // LTE_MACG_MACGCOMMAND_HPP
+#endif // LTE_MACG_MODESELECTION_STRATEGY_HPP
+
+

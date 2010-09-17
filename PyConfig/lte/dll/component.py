@@ -27,6 +27,7 @@
 
 import lte.dll.upperConvergence
 import lte.dll.rlc
+import lte.dll.macg
 import lte.dll.phyUser
 import lte.dll.controlplane.association
 import lte.dll.controlplane.flowmanager
@@ -67,6 +68,9 @@ class eNBLayer2( dll.Layer2.Layer2 ):
                                                        parentLogger = self.logger)
         self.fun.add(upperFlowGate)
 
+        macg = lte.dll.macg.BaseStation(fuName='macg', commandName='macg', parentLogger = self.logger)
+        self.fun.add(macg)
+
         rlc = lte.dll.rlc.eNBRLC(self.logger)
         self.fun.add(rlc)
 
@@ -83,6 +87,7 @@ class eNBLayer2( dll.Layer2.Layer2 ):
                 (upperConvergence, rlc),
                 (rlc, upperSynchronizer),
                 (upperSynchronizer, upperFlowGate),
+                (upperFlowGate, macg)
                 ])
 
     def _setupControlServices(self):
@@ -124,6 +129,9 @@ class ueLayer2( dll.Layer2.Layer2 ):
                                                        parentLogger = self.logger)
         self.fun.add(upperFlowGate)
 
+        macg = lte.dll.macg.UserTerminal(fuName='macg', commandName='macg', parentLogger = self.logger)
+        self.fun.add(macg)
+
         rlc = lte.dll.rlc.UERLC(self.logger)
         self.fun.add(rlc)
 
@@ -140,6 +148,7 @@ class ueLayer2( dll.Layer2.Layer2 ):
                 (upperConvergence, rlc),
                 (rlc, upperSynchronizer),
                 (upperSynchronizer, upperFlowGate),
+                (upperFlowGate, macg)
                 ])
 
     def _setupControlServices(self):

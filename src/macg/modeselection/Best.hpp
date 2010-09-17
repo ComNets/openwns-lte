@@ -25,43 +25,36 @@
  *
  ******************************************************************************/
 
-#ifndef LTE_MACG_MACGCOMMAND_HPP
-#define LTE_MACG_MACGCOMMAND_HPP
+#ifndef LTE_MACG_MODESELECTION_BEST_HPP
+#define LTE_MACG_MODESELECTION_BEST_HPP
 
-#include <WNS/ldk/Command.hpp>
-#include <WNS/service/dll/Address.hpp>
+#include <LTE/macg/modeselection/Strategy.hpp>
 
-namespace lte { namespace macg {
+namespace lte { namespace macg { namespace modeselection {
 
-    class MACgCommand :
-       public wns::ldk::Command
-    {
-    public:
-      MACgCommand()
-      {
-	local.modeID = -1;
-	local.modeName = "";
-	peer.source = wns::service::dll::UnicastAddress();
-	peer.dest   = wns::service::dll::UnicastAddress();
-	magic.hopCount = 1;
-      }
+/**
+ * @brief Mode Selection Strategy that always choses the Route via
+ * the mode that has the best score.
+*/
+class Best :
+	public Strategy
+{
+public:
+    Best() {}
 
-      struct {
-	int modeID;
-	std::string modeName;
-      } local;
+    virtual ~Best() {}
 
-      struct {
-	wns::service::dll::UnicastAddress source;
-	wns::service::dll::UnicastAddress dest; // next hop address
-      } peer;
-
-      struct {
-	unsigned int hopCount;
-      } magic;
-    }; // MACgCommand
-
+    virtual lte::helper::Route
+    getRoute(const wns::ldk::CompoundPtr& compound,  
+	     LayerContainer layers, 
+	     ScorerContainer scorers);
+    
+};
+	
+} // modeselection
 } // macg
 } // lte
 
-#endif // LTE_MACG_MACGCOMMAND_HPP
+#endif // LTE_MACG_MODESELECTION_BEST_HPP
+
+

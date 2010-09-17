@@ -27,6 +27,7 @@
 
 #include <LTE/controlplane/AssociationsProxy.hpp>
 #include <LTE/rlc/UE.hpp>
+#include <LTE/macg/MACg.hpp>
 
 #include <LTE/controlplane/associationHandler/IAssociationHandler.hpp>
 #include <LTE/helper/Keys.hpp>
@@ -326,10 +327,7 @@ AssociationsProxyUT::onCSRCreated()
   upperSynchronizer = layer2->getFUN()->findFriend<wns::ldk::tools::Synchronizer*>("upperSynchronizer");
 
   // Only interested in the receptacle aspect of the macg FU to send a wakeup
-  /**
-   * @todo dbn: lterelease: Enable macG when available
-   */  
-  //macg = layer2->getFUN()->findFriend<wns::ldk::Receptor*>("macg");
+  macg = layer2->getFUN()->findFriend<lte::macg::MACg*>("macg");
 
   for(std::list<std::string>::iterator iter = myModes.begin(); iter != myModes.end(); ++iter)
     {

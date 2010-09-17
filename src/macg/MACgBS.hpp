@@ -25,43 +25,52 @@
  *
  ******************************************************************************/
 
-#ifndef LTE_MACG_MACGCOMMAND_HPP
-#define LTE_MACG_MACGCOMMAND_HPP
+#ifndef LTE_MACG_MACGBS_HPP
+#define LTE_MACG_MACGBS_HPP
 
-#include <WNS/ldk/Command.hpp>
-#include <WNS/service/dll/Address.hpp>
+#include <LTE/macg/MACg.hpp>
+
+#include <WNS/ldk/HasReceptor.hpp>
+#include <WNS/ldk/HasConnector.hpp>
+#include <WNS/ldk/HasDeliverer.hpp>
+#include <WNS/ldk/RoundRobinReceptor.hpp>
 
 namespace lte { namespace macg {
+	class MACgBS;
 
-    class MACgCommand :
-       public wns::ldk::Command
-    {
-    public:
-      MACgCommand()
-      {
-	local.modeID = -1;
-	local.modeName = "";
-	peer.source = wns::service::dll::UnicastAddress();
-	peer.dest   = wns::service::dll::UnicastAddress();
-	magic.hopCount = 1;
-      }
+	class MACgSchedulerBS :
+	public MACgScheduler
+	{
+	    friend class MACgBS;
 
-      struct {
-	int modeID;
-	std::string modeName;
-      } local;
+	public:
+	    MACgSchedulerBS();
 
-      struct {
-	wns::service::dll::UnicastAddress source;
-	wns::service::dll::UnicastAddress dest; // next hop address
-      } peer;
+	    virtual bool
+	    hasAcceptor(const wns::ldk::CompoundPtr& compound);
 
-      struct {
-	unsigned int hopCount;
-      } magic;
-    }; // MACgCommand
+	    virtual wns::ldk::IConnectorReceptacle*
+	    getAcceptor(const wns::ldk::CompoundPtr& compound);
+	};
 
-} // macg
-} // lte
+	
+	class MACgBS :
+	public MACg,
+	public wns::ldk::HasReceptor<wns::ldk::RoundRobinReceptor>,
+	public wns::ldk::HasConnector<MACgSchedulerBS>,
+	public wns::ldk::HasDeliverer<>,
+	public wns::ldk::Forwarding<MACgBS>,
+	public wns::Cloneable<MACgBS>
+	{
+	public:
 
-#endif // LTE_MACG_MACGCOMMAND_HPP
+	    MACgBS(wns::ldk::fun::FUN* fun, const wns::pyconfig::View& config);
+
+	    virtual void
+	    processOutgoing(const wns::ldk::CompoundPtr& compound);
+	};
+} }
+
+#endif // LTE_MACG_MACGBS_HPP
+
+

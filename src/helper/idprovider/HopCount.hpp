@@ -47,10 +47,7 @@ namespace lte { namespace helper { namespace idprovider {
 
       public:
 	HopCount(wns::ldk::fun::FUN* fun):
-	  /**
-	   * @todo dbn: lterelease: Include macgCommandReader once macg is available in new lte module
-	   */
-	  //macgCommandReader(fun->getCommandReader("macg")),
+	  macgCommandReader(fun->getCommandReader("macg")),
 	  key("MAC.HopCount")
 	{}
 
