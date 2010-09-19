@@ -33,15 +33,32 @@ import rise.Mobility
 
 import openwns.geometry.position
 
+rang = None
+
 class BSCreator(scenarios.interfaces.INodeCreator):
 
     def __init__(self, config):
         self.config = config
 
+    def _createRANG(self):
+        global rang
+
+        if rang is None:
+            rang = lte.nodes.RANG()
+            import openwns.simulator
+            openwns.simulator.getSimulator().simulationModel.nodes.append(rang)
+
     def create(self):
+
+        self._createRANG()
 
         position = openwns.geometry.position.Position(x = 0.0, y = 0.0, z = 0.0)
 
         mobility = rise.Mobility.No(position)
 
-        return lte.nodes.BS(self.config, mobility)
+        bs = lte.nodes.BS(self.config, mobility)
+
+        global rang
+        rang.tunnel.addBS(bs)
+
+        return bs

@@ -33,6 +33,7 @@ class MACParams:
     switchingPointOffset = None # [s] TDD: duration of DataTx phase; FDD: duration of 1st duplexGroup phase
     symbolsPerBlock      = None
     mapHandlerPhyMode    = None # set later when mac+phy are combined into plm class
+    rachPhyMode          = None
     schedulingOffset    = None # number of frames that the scheduling ios done in advance
     numberOfFramesToSchedule = None # how many frames are scheduled when StartMap is called
     useMapResourcesInUL      = None
@@ -148,6 +149,10 @@ class LTE:
         self.mac.mapHandlerPhyMode = PhyMode("QPSK-lte_m_2_tbs_3624")
         self.mac.mapHandlerPhyMode.symbolDuration = self.mac.fullSymbolDur
         self.mac.mapHandlerPhyMode.subCarriersPerSubChannel = self.phy.phyResourceSize
+
+        self.mac.rachPhyMode = PhyMode("QPSK-lte_m_2_tbs_3624")
+        self.mac.rachPhyMode.symbolDuration = self.mac.fullSymbolDur
+        self.mac.rachPhyMode.subCarriersPerSubChannel = self.phy.phyResourceSize
 
         # Power of 4.0 dBm for nominalPerSubband is calculated for 20 MHz case
         # Power UT/BS according to ITU-R M.2135

@@ -92,6 +92,8 @@ class eNBLayer2( dll.Layer2.Layer2 ):
 
             self._setupManagementServicesPerMode(aMode)
 
+            self.associationsProxy.addMode(aMode)
+
             tf = aMode.createTaskFUN(self.fun, "BS")
 
             self.phyUsers[aMode.modeName] = aMode.phyUser
@@ -201,6 +203,8 @@ class ueLayer2( dll.Layer2.Layer2 ):
             self._setupControlServicesPerMode(aMode)
 
             self._setupManagementServicesPerMode(aMode)
+
+            self.associationsProxy.addMode(aMode)
 
             tf = aMode.createTaskFUN(self.fun, "UT")
 

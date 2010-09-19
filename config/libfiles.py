@@ -5,6 +5,7 @@ srcFiles = [
     'src/lteModule.cpp',
 
     'src/main/Layer2.cpp',
+    'src/main/RANG.cpp',
 
     'src/upperconvergence/eNB.cpp',
     'src/upperconvergence/UE.cpp',
@@ -21,6 +22,7 @@ srcFiles = [
     'src/macr/PhyUser.cpp',
     'src/macr/Scorer.cpp',
     'src/macr/NamedDispatcher.cpp',
+    'src/macr/RACH.cpp',
 
     'src/controlplane/AssociationsProxy.cpp',
     'src/controlplane/associationHandler/AssociationHandler.cpp',
@@ -63,6 +65,7 @@ hppFiles = [
 
     'src/main/Layer2.hpp',
     'src/main/IRANG.hpp',
+    'src/main/RANG.hpp',
 
     'src/upperconvergence/eNB.hpp',
     'src/upperconvergence/UE.hpp',
@@ -87,6 +90,7 @@ hppFiles = [
     'src/macr/ScorerInterface.hpp',
     'src/macr/Scorer.hpp',
     'src/macr/NamedDispatcher.hpp',
+    'src/macr/RACH.hpp',
 
     'src/controlplane/MapHandlerInterface.hpp',
     'src/controlplane/MapHandler.hpp',
@@ -160,6 +164,7 @@ pyconfigs = [
     'lte/nodes/__init__.py',
     'lte/nodes/BS.py',
     'lte/nodes/UE.py',
+    'lte/nodes/RANG.py',
     'lte/phy/__init__.py',
     'lte/partitioning/__init__.py',
     'lte/partitioning/fdd.py',
@@ -185,6 +190,7 @@ pyconfigs = [
     'lte/dll/mapHandler.py',
     'lte/dll/rrHandler.py',
     'lte/dll/dispatcher.py',
+    'lte/dll/rach.py',
     'lte/llmapping/__init__.py',
     'lte/llmapping/default.py',
     'lte/support/__init__.py',

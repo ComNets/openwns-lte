@@ -80,11 +80,9 @@ AssociationHandlerUT::onFUNCreated()
         if (found != std::string::npos)
             friends.cpDispatcher = (*iter);
     }
-    /**
-     * @todo dbn: lterelease: enable RACH and control plane dispatchers when available
-     */
-    //assure(friends.rachDispatcher, "AssociationHandler requires a friend with name: "+mode+separator+"rachDispatcher");
-    //assure(friends.cpDispatcher, "AssociationHandler requires a friend with name: "+mode+separator+"controlPlaneDispatcher");
+
+    assure(friends.rachDispatcher, "AssociationHandler requires a friend with name: "+mode+separator+"rachDispatcher");
+    assure(friends.cpDispatcher, "AssociationHandler requires a friend with name: "+mode+separator+"controlPlaneDispatcher");
 }
 
 void
@@ -255,10 +253,7 @@ AssociationHandlerUT::bestRAP(wns::service::dll::UnicastAddress destination)
     MESSAGE_SINGLE(NORMAL, logger, "bestRAP("<<A2N(destination)<<")");
     // Maybe report the Associationsproxy directly...
     assure(associationsProxy!=NULL,"invalid associationsProxy");
-    /**
-     * @todo dbn: lterelease: Enable notification of associationsProxy when RACH is available.
-     */
-    //associationsProxy->modeDetected(mode, destination);
+    associationsProxy->modeDetected(mode, destination);
 }
 
 void

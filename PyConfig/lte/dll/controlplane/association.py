@@ -38,6 +38,9 @@ class ENBAssociationsProxy(dll.Services.Service):
         self.modeNames = []
         self.logger = openwns.logger.Logger("LTE", "AssociationsProxy", True, parentLogger)
 
+    def addMode(self, mode):
+        self.modeNames.append(mode.modeName)
+
 class UEAssociationsProxy(dll.Services.Service):
 
     def __init__(self, parentLogger = None):
@@ -46,6 +49,10 @@ class UEAssociationsProxy(dll.Services.Service):
         self.modeNames = []
         self.modePriority = {}
         self.logger = openwns.logger.Logger("LTE", "AssociationsProxy", True, parentLogger)
+
+    def addMode(self, mode):
+        self.modeNames.append(mode.modeName)
+        self.modePriority[mode.modeName] = mode.priority
 
 class AssociationHandler(openwns.FUN.FunctionalUnit, lte.modes.hasModeName.HasModeName):
 

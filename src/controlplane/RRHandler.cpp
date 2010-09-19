@@ -102,10 +102,7 @@ RRHandler::onFUNCreated()
         if (found != std::string::npos)
             friends.cpDispatcher = (*iter);
     }
-    /**
-     * @todo: dbn: lterelease: Enable fetching of rach once it is available
-     */
-    //assure(friends.rachDispatcher, "RRHandler requires a Dispatcher/OpcodeSetter friend with name: "+mode+separator+"rachDispatcher");
+    assure(friends.rachDispatcher, "RRHandler requires a Dispatcher/OpcodeSetter friend with name: "+mode+separator+"rachDispatcher");
     assure(friends.cpDispatcher, "RRHandler requires a Dispatcher/OpcodeSetter friend with name: "+mode+separator+pyco.get<std::string>("cpDispatcherName"));
 
     std::string flowmanagername="FlowManager";
@@ -118,10 +115,7 @@ RRHandler::onFUNCreated()
         }
         else
         {
-	    /**
-	     * @todo: dbn: lterelease: Enable activation of rach once it is available
-	     */
-            //connector->activate(friends.rachDispatcher);
+            connector->activate(friends.rachDispatcher);
         }
         flowmanagername += "UT";
     } else { // BS

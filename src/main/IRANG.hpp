@@ -28,6 +28,10 @@
 #ifndef LTE_MAIN_IRANG_HPP
 #define LTE_MAIN_IRANG_HPP
 
+#include <LTE/helper/TransactionID.hpp>
+#include <WNS/service/dll/FlowID.hpp>
+#include <WNS/service/dll/Address.hpp>
+
 namespace lte { namespace upperconvergence { class ENBUpperConvergence; }}
 
 namespace lte { namespace main { namespace rang {

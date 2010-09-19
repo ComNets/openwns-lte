@@ -31,6 +31,7 @@ import lte.dll.resourceScheduler
 import lte.dll.mapHandler
 import lte.dll.rrHandler
 import lte.dll.bch
+import lte.dll.rach
 import lte.modes.timing.timingConfig
 import lte.llmapping.default
 from lte.support.helper import connectFUs
@@ -61,6 +62,15 @@ class BS:
 
         bch = lte.dll.bch.RAP(mode, parentLogger = self.logger)
         fun.add(bch)
+
+        rach = lte.dll.rach.ShortcutBS(mode)
+        fun.add(rach)
+
+        rachDispatcher = openwns.ldk.Multiplexer.Dispatcher(
+            opcodeSize = 0,
+            functionalUnitName = mode.modeName + mode.separator + 'rachDispatcher',
+            commandName = mode.modeBase + mode.separator + 'rachDispatcher')
+        fun.add(rachDispatcher)
 
         associationHandler = lte.dll.controlplane.association.AssociationHandlerBS(
             self.mode.modeName, self.mode,
@@ -133,6 +143,7 @@ class BS:
 
                 (associationHandler, controlPlaneDispatcher),
                 (associationHandler, bchBuffer),
+                (associationHandler, rachDispatcher),
 
                 (bchBuffer, bch),
                 (bch, controlPlaneDispatcher),
@@ -141,6 +152,9 @@ class BS:
                 (flowHandlerFlowSep, controlPlaneDispatcher),
 
                 (rrHandler, rrHandlerShortcut),
+                (rrHandler, rachDispatcher),
+
+                (rachDispatcher, rach),
 
                 (schedulerTX, dispatcher),
                 (schedulerRX, dispatcher),
