@@ -132,10 +132,7 @@ AssociationsProxyBS::onCSRCreated()
 
   upperSynchronizer = layer2->getFUN()->findFriend<wns::ldk::tools::Synchronizer*>("upperSynchronizer");
 
-  /**
-   * @todo dbn: lterelease: Enable periodic timeout when timing is used
-   */
-  //startPeriodicTimeout(0.5);
+  startPeriodicTimeout(0.5);
 }
 
 lte::controlplane::flowmanagement::IFlowSwitching::ControlPlaneFlowIDs

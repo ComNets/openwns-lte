@@ -26,6 +26,7 @@
 ###############################################################################
 
 import openwns.logger
+import copy
 
 class Partitioning:
     numberOfSubChannels = None
@@ -102,6 +103,6 @@ class Scheme:
 
     def setParentLogger(self, parentLogger=None):
         for partition in self.partitions:
-            logger = openwns.Logger.Logger("LTE","PartitionScheme", True, parentLogger)
+            logger = openwns.logger.Logger("LTE","PartitionScheme", True, parentLogger)
             partition.setParentLogger(logger)
 

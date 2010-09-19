@@ -29,8 +29,10 @@ import lte.dll.upperConvergence
 import lte.dll.rlc
 import lte.dll.macg
 import lte.dll.phyUser
+import lte.dll.dispatcher
 import lte.dll.controlplane.association
 import lte.dll.controlplane.flowmanager
+import lte.partitioning.service
 from lte.support.helper import connectFUs
 
 import dll.Layer2
@@ -89,11 +91,18 @@ class eNBLayer2( dll.Layer2.Layer2 ):
 
             self._setupManagementServicesPerMode(aMode)
 
-            aMode.createTaskFUN(self.fun, "BS")
+            tf = aMode.createTaskFUN(self.fun, "BS")
 
             self.phyUsers[aMode.modeName] = aMode.phyUser
 
             self.fun.add(self.phyUsers[aMode.modeName])
+
+            self.managementServices.append(tf.timer)
+
+            connectFUs([
+                    (tf.bottom, aMode.phyUser),
+                    (macg, tf.top),
+                    ])
 
         connectFUs([
                 (upperConvergence, rlc),
@@ -113,6 +122,12 @@ class eNBLayer2( dll.Layer2.Layer2 ):
     def _setupControlServicesPerMode(self, mode):
         # Each mode provides association information service
         self.controlServices.append(dll.Services.Association(mode.modeName, mode.logger))
+        
+        p = lte.partitioning.service.PartitioningInfo(mode.defaultPartitioning,
+                                                      mode.modeName,
+                                                      mode.logger)
+        mode.partInfo = p
+        self.controlServices.append(p)
 
     def _setupManagementServicesPerMode(self, mode):
         i = dll.Services.InterferenceCache("INTERFERENCECACHE"+mode.modeName,
@@ -186,11 +201,18 @@ class ueLayer2( dll.Layer2.Layer2 ):
 
             self._setupManagementServicesPerMode(aMode)
 
-            aMode.createTaskFUN(self.fun, "UT")
+            tf = aMode.createTaskFUN(self.fun, "UT")
 
             self.phyUsers[aMode.modeName] = aMode.phyUser
 
             self.fun.add(self.phyUsers[aMode.modeName])
+
+            self.managementServices.append(tf.timer)
+
+            connectFUs([
+                    (tf.bottom, aMode.phyUser),
+                    (macg, tf.top),
+                    ])
 
         connectFUs([
                 (upperConvergence, rlc),
@@ -211,6 +233,12 @@ class ueLayer2( dll.Layer2.Layer2 ):
     def _setupControlServicesPerMode(self, mode):
         # Each mode provides association information service
         self.controlServices.append(dll.Services.Association(mode.modeName, mode.logger))
+
+        p = lte.partitioning.service.PartitioningInfo(mode.defaultPartitioning,
+                                                      mode.modeName,
+                                                      mode.logger)
+        mode.partInfo = p
+        self.controlServices.append(p)
 
     def _setupManagementServicesPerMode(self, mode):
         i = dll.Services.InterferenceCache("INTERFERENCECACHE"+mode.modeName,

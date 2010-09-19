@@ -1,4 +1,7 @@
+import lte.llmapping.default
+
 import openwns.Scheduler
+from rise.PhyMode import PhyMode
 
 class MACParams:
     duplex              = None # 'TDD' or 'FDD'
@@ -29,7 +32,7 @@ class MACParams:
     ulGuardSubCarriers  = None # NEW for OFDMA uplink, not used yet
     switchingPointOffset = None # [s] TDD: duration of DataTx phase; FDD: duration of 1st duplexGroup phase
     symbolsPerBlock      = None
-    lowestPhyMode       = None # set later when mac+phy are combined into plm class
+    mapHandlerPhyMode    = None # set later when mac+phy are combined into plm class
     schedulingOffset    = None # number of frames that the scheduling ios done in advance
     numberOfFramesToSchedule = None # how many frames are scheduled when StartMap is called
     useMapResourcesInUL      = None
@@ -142,9 +145,9 @@ class LTE:
 
         self.phy = PHYLTEFDD(self.numSubchannels * self.subCarriersPerSubChannel)
 
-        #self.mac.lowestPhyMode                = winprost.LLMapping.ScaleNetLowestPhyMode # from LLMapping.py
-        #self.mac.lowestPhyMode.symbolDuration = self.mac.fullSymbolDur
-        #self.mac.lowestPhyMode.subCarriersPerSubChannel = self.phy.phyResourceSize
+        self.mac.mapHandlerPhyMode = PhyMode("QPSK-lte_m_2_tbs_3624")
+        self.mac.mapHandlerPhyMode.symbolDuration = self.mac.fullSymbolDur
+        self.mac.mapHandlerPhyMode.subCarriersPerSubChannel = self.phy.phyResourceSize
 
         # Power of 4.0 dBm for nominalPerSubband is calculated for 20 MHz case
         # Power UT/BS according to ITU-R M.2135

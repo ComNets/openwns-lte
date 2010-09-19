@@ -59,6 +59,7 @@ PhyUser::PhyUser(wns::ldk::fun::FUN* fun, const wns::pyconfig::View& pyConfigVie
     wns::ldk::HasConnector<>(),
     wns::ldk::HasDeliverer<>(),
     wns::Cloneable<PhyUser>(),
+    lte::helper::HasModeName(pyConfigView),
     layer2(NULL),
     stateRxTx(Rx),
     logger(pyConfigView.get("logger")),
@@ -97,10 +98,7 @@ PhyUser::onFUNCreated()
 
     layer2 = fun->getLayer<dll::ILayer2*>();
 
-    /**
-     * @todo : dbn : lterelease enable interference cache when it is available
-     */
-    // iCache = layer2->getManagementService<dll::services::management::InterferenceCache>("INTERFERENCECACHE");
+    iCache = layer2->getManagementService<dll::services::management::InterferenceCache>("INTERFERENCECACHE"+modeBase);
 
     stationManager =
         layer2->getStationManager();
@@ -462,7 +460,7 @@ PhyUser::getDataTransmissionService() const
     return dynamic_cast<wns::service::phy::ofdma::DataTransmission*>(transmission);
 }
 
-// called by ILayer2 class in WinProSt:
+// called by ILayer2 class in lte:
 void
 PhyUser::setNotificationService(wns::service::Service* phy)
 {

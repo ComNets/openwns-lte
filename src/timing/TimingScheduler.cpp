@@ -418,7 +418,11 @@ TimingScheduler::superFrameTrigger()
      * @todo dbn: Move this to the data phases and make it happen every 0th and 5th frame
      */
     try {
-        lte::controlplane::bch::IBCHTimingTx* bch = this->fun->findFriend<lte::controlplane::bch::IBCHTimingTx*>(mode+separator+"bch");
+	/**
+	 * @todo dbn: lterelease: Enable BCH trigger when BCH is available
+	 */
+        lte::controlplane::bch::IBCHTimingTx* bch = NULL;
+	//bch = this->fun->findFriend<lte::controlplane::bch::IBCHTimingTx*>(mode+separator+"bch");
         if (bch != NULL)
         {
             bch->sendBCH(0.0005);

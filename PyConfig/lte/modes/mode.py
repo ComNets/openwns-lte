@@ -105,6 +105,7 @@ class Mode(lte.modes.hasModeName.HasModeName):
 			taskFUN = taskFUNModule.UT(fun = fun, mode = self, parentLogger = self.logger)
 
 		self.taskFUNs[taskFUN.taskID] = taskFUN
+		return taskFUN
 
 ltefdd10 = lte.phy.plm.getByName("ltefdd10") 
 class LTEFDD10(Mode):

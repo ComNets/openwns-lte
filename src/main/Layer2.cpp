@@ -148,32 +148,12 @@ Layer2::onNodeCreated()
       // Inform PhyUser about our Mobility Service
       phyUser->setMobility( getNode()->getService<wns::PositionableInterface*>("mobility") );
 
-      /**
-       * @todo dbn: lterelease: Enable dependency resolution for resource scheduler when available
-       */
-      // dependency resolution in TX and RX ResourceScheduler
-      /*if (tasks.empty())
-	{
-	  winprost::timing::SchedulerFUInterface* rstx =
-	    getFUN()->findFriend<winprost::timing::SchedulerFUInterface*>(modeName+"_resourceSchedulerTX");
-	  rstx->onNodeCreated();
-	  winprost::timing::SchedulerFUInterface* rsrx =
-	    getFUN()->findFriend<winprost::timing::SchedulerFUInterface*>(modeName+"_resourceSchedulerRX");
-	  rsrx->onNodeCreated();
-	}
-      else
-	{
-	  for (unsigned int rr=0; rr<tasks.size(); ++rr){ // forall tasks in a relay (BS,UT)
-	    std::string taskName = tasks.at(rr);
-
-	    winprost::timing::SchedulerFUInterface* rstx =
-	      getFUN()->findFriend<winprost::timing::SchedulerFUInterface*>(modeName+"_"+taskName+"_resourceSchedulerTX");
-	    rstx->onNodeCreated();
-	    winprost::timing::SchedulerFUInterface* rsrx =
-	      getFUN()->findFriend<winprost::timing::SchedulerFUInterface*>(modeName+"_"+taskName+"_resourceSchedulerRX");
-	    rsrx->onNodeCreated();
-	  }
-	  }*/
+      lte::timing::SchedulerFUInterface* rstx =
+	  getFUN()->findFriend<lte::timing::SchedulerFUInterface*>(modeName+"_resourceSchedulerTX");
+      rstx->onNodeCreated();
+      lte::timing::SchedulerFUInterface* rsrx =
+	  getFUN()->findFriend<lte::timing::SchedulerFUInterface*>(modeName+"_resourceSchedulerRX");
+      rsrx->onNodeCreated();
     }
 }
 

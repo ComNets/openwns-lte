@@ -34,78 +34,77 @@
 
 namespace lte { namespace timing {
 
-/* deleted by chen */
     /** @brief "command" PDU exchanged with peer schedulers */
-//     class SchedulerCommand :
-//         public wns::ldk::Command
-//     {
-//     public:
-// /* deleted by chen */
-// //         SchedulerCommand()
-// //             {
-// //             }
-// // 
-// //         SchedulerCommand(const SchedulerCommand& other)
-// //             {
-// //                 local.distance = other.local.distance;
-// //                 local.subBand = other.local.subBand;
-// //                 local.phyMeasurementPtr = other.local.phyMeasurementPtr;
-// //                 if (other.magic.burst == wns::scheduler::MapInfoEntryPtr())
-// //                 {
-// //                     magic.burst = other.magic.burst;
-// //                 }
-// //                 else
-// //                 {
-// //                     magic.burst = wns::scheduler::MapInfoEntryPtr(
-// //                         new  wns::scheduler::MapInfoEntry(*other.magic.burst));
-// //                 }
-// //                 if (other.magic.schedulingTimeSlotPtr == wns::scheduler::SchedulingTimeSlotPtr())
-// //                 {
-// //                     magic.schedulingTimeSlotPtr = other.magic.schedulingTimeSlotPtr;
-// //                 }
-// //                 else
-// //                 {
-// //                     magic.schedulingTimeSlotPtr = wns::scheduler::SchedulingTimeSlotPtr(
-// //                         new  wns::scheduler::SchedulingTimeSlot(*other.magic.schedulingTimeSlotPtr));
-// //                 }
-// //             }
-// // 
-// //         virtual ~SchedulerCommand() {}
-// 
-//         struct Local{
-//             double distance;
-//             int subBand;
-//             wns::service::phy::power::PowerMeasurementPtr phyMeasurementPtr;
-//         };
-// 
-//         struct Peer {};
-// 
-//         /**
-//          * @brief magic elements that usually don't belong into a packet.
-//          * All elements are SmartPtr.
-//          */
-//         struct Magic
-//         {
-//             /**
-//              * @brief this contains the complete information element
-//              * around this packet
-//              */
-//             wns::scheduler::MapInfoEntryPtr burst;
-// 
-//             /**
-//              * @brief this contains a complete "PhysicalResource" unit.
-//              * Used for HARQ. In this case it is type SchedulingTimeSlotPtr,
-//              * which is more or less a chunk.
-//              */
-//             wns::scheduler::SchedulingTimeSlotPtr schedulingTimeSlotPtr;
-//         };
-// 
-//         Local local;
-// 
-//         Peer peer;
-// 
-//         Magic magic;
-//     };
+	class SchedulerCommand :
+	public wns::ldk::Command
+     {
+     public:
+ /* deleted by chen */
+          SchedulerCommand()
+              {
+             }
+  
+          SchedulerCommand(const SchedulerCommand& other)
+             {
+                 local.distance = other.local.distance;
+                 local.subBand = other.local.subBand;
+                 local.phyMeasurementPtr = other.local.phyMeasurementPtr;
+                 if (other.magic.burst == wns::scheduler::MapInfoEntryPtr())
+                 {
+                     magic.burst = other.magic.burst;
+                 }
+                 else
+                 {
+                     magic.burst = wns::scheduler::MapInfoEntryPtr(
+                         new  wns::scheduler::MapInfoEntry(*other.magic.burst));
+                 }
+                 if (other.magic.schedulingTimeSlotPtr == wns::scheduler::SchedulingTimeSlotPtr())
+                 {
+                     magic.schedulingTimeSlotPtr = other.magic.schedulingTimeSlotPtr;
+                 }
+                 else
+                 {
+                     magic.schedulingTimeSlotPtr = wns::scheduler::SchedulingTimeSlotPtr(
+                         new  wns::scheduler::SchedulingTimeSlot(*other.magic.schedulingTimeSlotPtr));
+                 }
+             }
+ 
+         virtual ~SchedulerCommand() {}
+
+         struct Local{
+             double distance;
+             int subBand;
+             wns::service::phy::power::PowerMeasurementPtr phyMeasurementPtr;
+         };
+ 
+         struct Peer {};
+ 
+         /**
+          * @brief magic elements that usually don't belong into a packet.
+          * All elements are SmartPtr.
+          */
+         struct Magic
+         {
+             /**
+              * @brief this contains the complete information element
+              * around this packet
+              */
+             wns::scheduler::MapInfoEntryPtr burst;
+ 
+             /**
+              * @brief this contains a complete "PhysicalResource" unit.
+              * Used for HARQ. In this case it is type SchedulingTimeSlotPtr,
+              * which is more or less a chunk.
+              */
+             wns::scheduler::SchedulingTimeSlotPtr schedulingTimeSlotPtr;
+         };
+ 
+         Local local;
+ 
+         Peer peer;
+ 
+         Magic magic;
+    };
 
     class SchedulerOutgoing
     {

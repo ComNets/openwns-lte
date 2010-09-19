@@ -185,7 +185,7 @@ FlowHandler::onDisassociated(wns::service::dll::UnicastAddress userAdr, wns::ser
     MESSAGE_SINGLE(NORMAL, logger, "onDisassociated: calling flowManager->onDisassociated");
     flowManager->onDisassociated(userAdr,dstAdr);
   } else if (userAdr == layer2->getDLLAddress()) { // we are meant (userAdr==UT)
-    assure(layer2->getStationType() == wns::service::dll::StationTypes::UT(),"wrong stationType");
+    assure(layer2->getStationType() == wns::service::dll::StationTypes::UE(),"wrong stationType");
     MESSAGE_SINGLE(NORMAL, logger, "onDisassociated: calling flowManager->onDisassociated");
     flowManager->onDisassociated(userAdr,dstAdr);
   } else {

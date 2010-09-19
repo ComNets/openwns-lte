@@ -18,6 +18,8 @@ srcFiles = [
     'src/macg/modeselection/Best.cpp',
 
     'src/macr/PhyUser.cpp',
+    'src/macr/Scorer.cpp',
+    'src/macr/NamedDispatcher.cpp',
 
     'src/controlplane/AssociationsProxy.cpp',
     'src/controlplane/associationHandler/AssociationHandler.cpp',
@@ -27,17 +29,29 @@ srcFiles = [
     'src/controlplane/flowmanagement/flowhandler/FlowHandler.cpp',
     'src/controlplane/flowmanagement/flowhandler/FlowHandlerBS.cpp',
     'src/controlplane/flowmanagement/flowhandler/FlowHandlerUT.cpp',
+    'src/controlplane/RRHandler.cpp',
+    'src/controlplane/RRHandlerShortcut.cpp',
+    'src/controlplane/MapHandler.cpp',
 
     'src/timing/TimingScheduler.cpp',
     'src/timing/events/Base.cpp',
     'src/timing/events/rap/Events.cpp',
     'src/timing/events/ut/Events.cpp',
+    'src/timing/RegistryProxy.cpp',
+    'src/timing/ResourceScheduler.cpp',
+    'src/timing/ResourceSchedulerNone.cpp',
+    'src/timing/ResourceSchedulerBS.cpp',
+    'src/timing/ResourceSchedulerUT.cpp',
+    'src/timing/partitioning/Scheme.cpp',
+    'src/timing/partitioning/Partition.cpp',
+    'src/timing/partitioning/PartitioningInfo.cpp',
 
     'src/helper/idprovider/Distance.cpp',
     'src/helper/idprovider/QoSClass.cpp',
     'src/helper/idprovider/PeerId.cpp',
     'src/helper/Keys.cpp',
     'src/helper/SwitchConnector.cpp',
+    'src/helper/QueueProxy.cpp',
 ]
 
 hppFiles = [
@@ -66,8 +80,11 @@ hppFiles = [
     'src/macr/RACHInterface.hpp',
     'src/macr/CQIMeasurementInterface.hpp',
     'src/macr/ScorerInterface.hpp',
+    'src/macr/Scorer.hpp',
+    'src/macr/NamedDispatcher.hpp',
 
     'src/controlplane/MapHandlerInterface.hpp',
+    'src/controlplane/MapHandler.hpp',
     'src/controlplane/bch/BCHUnitInterface.hpp',
 
     'src/controlplane/AssociationsProxyInterface.hpp',
@@ -81,12 +98,22 @@ hppFiles = [
     'src/controlplane/flowmanagement/flowhandler/FlowHandler.hpp',
     'src/controlplane/flowmanagement/flowhandler/FlowHandlerBS.hpp',
     'src/controlplane/flowmanagement/flowhandler/FlowHandlerUT.hpp',
+    'src/controlplane/RRHandler.hpp',
+    'src/controlplane/RRHandlerShortcut.hpp',
 
     'src/timing/TimingScheduler.hpp',
     'src/timing/ResourceSchedulerInterface.hpp',
     'src/timing/events/Base.hpp',
     'src/timing/events/rap/Events.hpp',
     'src/timing/events/ut/Events.hpp',
+    'src/timing/RegistryProxy.hpp',
+    'src/timing/ResourceScheduler.hpp',
+    'src/timing/ResourceSchedulerNone.hpp',
+    'src/timing/ResourceSchedulerBS.hpp',
+    'src/timing/ResourceSchedulerUT.hpp',
+    'src/timing/partitioning/PartitioningInfo.hpp',
+    'src/timing/partitioning/Partition.hpp',
+    'src/timing/partitioning/Scheme.hpp',
 
     'src/helper/HasModeName.hpp',
     'src/helper/MIProviderInterface.hpp',
@@ -100,6 +127,7 @@ hppFiles = [
     'src/helper/TransactionID.hpp',
     'src/helper/SwitchConnector.hpp',
     'src/helper/SwitchLink.hpp',
+    'src/helper/QueueProxy.hpp',
 ]
 
 pyconfigs = [
@@ -116,6 +144,8 @@ pyconfigs = [
     'lte/modes/taskfun/default/__init__.py',
     'lte/modes/taskfun/default/BS.py',
     'lte/modes/taskfun/default/UT.py',
+    'lte/modes/timing/__init__.py',
+    'lte/modes/timing/timingConfig.py',
     'lte/nodes/__init__.py',
     'lte/nodes/BS.py',
     'lte/nodes/UE.py',
@@ -134,9 +164,17 @@ pyconfigs = [
     'lte/dll/rlc.py',
     'lte/dll/macg.py',
     'lte/dll/phyUser.py',
+    'lte/dll/timingScheduler.py',
+    'lte/dll/resourceScheduler.py',
     'lte/dll/controlplane/__init__.py',
     'lte/dll/controlplane/association.py',
     'lte/dll/controlplane/flowmanager.py',
+    'lte/dll/qos.py',
+    'lte/dll/mapHandler.py',
+    'lte/dll/rrHandler.py',
+    'lte/dll/dispatcher.py',
+    'lte/llmapping/__init__.py',
+    'lte/llmapping/default.py',
     'lte/support/__init__.py',
     'lte/support/helper.py',
 
