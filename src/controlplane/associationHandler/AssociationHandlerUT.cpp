@@ -255,7 +255,10 @@ AssociationHandlerUT::bestRAP(wns::service::dll::UnicastAddress destination)
     MESSAGE_SINGLE(NORMAL, logger, "bestRAP("<<A2N(destination)<<")");
     // Maybe report the Associationsproxy directly...
     assure(associationsProxy!=NULL,"invalid associationsProxy");
-    associationsProxy->modeDetected(mode, destination);
+    /**
+     * @todo dbn: lterelease: Enable notification of associationsProxy when RACH is available.
+     */
+    //associationsProxy->modeDetected(mode, destination);
 }
 
 void

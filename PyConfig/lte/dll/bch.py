@@ -58,13 +58,12 @@ class RAP(BCHUnit):
     """has to be set externally"""
     txPower = None
     """Can this BS handle MIH"""
-    mihCapable = False
     rlcName        = None
     macgName = None
     flowManagerName = None
 
     def __init__(self, mode, parentLogger = None):
-        BCHUnit.__init__(self, mode, parentLogger = None)
+        BCHUnit.__init__(self, mode, parentLogger)
         self.txPower = mode.plm.phy.txPwrBS.nominalPerSubband
         self.rlcName = "rlc"
         self.macgName = "macg"
@@ -75,7 +74,7 @@ class UT(BCHUnit):
     schedulerName = None
 
     def __init__(self, mode, parentLogger = None):
-        BCHUnit.__init__(self, mode, parentLogger = None)
+        BCHUnit.__init__(self, mode, parentLogger)
         self.schedulerName = mode.modeName + mode.separator + "resourceSchedulerTX"
 
 class No(openwns.FUN.FunctionalUnit):

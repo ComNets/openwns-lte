@@ -182,7 +182,7 @@ class UT:
 
         flowSeparator = openwns.FlowSeparator.FlowSeparator(
             lte.dll.controlplane.flowmanager.FlowID(),
-            openwns.FlowSeparator.CreateOnValidFlow(config, fipName = 'FlowManagerBS'),
+            openwns.FlowSeparator.CreateOnValidFlow(config, fipName = 'FlowManagerUT'),
             'lowerFlowSeparator',
             self.logger,
             functionalUnitName = mode.modeName + mode.separator + name,

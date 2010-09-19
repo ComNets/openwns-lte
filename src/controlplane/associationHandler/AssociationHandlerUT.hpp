@@ -29,6 +29,7 @@
 #define LTE_CONTROLPLANE_ASSOCIATIONHANDLER_ASSOCIATIONHANDLERUT_HPP
 
 #include <LTE/controlplane/associationHandler/AssociationHandler.hpp>
+#include <LTE/controlplane/associationHandler/IAssociationHandler.hpp>
 
 #include <WNS/Cloneable.hpp>
 #include <WNS/events/CanTimeout.hpp>
@@ -43,6 +44,7 @@ namespace lte {
 
       class AssociationHandlerUT :
 	public AssociationHandler,
+	public IAssociationHandlerTriggers,
 	public wns::events::CanTimeout,
 	public wns::Cloneable<AssociationHandlerUT>
       {

@@ -100,6 +100,7 @@ class BS:
         fun.add(schedulerRX)
 
         mapHandler = lte.dll.mapHandler.MapHandler(mode)
+        mapHandler.txPower = mode.plm.phy.txPwrBS.nominalPerSubband
         fun.add(mapHandler)
 
         # opcodesize set to 0 for correct PDU size calculation
