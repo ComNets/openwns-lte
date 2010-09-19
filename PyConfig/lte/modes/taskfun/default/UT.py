@@ -71,6 +71,11 @@ class UT:
         flowHandler.taskID = self.taskID
         fun.add(flowHandler)
 
+        flowHandlerFlowSep = self._setupUnacknowledgedModePerFlow(fun, mode,
+                                                                  name="FlowHandler.um",
+                                                                  separatorName="flowHandlerFlowSeparator")
+        fun.add(flowHandlerFlowSep)
+
         controlPlaneDispatcher = openwns.ldk.Multiplexer.Dispatcher(
             opcodeSize = 0,
             functionalUnitName = mode.modeName + mode.separator + 'controlPlaneDispatcher',
@@ -78,7 +83,7 @@ class UT:
 
         fun.add(controlPlaneDispatcher)
 
-        lowerFlowSep = self._setupLowerFlowSeparator(fun, mode)
+        lowerFlowSep = self._setupUnacknowledgedModePerFlow(fun, mode, name="um", separatorName="lowerFlowSeparator")
         fun.add(lowerFlowSep)
 
         lowerFlowGate = openwns.FlowSeparator.FlowGate(fuName = self.mode.modeName + self.mode.separator + 'lowerFlowGate',
@@ -121,7 +126,9 @@ class UT:
                 (associationHandler, controlPlaneDispatcher),
 
                 (bch, controlPlaneDispatcher),
-                (flowHandler, controlPlaneDispatcher),
+
+                (flowHandler, flowHandlerFlowSep),
+                (flowHandlerFlowSep, controlPlaneDispatcher),
 
                 (rrHandler, rrHandlerShortcut),
 
@@ -156,13 +163,13 @@ class UT:
 
         return resourceSchedulerRX
 
-    def _setupLowerFlowSeparator(self, fun, mode):
+    def _setupUnacknowledgedModePerFlow(self, fun, mode, name, separatorName):
 
         lowerSubFUN = openwns.FUN.FUN(self.logger)
         
         # Unacknowledged Mode FU
-        _functionalUnitName = mode.modeName + mode.separator + 'um'
-        _commandName = mode.modeBase + mode.separator + 'um'
+        _functionalUnitName = mode.modeName + mode.separator + name
+        _commandName = mode.modeBase + mode.separator + name
         segmentSize = mode.plm.mac.dlSegmentSize
         um = lte.dll.rlc.UnacknowledgedMode(segmentSize = segmentSize - 1,
                                             headerSize = 1,
@@ -175,7 +182,7 @@ class UT:
 
         lowerGroup = openwns.Group.Group(lowerSubFUN, um.functionalUnitName, um.functionalUnitName)
 
-        return self._flowSeparated(mode, "lowerFlowSeparator", lowerGroup)
+        return self._flowSeparated(mode, separatorName, lowerGroup)
 
     def _flowSeparated(self, mode, name, group):
         config = openwns.FlowSeparator.Config( mode.modeName + mode.separator + name + 'Prototype', group)
