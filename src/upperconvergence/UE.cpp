@@ -31,10 +31,8 @@
 #include <LTE/rlc/RLCCommand.hpp>
 #include <LTE/helper/Keys.hpp>
 
-#ifndef WNS_NO_LOGGING
 #include <DLL/StationManager.hpp>
 #define A2N(a) layer2->getStationManager()->getStationByMAC(a)->getName()
-#endif
 
 using namespace lte::upperconvergence;
 
