@@ -71,11 +71,11 @@ class BSOFDMAComponent(ofdmaSTA.OFDMAComponent):
 
     def __init__(self, node, mode):
         bsReceiver = BSReceiver(prop = rise.scenario.Propagation.Propagation(),
-                                propch = "BS",
+                                propch = "AP",
                                 parentLogger = node.logger)
         
         bsTransmitter = BSTransmitter(prop = rise.scenario.Propagation.Propagation(),
-                                      propch = "BS",
+                                      propch = "AP",
                                       parentLogger = node.logger,)
 
         phyStation = ofdmaSTA.OFDMAStation([bsReceiver], [bsTransmitter], node.logger, eirpLimited = True)

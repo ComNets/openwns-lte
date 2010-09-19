@@ -90,7 +90,9 @@ class UT:
         fun.add(flowHandler)
 
         flowHandlerFlowSep = self._setupUnacknowledgedModePerFlow(fun, mode,
+                                                                  validFlowNeeded = False,
                                                                   name="FlowHandler.um",
+                                                                  commandName = "um",
                                                                   separatorName="flowHandlerFlowSeparator")
         fun.add(flowHandlerFlowSep)
 
@@ -101,7 +103,11 @@ class UT:
 
         fun.add(controlPlaneDispatcher)
 
-        lowerFlowSep = self._setupUnacknowledgedModePerFlow(fun, mode, name="um", separatorName="lowerFlowSeparator")
+        lowerFlowSep = self._setupUnacknowledgedModePerFlow(fun, mode,
+                                                            validFlowNeeded = True,
+                                                            name="um",
+                                                            commandName = "um",
+                                                            separatorName="lowerFlowSeparator")
         fun.add(lowerFlowSep)
 
         lowerFlowGate = openwns.FlowSeparator.FlowGate(fuName = self.mode.modeName + self.mode.separator + 'lowerFlowGate',
@@ -187,13 +193,13 @@ class UT:
 
         return resourceSchedulerRX
 
-    def _setupUnacknowledgedModePerFlow(self, fun, mode, name, separatorName):
+    def _setupUnacknowledgedModePerFlow(self, fun, mode, validFlowNeeded, name, commandName, separatorName):
 
         lowerSubFUN = openwns.FUN.FUN(self.logger)
         
         # Unacknowledged Mode FU
         _functionalUnitName = mode.modeName + mode.separator + name
-        _commandName = mode.modeBase + mode.separator + name
+        _commandName = mode.modeBase + mode.separator + commandName
         segmentSize = mode.plm.mac.dlSegmentSize
         um = lte.dll.rlc.UnacknowledgedMode(segmentSize = segmentSize - 1,
                                             headerSize = 1,
@@ -206,14 +212,20 @@ class UT:
 
         lowerGroup = openwns.Group.Group(lowerSubFUN, um.functionalUnitName, um.functionalUnitName)
 
-        return self._flowSeparated(mode, separatorName, lowerGroup)
+        return self._flowSeparated(mode, separatorName, lowerGroup, validFlowNeeded)
 
-    def _flowSeparated(self, mode, name, group):
+    def _flowSeparated(self, mode, name, group, validFlowNeeded):
+
         config = openwns.FlowSeparator.Config( mode.modeName + mode.separator + name + 'Prototype', group)
+
+        if validFlowNeeded:
+            strategy = openwns.FlowSeparator.CreateOnValidFlow(config, fipName = 'FlowManagerUT')
+        else:
+            strategy = openwns.FlowSeparator.CreateOnFirstCompound(config)
 
         flowSeparator = openwns.FlowSeparator.FlowSeparator(
             lte.dll.controlplane.flowmanager.FlowID(),
-            openwns.FlowSeparator.CreateOnValidFlow(config, fipName = 'FlowManagerUT'),
+            strategy,
             'lowerFlowSeparator',
             self.logger,
             functionalUnitName = mode.modeName + mode.separator + name,

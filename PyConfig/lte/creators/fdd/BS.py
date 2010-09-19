@@ -44,9 +44,29 @@ class BSCreator(scenarios.interfaces.INodeCreator):
         global rang
 
         if rang is None:
-            rang = lte.nodes.RANG()
+            rang = lte.nodes.RANG(useTCP = self.config.useTCP)
             import openwns.simulator
             openwns.simulator.getSimulator().simulationModel.nodes.append(rang)
+
+            import constanze.traffic
+            import constanze.node
+
+            if self.config.dlTraffic is not None:
+                trafficDL = self.config.dlTraffic.create(rang)
+
+                if self.config.useTCP:
+                    listenerBindingInRANG = constanze.node.TCPServerListenerBinding(1024, trafficDL, parentLogger = rang.logger)
+                else:
+                    listenerBindingInRANG = constanze.node.UDPServerListenerBinding(777, trafficDL, parentLogger = rang.logger)
+
+            else: # no traffic RANG is responding with
+                if self.useTCP:
+                    listenerBindingInRANG=constanze.node.TCPListenerBinding(1024,parentLogger=rang.logger)
+                else:
+                    listenerBindingInRANG=constanze.node.UDPListenerBinding(777,parentLogger=rang.logger)
+
+            listenerInRANG = constanze.node.Listener(rang.nl.domainName, parentLogger = rang.logger)
+            rang.load.addListener(listenerBindingInRANG, listenerInRANG)
 
     def create(self):
 

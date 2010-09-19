@@ -208,6 +208,10 @@ void
 ut::StartData::StopData::execute()
 {
     MESSAGE_SINGLE(NORMAL, logger, "Event StopData");
+
+    // HARQ, must be done BEFORE deliverReceived
+    rstx->sendPendingHARQFeedback();
+    
     // in case of a UT in TDD mode here deliverReceived() has no effect, because
     // it has already been called at the swtiching point
     rstx->deliverReceived(); // obsolete

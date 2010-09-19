@@ -103,10 +103,12 @@ rap::StartMap::execute()
     mapHandler->setCurrentPhase();
     // ^ mapHandler sets currentPhase via friends.timer->phaseNumberAtOffset(0=now)
 
-    int workingFrameNr;
+    int ulWorkingFrameNr;
+    int dlWorkingFrameNr;
     int schedulingOffset = timer->getSchedulingOffset();
     int numberOfFrames = timer->getNumberOfFramesToSchedule();
-    std::vector<int> frameNumbers;
+    std::vector<int> ulFrameNumbers;
+    std::vector<int> dlFrameNumbers;
 
     MESSAGE_SINGLE(NORMAL, logger, "startMap: Scheduling for " << numberOfFrames << " frames,starting with frameNr=" << frameNr+schedulingOffset);
     int j = 0;
@@ -117,8 +119,10 @@ rap::StartMap::execute()
     if (useMapResourcesInUL)
     {
         MESSAGE_SINGLE(NORMAL, logger, "Setting Expectations at beginning of Map -> Thus starting UL");
-        //rstx->setExpectations(frameNr);
-        rsrx->finishCollection(/*current*/frameNr, now); // only beamforming etc.
+        
+        // If we use the map resources in UL, then the map gives the transmissions for the next frame
+        ulWorkingFrameNr = (frameNr + 1) % framesPerSuperFrame;
+        rsrx->finishCollection(/*current*/ulWorkingFrameNr, now); // only beamforming etc.
     }
 
     // Now we can start the scheduling as normal
@@ -127,32 +131,41 @@ rap::StartMap::execute()
     {
         // make sure that the RN only schedules frames where it is in RAP phase!
         // (i, j)
-        workingFrameNr = (frameNr + schedulingOffset + i + j) % framesPerSuperFrame;
+        dlWorkingFrameNr = (frameNr + schedulingOffset + i + j) % framesPerSuperFrame;
+        if (useMapResourcesInUL)
+        {
+            ulWorkingFrameNr = (frameNr + schedulingOffset + i + j + 1) % framesPerSuperFrame;
+        }
+        else
+        {
+            ulWorkingFrameNr = dlWorkingFrameNr;
+        }
 
-        int taskPhase = timer->stationTaskAtFrame(workingFrameNr);
+        int taskPhase = timer->stationTaskAtFrame(dlWorkingFrameNr);
         MESSAGE_SINGLE(NORMAL, logger, "startMap: taskPhase=" << taskPhase);
         if (taskPhase == StationTasks::RAP())
         {
             // first DL
-            MESSAGE_SINGLE(NORMAL, logger, "startMap(): DL Scheduling for frameNr=" << workingFrameNr);
-            rstx->startCollection(workingFrameNr);
+            MESSAGE_SINGLE(NORMAL, logger, "startMap(): DL Scheduling for frameNr=" << dlWorkingFrameNr);
+            rstx->startCollection(dlWorkingFrameNr);
 
             // now UL
-            MESSAGE_SINGLE(NORMAL, logger, "startMap(): UL Scheduling for frameNr=" << workingFrameNr);
-            rsrx->startCollection(workingFrameNr);
+            MESSAGE_SINGLE(NORMAL, logger, "startMap(): UL Scheduling for frameNr=" << ulWorkingFrameNr);
+            rsrx->startCollection(ulWorkingFrameNr);
 
             // finally save the map
             //mapHandler->saveMap(workingFrameNr); // now done in ResourceScheduler.cpp
-            frameNumbers.push_back(workingFrameNr);
+            dlFrameNumbers.push_back(dlWorkingFrameNr);
+            ulFrameNumbers.push_back(ulWorkingFrameNr);
+
             i++;
         } else {
             j++;
         }
     }
-    rsrx->resetHARQScheduledPeerRetransmissions();
-    MESSAGE_SINGLE(NORMAL, logger, "startMap(): scheduled frameNumbers=" << frameNumbers.size());
+    MESSAGE_SINGLE(NORMAL, logger, "startMap(): scheduled dlFrameNumbers=" << dlFrameNumbers.size() << " ulFrameNumbers=" << ulFrameNumbers.size());
     timer->frameTrigger();
-    mapHandler->startMapTx(duration, frameNumbers, frameNumbers);
+    mapHandler->startMapTx(duration, dlFrameNumbers, ulFrameNumbers);
     // duration is needed for phyCommand->local.stop = startTime + duration
 } // rap::StartMap::execute()
 
@@ -254,6 +267,10 @@ void
 rap::StartData::StopData::execute()
 {
     MESSAGE_SINGLE(NORMAL, logger, "Event StopData");
+
+    // HARQ, must be done BEFORE deliverReceived
+    rstx->sendPendingHARQFeedback();
+
     // in case of a UT in TDD mode here deliverReceived() has no effect, because
     // it has already been called at the swtiching point
     rstx->deliverReceived(); // obsolete

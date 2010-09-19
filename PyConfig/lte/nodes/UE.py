@@ -91,7 +91,7 @@ class UE(scenarios.interfaces.INode, openwns.node.Node):
                        _dllDataTransmission = self.dll.dataTransmission,
                        _dllNotification = self.dll.notification)
 
-        self.nl.addRoute("0.0.0.0", "0.0.0.0", "192.168.254.254", "win")
+        self.nl.addRoute("0.0.0.0", "0.0.0.0", "192.168.254.254", "lte")
 
     def _setupTCP(self, useTCP):
         if useTCP == True:
@@ -126,3 +126,6 @@ class UE(scenarios.interfaces.INode, openwns.node.Node):
 
     def setProperty(self, propertyName, propertyValue):
         self.properties[propertyName] = propertyValue
+
+    def addTraffic(self, binding, load):
+        self.load.addTraffic(binding, load)

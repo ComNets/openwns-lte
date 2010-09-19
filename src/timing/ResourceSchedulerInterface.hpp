@@ -39,7 +39,6 @@ namespace lte { namespace timing {
 	public wns::ldk::Command
      {
      public:
- /* deleted by chen */
           SchedulerCommand()
               {
              }
@@ -109,8 +108,6 @@ namespace lte { namespace timing {
     class SchedulerOutgoing
     {
     public:
-/* deleted by chen */
-//         virtual ~SchedulerOutgoing() {};
 
         /**
          * @brief Hands the result of the Scheduling Round down to the PHY
@@ -124,10 +121,12 @@ namespace lte { namespace timing {
     class SchedulerIncoming
     {
     public:
-/* deleted by chen */
-//         virtual ~SchedulerIncoming(){};
 
         virtual void deliverReceived() = 0;
+
+	virtual void
+	sendPendingHARQFeedback() = 0;
+
     };
 
     class MasterScheduler :
@@ -135,8 +134,6 @@ namespace lte { namespace timing {
         virtual public SchedulerIncoming
     {
     public:
-/* deleted by chen */
-//         virtual ~MasterScheduler() {};
 
         /**
          * @brief trigger master scheduling (from FU TimingScheduler that calls
@@ -170,8 +167,6 @@ namespace lte { namespace timing {
     class SchedulerFUInterface
     {
     public:
-/* deleted by chen */
-//         virtual ~SchedulerFUInterface(){};
 
         /**
          * @brief For Intra-Node dependency resolution.
