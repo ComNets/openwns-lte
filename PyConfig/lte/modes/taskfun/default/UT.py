@@ -27,13 +27,20 @@
 
 import lte.dll.controlplane.association
 import lte.dll.controlplane.flowmanager
+import lte.dll.resourceScheduler
+import lte.dll.mapHandler
+import lte.dll.rrHandler
+import lte.dll.bch
 import lte.modes.timing.timingConfig
-
+import lte.llmapping.default
 from lte.support.helper import connectFUs
-import openwns.FlowSeparator
+
+import openwns.Scheduler
 import openwns.ldk
 import openwns.logger
-
+import openwns.FUN
+import openwns.Group
+import openwns.FlowSeparator
 
 class UT:
 
@@ -44,6 +51,9 @@ class UT:
         self.logger = openwns.logger.Logger('LTE', self.mode.modeName, True, parentLogger)
 
         self.timer = lte.modes.timing.timingConfig.getTimingConfig('UT', self.mode)
+
+        bch = lte.dll.bch.UT(mode, parentLogger = self.logger)
+        fun.add(bch)
 
         associationHandler = lte.dll.controlplane.association.AssociationHandlerUT(
             self.mode.modeName, self.mode,
@@ -68,15 +78,18 @@ class UT:
 
         fun.add(controlPlaneDispatcher)
 
+        lowerFlowSep = self._setupLowerFlowSeparator(fun, mode)
+        fun.add(lowerFlowSep)
+
         lowerFlowGate = openwns.FlowSeparator.FlowGate(fuName = self.mode.modeName + self.mode.separator + 'lowerFlowGate',
                                                        keyBuilder = lte.dll.controlplane.flowmanager.FlowID(),
                                                        parentLogger = self.logger)
         fun.add(lowerFlowGate)
 
-        schedulerTX = self._setupTxScheduler(fun, mode, parentLogger)
+        schedulerTX = self._setupTxScheduler(fun, mode)
         fun.add(schedulerTX)
 
-        schedulerRX = self._setupRxScheduler(fun, mode, parentLogger)
+        schedulerRX = self._setupRxScheduler(fun, mode)
         fun.add(schedulerRX)
 
         mapHandler = lte.dll.mapHandler.MapHandler(mode)
@@ -101,11 +114,14 @@ class UT:
         fun.add(rrHandlerShortcut)
 
         connectFUs([
+                (lowerFlowSep, lowerFlowGate),
                 (lowerFlowGate, controlPlaneDispatcher),
                 (controlPlaneDispatcher, schedulerTX),
 
-                (flowHandler, controlPlaneDispatcher),
                 (associationHandler, controlPlaneDispatcher),
+
+                (bch, controlPlaneDispatcher),
+                (flowHandler, controlPlaneDispatcher),
 
                 (rrHandler, rrHandlerShortcut),
 
@@ -113,27 +129,25 @@ class UT:
                 (schedulerRX, dispatcher),
                 (mapHandler, dispatcher),
                 ])
-  
-        self.top = lowerFlowGate
+
+        self.top = lowerFlowSep
         self.bottom = dispatcher
 
-    def _setupTxScheduler(self, fun, mode, parentLogger):
+    def _setupTxScheduler(self, fun, mode):
         rsNameSuffix = 'resourceScheduler'
         txFUName = mode.modeName + mode.separator + rsNameSuffix +'TX'
         txTaskName = mode.modeBase + mode.separator + rsNameSuffix +'TX'
-
-        strategyTX = openwns.Scheduler.ExhaustiveRR(parentLogger=self.logger)
 
         group = 1
 
         phyModeMapping = lte.llmapping.default.LTEMapper(mode)
 
-        resourceSchedulerTX = lte.dll.resourceScheduler.UT(mode, mode.plm, strategyTX, txFUName, txTaskName, False, self.logger)
+        resourceSchedulerTX = lte.dll.resourceScheduler.UT(mode, txFUName, txTaskName, group, self.logger)
         resourceSchedulerTX.setPhyModeMapper(phyModeMapping)
 
         return resourceSchedulerTX
 
-    def _setupRxScheduler(self, fun, mode, parentLogger):
+    def _setupRxScheduler(self, fun, mode):
         rsNameSuffix = 'resourceScheduler'
         rxFUName = mode.modeName + mode.separator + rsNameSuffix +'RX'
         rxTaskName = mode.modeBase + mode.separator + rsNameSuffix +'RX'
@@ -142,3 +156,36 @@ class UT:
 
         return resourceSchedulerRX
 
+    def _setupLowerFlowSeparator(self, fun, mode):
+
+        lowerSubFUN = openwns.FUN.FUN(self.logger)
+        
+        # Unacknowledged Mode FU
+        _functionalUnitName = mode.modeName + mode.separator + 'um'
+        _commandName = mode.modeBase + mode.separator + 'um'
+        segmentSize = mode.plm.mac.dlSegmentSize
+        um = lte.dll.rlc.UnacknowledgedMode(segmentSize = segmentSize - 1,
+                                            headerSize = 1,
+                                            commandName=_commandName,
+                                            parentLogger = self.logger)
+        um.sduLengthAddition = 16
+        um = openwns.FUN.Node(_functionalUnitName, um, _commandName)
+        
+        lowerSubFUN.add(um)
+
+        lowerGroup = openwns.Group.Group(lowerSubFUN, um.functionalUnitName, um.functionalUnitName)
+
+        return self._flowSeparated(mode, "lowerFlowSeparator", lowerGroup)
+
+    def _flowSeparated(self, mode, name, group):
+        config = openwns.FlowSeparator.Config( mode.modeName + mode.separator + name + 'Prototype', group)
+
+        flowSeparator = openwns.FlowSeparator.FlowSeparator(
+            lte.dll.controlplane.flowmanager.FlowID(),
+            openwns.FlowSeparator.CreateOnValidFlow(config, fipName = 'FlowManagerBS'),
+            'lowerFlowSeparator',
+            self.logger,
+            functionalUnitName = mode.modeName + mode.separator + name,
+            commandName = mode.modeBase + mode.separator + name)
+
+        return flowSeparator

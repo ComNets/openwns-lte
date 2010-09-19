@@ -171,13 +171,42 @@ class ResourceScheduler(openwns.FUN.FunctionalUnit, lte.modes.hasModeName.HasMod
 class BS(ResourceScheduler):
     __plugin__ = 'lte.timing.ResourceScheduler.BS'
 
-    def __init__(self, mode, PLM, strategy, fuName, commandName, uplinkMaster = False, group = None, parentLogger = None, **kw):
-        super(BS, self).__init__(mode, PLM, strategy, fuName, commandName, uplinkMaster, group, parentLogger, **kw)
+    def __init__(self, mode, fuName, commandName, uplinkMaster = False, group = None, parentLogger = None, txSchedulerFUName=""):
+        if uplinkMaster:
+            ResourceScheduler.__init__(self,
+                                       mode,
+                                       mode.plm,
+                                       mode.scheduler.uplinkMaster.createStrategy(parentLogger),
+                                       fuName,
+                                       commandName,
+                                       uplinkMaster,
+                                       group,
+                                       parentLogger,
+                                       txSchedulerFUName)
+        else:
+            ResourceScheduler.__init__(self,
+                                       mode,
+                                       mode.plm,
+                                       mode.scheduler.downlink.createStrategy(parentLogger),
+                                       fuName,
+                                       commandName,
+                                       uplinkMaster,
+                                       group,
+                                       parentLogger,
+                                       txSchedulerFUName)
 
 class UT(ResourceScheduler):
     __plugin__ = 'lte.timing.ResourceScheduler.UT'
-    def __init__(self, mode, PLM, strategy, fuName, commandName, uplinkMaster = False, parentLogger = None, **kw):
-        super(UT, self).__init__(mode, PLM, strategy, fuName, commandName, uplinkMaster, 0, parentLogger, **kw)
+    def __init__(self, mode, fuName, commandName, group=None, parentLogger = None):
+            ResourceScheduler.__init__(self,
+                                       mode,
+                                       mode.plm,
+                                       mode.scheduler.uplinkSlave.createStrategy(parentLogger),
+                                       fuName,
+                                       commandName,
+                                       False,
+                                       group,
+                                       parentLogger)
 
 class No(openwns.FUN.FunctionalUnit):
     __plugin__ = 'lte.timing.ResourceScheduler.None'

@@ -32,6 +32,7 @@ import lte.dll.phyUser
 import lte.dll.dispatcher
 import lte.dll.controlplane.association
 import lte.dll.controlplane.flowmanager
+import lte.dll.bch
 import lte.partitioning.service
 from lte.support.helper import connectFUs
 
@@ -239,6 +240,9 @@ class ueLayer2( dll.Layer2.Layer2 ):
                                                       mode.logger)
         mode.partInfo = p
         self.controlServices.append(p)
+
+        bchService = lte.dll.bch.BCHService(mode)
+        self.controlServices.append(bchService)
 
     def _setupManagementServicesPerMode(self, mode):
         i = dll.Services.InterferenceCache("INTERFERENCECACHE"+mode.modeName,

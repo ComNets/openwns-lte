@@ -30,12 +30,7 @@
 #include <LTE/timing/events/rap/Events.hpp>
 #include <LTE/timing/events/ut/Events.hpp>
 #include <LTE/main/Layer2.hpp>
-/* deleted by chen */
-// #include <LTE/controlplane/associationHandler/AssociationHandler.hpp>
-//#include <LTE/controlplane/bch/LTEBCHUnit.hpp>
-
 #include <LTE/controlplane/bch/BCHUnitInterface.hpp>
-
 
 #include <DLL/StationManager.hpp>
 
@@ -418,11 +413,8 @@ TimingScheduler::superFrameTrigger()
      * @todo dbn: Move this to the data phases and make it happen every 0th and 5th frame
      */
     try {
-	/**
-	 * @todo dbn: lterelease: Enable BCH trigger when BCH is available
-	 */
         lte::controlplane::bch::IBCHTimingTx* bch = NULL;
-	//bch = this->fun->findFriend<lte::controlplane::bch::IBCHTimingTx*>(mode+separator+"bch");
+	bch = this->fun->findFriend<lte::controlplane::bch::IBCHTimingTx*>(mode+separator+"bch");
         if (bch != NULL)
         {
             bch->sendBCH(0.0005);

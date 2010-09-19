@@ -11,6 +11,7 @@ srcFiles = [
 
     'src/rlc/eNB.cpp',
     'src/rlc/UE.cpp',
+    'src/rlc/UnacknowledgedMode.cpp',
 
     'src/macg/MACg.cpp',
     'src/macg/MACgUT.cpp',
@@ -32,6 +33,9 @@ srcFiles = [
     'src/controlplane/RRHandler.cpp',
     'src/controlplane/RRHandlerShortcut.cpp',
     'src/controlplane/MapHandler.cpp',
+    'src/controlplane/bch/BCHService.cpp',
+    'src/controlplane/bch/BCHUnit.cpp',
+    'src/controlplane/bch/BCHSchedulerStrategy.cpp',
 
     'src/timing/TimingScheduler.cpp',
     'src/timing/events/Base.cpp',
@@ -66,6 +70,7 @@ hppFiles = [
     'src/rlc/RLCCommand.hpp',
     'src/rlc/eNB.hpp',
     'src/rlc/UE.hpp',
+    'src/rlc/UnacknowledgedMode.hpp',
 
     'src/macg/MACgCommand.hpp',
     'src/macg/MACg.hpp',
@@ -100,6 +105,10 @@ hppFiles = [
     'src/controlplane/flowmanagement/flowhandler/FlowHandlerUT.hpp',
     'src/controlplane/RRHandler.hpp',
     'src/controlplane/RRHandlerShortcut.hpp',
+    'src/controlplane/bch/BCHService.hpp',
+    'src/controlplane/bch/BCHStorage.hpp',
+    'src/controlplane/bch/BCHUnit.hpp',
+    'src/controlplane/bch/BCHSchedulerStrategy.hpp',
 
     'src/timing/TimingScheduler.hpp',
     'src/timing/ResourceSchedulerInterface.hpp',
@@ -146,6 +155,8 @@ pyconfigs = [
     'lte/modes/taskfun/default/UT.py',
     'lte/modes/timing/__init__.py',
     'lte/modes/timing/timingConfig.py',
+    'lte/modes/scheduling/__init__.py',
+    'lte/modes/scheduling/default.py',
     'lte/nodes/__init__.py',
     'lte/nodes/BS.py',
     'lte/nodes/UE.py',
@@ -161,6 +172,7 @@ pyconfigs = [
     'lte/dll/__init__.py',
     'lte/dll/component.py',
     'lte/dll/upperConvergence.py',
+    'lte/dll/bch.py',
     'lte/dll/rlc.py',
     'lte/dll/macg.py',
     'lte/dll/phyUser.py',

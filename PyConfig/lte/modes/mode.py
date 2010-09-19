@@ -27,6 +27,7 @@
 
 import lte.modes.hasModeName
 import lte.modes.taskfun.default
+import lte.modes.scheduling.default
 
 import lte.partitioning.fdd
 import lte.phy.plm
@@ -50,12 +51,11 @@ class Mode(lte.modes.hasModeName.HasModeName):
 
 	taskFUNs = None # taskFUNs[taskID]
 
-	# top and bottom Node of Mode-specific-FUN (connected externally)
-	top = None
-	bottom = None
-
 	# this modes' phy and mac parameters
 	plm = None
+
+	# scheduler settings
+	scheduler = None
 
 	# channel properties
 	channelModel = None
@@ -98,6 +98,8 @@ class Mode(lte.modes.hasModeName.HasModeName):
                 #                                             self.modeName + self.separator + 'TaskDispatcher', self.logger)
 		self.mapModeNameToNumber(name)
 
+		self.scheduler = lte.modes.scheduling.default.SchedulerSettings()
+
 	def createTaskFUN(self, fun, stationType, taskFUNModule = lte.modes.taskfun.default):
 		if stationType == "BS":
 			taskFUN = taskFUNModule.BS(fun = fun, mode = self, parentLogger = self.logger)
@@ -105,6 +107,7 @@ class Mode(lte.modes.hasModeName.HasModeName):
 			taskFUN = taskFUNModule.UT(fun = fun, mode = self, parentLogger = self.logger)
 
 		self.taskFUNs[taskFUN.taskID] = taskFUN
+
 		return taskFUN
 
 ltefdd10 = lte.phy.plm.getByName("ltefdd10") 

@@ -267,10 +267,7 @@ ResourceScheduler::onNodeCreated()
     wns::service::phy::ofdma::DataTransmission* ofdmaProvider = friends.phyUser->getDataTransmissionService();
     colleagues.grouper->setFriends(ofdmaProvider);
     colleagues.strategy->setFriends(ofdmaProvider);
-    /**
-     * @todo dbn: lterelease: queue needs an unacknowledged mode FU. Enable initialization once the UM FU is available
-     */
-    //colleagues.queue->setFUN(getFUN());
+    colleagues.queue->setFUN(getFUN());
     schedulerSpot = colleagues.strategy->getSchedulerSpotType(); // first known after strategy->setFriends
 } // onNodeCreated(): setOFDMAService
 
