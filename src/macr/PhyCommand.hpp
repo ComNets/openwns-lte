@@ -35,8 +35,9 @@
 #include <WNS/node/Node.hpp>
 #include <WNS/service/phy/ofdma/Pattern.hpp>
 #include <WNS/ldk/Command.hpp>
-#include <WNS/events/Deferred.hpp>
 #include <WNS/CandI.hpp>
+
+#include <boost/function.hpp>
 
 namespace dll {
 	class ILayer2;
@@ -147,7 +148,7 @@ namespace lte {
 				double distance;
 
 				/** @brief Used to callback upper FUs when a PDU is put on Air */
-				wns::events::Deferred onAirDeferred;
+			        boost::function<void()> onAirCallback;
 			} local;
 			/** @brief empty, since PhyUser doesn't do any signalling */
 			struct Peer {} peer;

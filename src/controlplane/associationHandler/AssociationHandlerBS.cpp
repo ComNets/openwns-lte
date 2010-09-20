@@ -38,6 +38,8 @@
 #include <DLL/services/control/Association.hpp>
 #include <DLL/StationManager.hpp>
 
+#include <boost/bind.hpp>
+
 #define A2N(a) (((a).getInteger()>0) ? layer2->getStationManager()->getStationByMAC(a)->getName() : "DLL<0")
 
 using namespace lte::controlplane::associationHandler;
@@ -151,10 +153,8 @@ AssociationHandlerBS::doOnData(const wns::ldk::CompoundPtr& compound)
             //dll::ILayer2* ut = layer2->getStationManager()->getStationByMAC(incomingCommand->peer.user);
             associationService->releaseClient(ut);
 
-            AckOnAirCallback* callback = new AckOnAirCallback(this,
-                                                              incomingCommand->peer.user,
-                                                              layer2->getDLLAddress());
-
+	    boost::function<void()> callback;
+	    callback = boost::bind(&lte::controlplane::associationHandler::AssociationHandler::notifyOnDisassociated, this, incomingCommand->peer.user, layer2->getDLLAddress());
             connector->activate(friends.cpDispatcher);
             createDisassociation_ack(comingFrom, incomingCommand->peer.user, preserve, mode, callback);
         }
@@ -163,7 +163,7 @@ AssociationHandlerBS::doOnData(const wns::ldk::CompoundPtr& compound)
             // notify observers
             notifyOnDisassociated(incomingCommand->peer.user, comingFrom);
 
-            AckOnAirCallback* callback = NULL;
+	    boost::function<void()> callback;
             connector->activate(friends.cpDispatcher);
             createDisassociation_ack(comingFrom, incomingCommand->peer.user, preserve, incomingCommand->peer.mode, callback);
         }
@@ -252,7 +252,7 @@ void
 AssociationHandlerBS::createDisassociation_ack(wns::service::dll::UnicastAddress destination,
                                                wns::service::dll::UnicastAddress user,
                                                bool preserve, std::string perMode,
-                                               AckOnAirCallback* callback) const
+                                               boost::function<void()> callback) const
 {
     /** generate an empty PDU */
     wns::ldk::CompoundPtr associationCompound =
@@ -280,11 +280,11 @@ AssociationHandlerBS::createDisassociation_ack(wns::service::dll::UnicastAddress
     outgoingCommand->magic.bs = layer2->getDLLAddress();
     outgoingCommand->magic.sender = this; // for debugging and assures
 
-    if (callback!=NULL)
+    if (!callback.empty())
     {
         /** activate Phy User's command */
         lte::macr::PhyCommand* outgoingPhyCommand = phyUser->activateCommand(associationCompound->getCommandPool());
-        outgoingPhyCommand->local.onAirDeferred.addCallback(callback);
+        outgoingPhyCommand->local.onAirCallback = callback;
     }
 
     /** send the compound */

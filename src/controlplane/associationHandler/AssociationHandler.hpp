@@ -144,10 +144,6 @@ namespace lte { namespace controlplane{ namespace associationHandler {
 
 	virtual int getMyDuplexGroup(int frameNr, bool isDL) = 0;
 	virtual int getPeerDuplexGroup(wns::service::dll::UnicastAddress user) = 0;
-      private:
-	wns::ldk::fun::FUN* fun;
-
-      protected:
 
 	void
 	notifyOnAssociated(wns::service::dll::UnicastAddress,
@@ -157,6 +153,11 @@ namespace lte { namespace controlplane{ namespace associationHandler {
 	notifyOnDisassociated(wns::service::dll::UnicastAddress,
 			      wns::service::dll::UnicastAddress );
 
+      private:
+	wns::ldk::fun::FUN* fun;
+
+
+      protected:
 	struct {
 	  wns::ldk::IConnectorReceptacle* bchBuffer;
 	  wns::ldk::IConnectorReceptacle* rachDispatcher;

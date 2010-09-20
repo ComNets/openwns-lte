@@ -31,7 +31,6 @@
 #include <LTE/controlplane/associationHandler/AssociationHandler.hpp>
 #include <LTE/macr/PhyUser.hpp>
 
-#include <WNS/events/Callback.hpp>
 #include <WNS/Cloneable.hpp>
 
 namespace lte { namespace controlplane {
@@ -60,41 +59,6 @@ namespace lte { namespace controlplane {
 	int getMyDuplexGroup(int frameNr, bool isDL);
 	int getPeerDuplexGroup(wns::service::dll::UnicastAddress user);
       private:
-	class AckOnAirCallback:
-	  public wns::events::Callback
-	{
-	public:
-	  AckOnAirCallback(AssociationHandlerBS* _AssocHandler,
-			   wns::service::dll::UnicastAddress _user,
-			   wns::service::dll::UnicastAddress _ownAddress)
-	  {
-	    assure(_AssocHandler, "Invalid Association Handler given!");
-	    assure(_user.isValid(), "Invalid User address given!");
-	    assure(_ownAddress.isValid(), "Invalid User address given!");
-	    this->AssocHandler = _AssocHandler;
-	    this->user = _user;
-	    this->ownAddress = _ownAddress;
-	  }
-	  virtual ~AckOnAirCallback(){};
-
-	  virtual void
-	  callback()
-	  {
-	    MESSAGE_BEGIN(NORMAL, this->AssocHandler->logger, m,"");
-	    m << "AckOnAirCallback::callback(): disassociation_ack is on air";
-	    MESSAGE_END();
-
-	    // notify observers
-	    AssocHandler->notifyOnDisassociated(this->user, this->ownAddress);
-
-	    // Can be fired only once.
-	    delete this;
-	  }
-	private:
-	  AssociationHandlerBS* AssocHandler;
-	  wns::service::dll::UnicastAddress user;
-	  wns::service::dll::UnicastAddress ownAddress;
-	};
 
 	lte::controlplane::AssociationsProxyBS* associationsProxy;
 
@@ -112,7 +76,7 @@ namespace lte { namespace controlplane {
 	createDisassociation_ack(wns::service::dll::UnicastAddress destination,
 				 wns::service::dll::UnicastAddress user,
 				 bool preserve, std::string perMode,
-				 AckOnAirCallback* callback) const;
+				 boost::function<void()> callback) const;
 
 	//UTs´ duplex groups
 	std::map<wns::service::dll::UnicastAddress, int> duplexGroups;

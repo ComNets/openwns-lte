@@ -131,9 +131,10 @@ PhyUser::doSendData(const wns::ldk::CompoundPtr& compound)
         //assure(dynamic_cast<wns::ldk::helper::FakePDU*>(compound->getData().getPtr())==NULL,"FakePDU in Tx mode");
         es->schedule(StartTxEvent(compound, this), startTime);
         // Inform FUs that have added a callback that the compound is on air now
-        //dbg: MESSAGE_SINGLE(NORMAL, logger,"doSendData(Tx): start="<< myCommand->local.start <<"s..stop=" << myCommand->local.stop <<"s => d="<<(myCommand->local.stop-myCommand->local.start)*1e6<<"us, subBand=" << myCommand->local.subBand<<", onAirDeferred.callback start");
-        myCommand->local.onAirDeferred.callback();
-        //dbg: MESSAGE_SINGLE(NORMAL, logger,"doSendData(Tx): start="<< myCommand->local.start <<"s..stop=" << myCommand->local.stop <<"s => d="<<(myCommand->local.stop-myCommand->local.start)*1e6<<"us, subBand=" << myCommand->local.subBand<<", onAirDeferred.callback end");
+	if (!myCommand->local.onAirCallback.empty())
+	    {
+		myCommand->local.onAirCallback();
+	    }
     }
     else
     { // reception (Rx)
