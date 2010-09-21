@@ -110,6 +110,36 @@ class Mode(lte.modes.hasModeName.HasModeName):
 
 		return taskFUN
 
+ltefdd20 = lte.phy.plm.getByName("ltefdd20") 
+class LTEFDD20(Mode):
+    def __init__(self, parentLogger = None, default = True):
+        Mode.__init__(self, "ltefdd20", ltefdd20, parentLogger)
+        self.taskFUNModule = None # lte.TaskFUNs
+        self.channelModel = "lte"
+        if default==True:
+            self.addTaskFUN( self.taskFUNModule.NoTask( "ltefdd20", ltefdd20, parentLogger ) )
+        self.defaultPartitioning = lte.partitioning.fdd.LTEFDDReuse1(noChannels = ltefdd20.numSubchannels, noSubFrames = 10)
+        self.priority = 5
+        self.thresholdCriterion = "Pathloss"
+        self.upperThreshold = -200.0 #[dBm]
+        self.lowerThreshold = -250.0 #[dBm]
+        self.capabilities = ModeCapabilities(3)
+
+ltefdd15 = lte.phy.plm.getByName("ltefdd15") 
+class LTEFDD15(Mode):
+    def __init__(self, parentLogger = None, default = True):
+        Mode.__init__(self, "ltefdd15", ltefdd15, parentLogger)
+        self.taskFUNModule = None # lte.TaskFUNs
+        self.channelModel = "lte"
+        if default==True:
+            self.addTaskFUN( self.taskFUNModule.NoTask( "ltefdd15", ltefdd15, parentLogger ) )
+        self.defaultPartitioning = lte.partitioning.fdd.LTEFDDReuse1(noChannels = ltefdd15.numSubchannels, noSubFrames = 10)
+        self.priority = 5
+        self.thresholdCriterion = "Pathloss"
+        self.upperThreshold = -200.0 #[dBm]
+        self.lowerThreshold = -250.0 #[dBm]
+        self.capabilities = ModeCapabilities(3)
+
 ltefdd10 = lte.phy.plm.getByName("ltefdd10") 
 class LTEFDD10(Mode):
     def __init__(self, parentLogger = None, default = True):
@@ -118,7 +148,52 @@ class LTEFDD10(Mode):
         self.channelModel = "lte"
         if default==True:
             self.addTaskFUN( self.taskFUNModule.NoTask( "ltefdd10", ltefdd10, parentLogger ) )
-        self.defaultPartitioning = lte.partitioning.fdd.LTEFDDReuse1(noChannels = 50, noSubFrames = 10)
+        self.defaultPartitioning = lte.partitioning.fdd.LTEFDDReuse1(noChannels = ltefdd10.numSubchannels, noSubFrames = 10)
+        self.priority = 5
+        self.thresholdCriterion = "Pathloss"
+        self.upperThreshold = -200.0 #[dBm]
+        self.lowerThreshold = -250.0 #[dBm]
+        self.capabilities = ModeCapabilities(3)
+
+ltefdd5 = lte.phy.plm.getByName("ltefdd5") 
+class LTEFDD5(Mode):
+    def __init__(self, parentLogger = None, default = True):
+        Mode.__init__(self, "ltefdd5", ltefdd5, parentLogger)
+        self.taskFUNModule = None # lte.TaskFUNs
+        self.channelModel = "lte"
+        if default==True:
+            self.addTaskFUN( self.taskFUNModule.NoTask( "ltefdd5", ltefdd5, parentLogger ) )
+        self.defaultPartitioning = lte.partitioning.fdd.LTEFDDReuse1(noChannels = ltefdd5.numSubchannels, noSubFrames = 10)
+        self.priority = 5
+        self.thresholdCriterion = "Pathloss"
+        self.upperThreshold = -200.0 #[dBm]
+        self.lowerThreshold = -250.0 #[dBm]
+        self.capabilities = ModeCapabilities(3)
+
+ltefdd3 = lte.phy.plm.getByName("ltefdd3") 
+class LTEFDD3(Mode):
+    def __init__(self, parentLogger = None, default = True):
+        Mode.__init__(self, "ltefdd3", ltefdd10, parentLogger)
+        self.taskFUNModule = None # lte.TaskFUNs
+        self.channelModel = "lte"
+        if default==True:
+            self.addTaskFUN( self.taskFUNModule.NoTask( "ltefdd3", ltefdd3, parentLogger ) )
+        self.defaultPartitioning = lte.partitioning.fdd.LTEFDDReuse1(noChannels = ltefdd3.numSubchannels, noSubFrames = 10)
+        self.priority = 5
+        self.thresholdCriterion = "Pathloss"
+        self.upperThreshold = -200.0 #[dBm]
+        self.lowerThreshold = -250.0 #[dBm]
+        self.capabilities = ModeCapabilities(3)
+
+ltefdd1p4 = lte.phy.plm.getByName("ltefdd1p4") 
+class LTEFDD1p4(Mode):
+    def __init__(self, parentLogger = None, default = True):
+        Mode.__init__(self, "ltefdd10", ltefdd1p4, parentLogger)
+        self.taskFUNModule = None # lte.TaskFUNs
+        self.channelModel = "lte"
+        if default==True:
+            self.addTaskFUN( self.taskFUNModule.NoTask( "ltefdd1p4", ltefdd1p4, parentLogger ) )
+        self.defaultPartitioning = lte.partitioning.fdd.LTEFDDReuse1(noChannels = ltefdd1p4.numSubchannels, noSubFrames = 10)
         self.priority = 5
         self.thresholdCriterion = "Pathloss"
         self.upperThreshold = -200.0 #[dBm]

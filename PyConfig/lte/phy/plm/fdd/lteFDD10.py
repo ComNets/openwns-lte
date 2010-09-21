@@ -28,6 +28,30 @@
 import lte.phy.plm
 import default
 
+class LTEFDD1p4(default.LTE):
+
+    def __init__(self):
+        
+        self.numSubchannels = 6
+
+        default.LTE.__init__(self)
+
+class LTEFDD3(default.LTE):
+
+    def __init__(self):
+        
+        self.numSubchannels = 15
+
+        default.LTE.__init__(self)
+
+class LTEFDD5(default.LTE):
+
+    def __init__(self):
+        
+        self.numSubchannels = 25
+
+        default.LTE.__init__(self)
+
 class LTEFDD10(default.LTE):
 
     def __init__(self):
@@ -36,4 +60,25 @@ class LTEFDD10(default.LTE):
 
         default.LTE.__init__(self)
 
+class LTEFDD15(default.LTE):
+
+    def __init__(self):
+        
+        self.numSubchannels = 75
+
+        default.LTE.__init__(self)
+
+class LTEFDD20(default.LTE):
+
+    def __init__(self):
+        
+        self.numSubchannels = 100
+
+        default.LTE.__init__(self)
+
+lte.phy.plm.PLMBroker.PLMs["ltefdd20"] = LTEFDD20()
+lte.phy.plm.PLMBroker.PLMs["ltefdd15"] = LTEFDD15()
 lte.phy.plm.PLMBroker.PLMs["ltefdd10"] = LTEFDD10()
+lte.phy.plm.PLMBroker.PLMs["ltefdd5"] = LTEFDD5()
+lte.phy.plm.PLMBroker.PLMs["ltefdd3"] = LTEFDD3()
+lte.phy.plm.PLMBroker.PLMs["ltefdd1p4"] = LTEFDD1p4()

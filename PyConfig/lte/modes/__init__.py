@@ -12,12 +12,12 @@ class ModeCreator:
 def getModeCreator(modename):
     import lte.modes.mode
     modeMap = {
-        #'ltefdd1p4' : ModeCreator(lte.modes.mode.LTEFDD1p4),
-        #'ltefdd3'   : ModeCreator(lte.modes.mode.LTEFDD3),
-        #'ltefdd5'   : ModeCreator(lte.modes.mode.LTEFDD5),
+        'ltefdd1p4' : ModeCreator(lte.modes.mode.LTEFDD1p4),
+        'ltefdd3'   : ModeCreator(lte.modes.mode.LTEFDD3),
+        'ltefdd5'   : ModeCreator(lte.modes.mode.LTEFDD5),
         'ltefdd10'  : ModeCreator(lte.modes.mode.LTEFDD10),
-        #'ltefdd15'  : ModeCreator(lte.modes.mode.LTEFDD15),
-        #'ltefdd20'  : ModeCreator(lte.modes.mode.LTEFDD20),
+        'ltefdd15'  : ModeCreator(lte.modes.mode.LTEFDD15),
+        'ltefdd20'  : ModeCreator(lte.modes.mode.LTEFDD20),
         }
 
     if not modeMap.has_key(modename):
