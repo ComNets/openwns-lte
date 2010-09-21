@@ -196,6 +196,9 @@ pyconfigs = [
     'lte/support/__init__.py',
     'lte/support/helper.py',
 
+    'lte/evaluation/__init__.py',
+    'lte/evaluation/default.py',
+    'lte/evaluation/generators.py',
 ]
 
 dependencies = []

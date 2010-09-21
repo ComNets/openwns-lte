@@ -64,6 +64,12 @@ class eNBLayer2( dll.Layer2.Layer2 ):
         upperConvergence = lte.dll.upperConvergence.eNB(self.logger)
         self.fun.add(upperConvergence)
 
+        throughput = openwns.ldk.Probe.Window(name = 'throughput',
+                                              prefix = "lte.total",
+                                              windowSize = 1.0,
+                                              commandName = 'throughput')
+        self.fun.add(throughput)
+
         upperSynchronizer = openwns.Tools.Synchronizer(commandName='upperSynchronizer')
         self.fun.add(upperSynchronizer)
 
@@ -110,7 +116,8 @@ class eNBLayer2( dll.Layer2.Layer2 ):
                     ])
 
         connectFUs([
-                (upperConvergence, rlc),
+                (upperConvergence, throughput),
+                (throughput, rlc),
                 (rlc, upperSynchronizer),
                 (upperSynchronizer, upperFlowGate),
                 (upperFlowGate, arqFlowGate),
@@ -178,6 +185,12 @@ class ueLayer2( dll.Layer2.Layer2 ):
         upperConvergence = lte.dll.upperConvergence.UE(self.logger)
         self.fun.add(upperConvergence)
 
+        throughput = openwns.ldk.Probe.Window(name = 'throughput',
+                                              prefix = "lte.total",
+                                              windowSize = 0.5,
+                                              commandName = 'throughput')
+        self.fun.add(throughput)
+
         upperSynchronizer = openwns.Tools.Synchronizer(commandName='upperSynchronizer')
         self.fun.add(upperSynchronizer)
 
@@ -224,7 +237,8 @@ class ueLayer2( dll.Layer2.Layer2 ):
                     ])
 
         connectFUs([
-                (upperConvergence, rlc),
+                (upperConvergence, throughput),
+                (throughput, rlc),
                 (rlc, upperSynchronizer),
                 (upperSynchronizer, upperFlowGate),
                 (upperFlowGate, arqFlowGate),
