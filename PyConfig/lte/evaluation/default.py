@@ -55,7 +55,6 @@ def installModeIndependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueI
             ut.getLeafs().appendChildren(Moments(name = sourceName, description = 'Top %s %s throughput [Bit/s]' % (direction, what)))
 
             uts.appendChildren(PDF(name = sourceName + "ALLUT", minXValue = 0.0, maxXValue=10e6, resolution=100) )
-            node.appendChildren(Logger())
 
 def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdList, settlingTime):
     pass
