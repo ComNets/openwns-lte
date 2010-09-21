@@ -35,7 +35,7 @@ class PhyUser(openwns.FUN.FunctionalUnit,
               openwns.StaticFactoryClass,
               lte.modes.hasModeName.HasModeName):
 
-    def __init__(self, modeName, plm, functionalUnitName = "phyUser", parentLogger=None):
+    def __init__(self, modeName, plm, functionalUnitName = "phyUser", schedulingCommandReaderName = "Unknown", parentLogger=None):
         openwns.StaticFactoryClass.__init__(self, 'lte.macr.PhyUser')
         openwns.FUN.FunctionalUnit.__init__(self, functionalUnitName = functionalUnitName)
 
@@ -47,3 +47,4 @@ class PhyUser(openwns.FUN.FunctionalUnit,
 
         self.logger = openwns.logger.Logger('LTE','PhyUser', True, parentLogger)
 
+        self.schedulingCommandReaderName = schedulingCommandReaderName

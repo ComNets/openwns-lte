@@ -26,10 +26,7 @@
  ******************************************************************************/
 
 #include <LTE/macr/PhyUser.hpp>
-/* deleted by chen */
-// #include <LTE/macr/WINNERSAR.hpp>
-/* inserted by chen */
-#include <boost/bind.hpp>
+#include <LTE/timing/ResourceSchedulerInterface.hpp>
 
 #include <WNS/service/dll/StationTypes.hpp>
 #include <WNS/service/phy/ofdma/DataTransmission.hpp>
@@ -42,6 +39,8 @@
 #include <DLL/services/management/InterferenceCache.hpp>
 #include <DLL/Layer2.hpp>
 #include <DLL/StationManager.hpp>
+
+#include <boost/bind.hpp>
 
 #include <cmath>
 #include <iomanip>
@@ -60,6 +59,10 @@ PhyUser::PhyUser(wns::ldk::fun::FUN* fun, const wns::pyconfig::View& pyConfigVie
     wns::ldk::HasDeliverer<>(),
     wns::Cloneable<PhyUser>(),
     lte::helper::HasModeName(pyConfigView),
+#ifndef NDEBUG
+    schedulerCommandReader_(NULL),
+#endif
+    config_(pyConfigView),
     layer2(NULL),
     stateRxTx(Rx),
     logger(pyConfigView.get("logger")),
@@ -102,6 +105,13 @@ PhyUser::onFUNCreated()
 
     stationManager =
         layer2->getStationManager();
+
+#ifndef NDEBUG
+    schedulerCommandReader_ = getFUN()->getCommandReader(config_.get<std::string>("schedulingCommandReaderName"));
+#endif
+
+    jsonTracingCC_ = wns::probe::bus::ContextCollectorPtr(new wns::probe::bus::ContextCollector(getFUN()->getLayer()->getContextProviderCollection(),  "phyTrace"));
+
 }
 
 bool
@@ -156,6 +166,66 @@ PhyUser::doOnData(const wns::ldk::CompoundPtr& compound)
     getDeliverer()->getAcceptor(compound)->onData(compound);
 } // doOnData
 
+#ifndef NDEBUG
+void
+PhyUser::traceIncoming(wns::ldk::CompoundPtr compound, wns::service::phy::power::PowerMeasurementPtr rxPowerMeasurement)
+{
+    wns::probe::bus::json::Object objdoc;
+
+    PhyCommand* myCommand = getCommand(compound->getCommandPool());
+
+    objdoc["Transmission"]["ReceiverID"] = wns::probe::bus::json::String(getFUN()->getLayer()->getNodeName());
+    objdoc["Transmission"]["SenderID"] = wns::probe::bus::json::String(myCommand->magic.source->getName());
+    objdoc["Transmission"]["SourceID"] = wns::probe::bus::json::String(myCommand->magic.source->getName());
+
+    if(myCommand->magic.destination == NULL)
+    {
+        objdoc["Transmission"]["DestinationID"] = wns::probe::bus::json::String("Broadcast");
+    }
+    else
+    {
+        objdoc["Transmission"]["DestinationID"] = wns::probe::bus::json::String(myCommand->magic.destination->getName());
+    }
+
+    objdoc["Transmission"]["Start"] = wns::probe::bus::json::Number(myCommand->local.start);
+    objdoc["Transmission"]["Stop"] = wns::probe::bus::json::Number(myCommand->local.stop);
+    objdoc["Transmission"]["Subchannel"] = wns::probe::bus::json::Number(myCommand->local.subBand);
+    objdoc["Transmission"]["TxPower"] = wns::probe::bus::json::Number(myCommand->magic.txp.get_dBm());
+    objdoc["Transmission"]["RxPower"] = wns::probe::bus::json::Number(rxPowerMeasurement->getRxPower().get_dBm());
+    objdoc["Transmission"]["InterferencePower"] = wns::probe::bus::json::Number(rxPowerMeasurement->getInterferencePower().get_dBm());
+
+    if (myCommand->magic.estimatedSINR.C != wns::Power() &&
+        myCommand->magic.estimatedSINR.I != wns::Power())
+    {
+        objdoc["SINREst"]["C"] = wns::probe::bus::json::Number(myCommand->magic.estimatedSINR.C.get_dBm());
+        objdoc["SINREst"]["I"] = wns::probe::bus::json::Number(myCommand->magic.estimatedSINR.I.get_dBm());
+    }
+
+    if (schedulerCommandReader_->commandIsActivated(compound->getCommandPool()))
+    {
+
+        // Now we have a look at the scheduling time slot
+        lte::timing::SchedulerCommand* schedCommand = schedulerCommandReader_->readCommand<lte::timing::SchedulerCommand>(compound->getCommandPool());
+
+        wns::scheduler::SchedulingTimeSlotPtr ts = schedCommand->magic.schedulingTimeSlotPtr;
+
+        wns::probe::bus::json::Array a;
+        for (wns::scheduler::PhysicalResourceBlockVector::iterator it= ts->physicalResources.begin(); it != ts->physicalResources.end(); ++it)
+        {
+            wns::probe::bus::json::Object pr;
+            pr["NetBits"] = wns::probe::bus::json::Number(it->getNetBlockSizeInBits());
+            a.Insert(pr);
+        }
+        objdoc["SchedulingTimeSlot"]["PhysicalResources"] = a;
+        objdoc["SchedulingTimeSlot"]["HARQ"]["enabled"] = wns::probe::bus::json::Boolean(ts->isHARQEnabled());
+        objdoc["SchedulingTimeSlot"]["HARQ"]["ProcessID"] = wns::probe::bus::json::Number(ts->harq.processID);
+        objdoc["SchedulingTimeSlot"]["HARQ"]["NDI"] = wns::probe::bus::json::Boolean(ts->harq.NDI);
+        objdoc["SchedulingTimeSlot"]["HARQ"]["TransportBlockID"] = wns::probe::bus::json::Number(ts->harq.transportBlockID);
+        objdoc["SchedulingTimeSlot"]["HARQ"]["RetryCounter"] = wns::probe::bus::json::Number(ts->harq.retryCounter);
+    }
+    wns::probe::bus::json::probeJSON(jsonTracingCC_, objdoc);
+}
+#endif
 
 void
 PhyUser::onData(wns::osi::PDUPtr pdu, wns::service::phy::power::PowerMeasurementPtr rxPowerMeasurement)
@@ -222,6 +292,7 @@ PhyUser::onData(wns::osi::PDUPtr pdu, wns::service::phy::power::PowerMeasurement
     m << ", "<<rxPowerMeasurement->getString();
     m << std::fixed << std::setprecision( 2 ); // Nachkommastellen
     m << ", MIB=" << rxPowerMeasurement->getMIB();
+    m << ", PL=" << rxPowerMeasurement->getPathLoss();
     MESSAGE_END();
 
     // During Broadcast Phases, Interference is not representative, therefore we
@@ -271,6 +342,10 @@ PhyUser::onData(wns::osi::PDUPtr pdu, wns::service::phy::power::PowerMeasurement
                                                          dll::services::management::InterferenceCache::Remote );*/
     }
 
+#ifndef NDEBUG
+    traceIncoming(compound, rxPowerMeasurement);
+#endif
+
     // deliver compound
     doOnData(compound);
 }
@@ -314,6 +389,7 @@ PhyUser::checkIdle()
 void
 PhyUser::setStateRxTx(StateRxTx _state)
 {
+    MESSAGE_SINGLE(VERBOSE, logger, "Setting state to " << _state);
     switch (_state)
     {
     case Tx:

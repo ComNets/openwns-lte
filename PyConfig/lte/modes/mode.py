@@ -93,7 +93,7 @@ class Mode(lte.modes.hasModeName.HasModeName):
 		self.rsNameSuffix = 'resourceScheduler'
 		self.scorerSuffix  = self.rsNameSuffix+'TX'
 		#self.phyUser = lte.dll.phyUser.PhyUser(self.modeName, PLM, self.modeName + self.separator + 'phyUser', self.modeBase + self.separator + self.rsNameSuffix +'TX', self.logger)
-                self.phyUser = lte.dll.phyUser.PhyUser(self.modeName, PLM, self.modeName + self.separator + 'phyUser', self.logger)
+                self.phyUser = lte.dll.phyUser.PhyUser(self.modeName, PLM, self.modeName + self.separator + 'phyUser', self.modeBase + self.separator + self.rsNameSuffix +'TX', self.logger)
 		#self.taskDispatcher = lte.dll.TaskDispatcher(self.modeName, PLM,
                 #                                             self.modeName + self.separator + 'TaskDispatcher', self.logger)
 		self.mapModeNameToNumber(name)

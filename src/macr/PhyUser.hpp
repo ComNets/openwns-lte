@@ -39,6 +39,7 @@
 #include <WNS/ldk/HasDeliverer.hpp>
 #include <WNS/ldk/Receptor.hpp>
 #include <WNS/ldk/Connector.hpp>
+#include <WNS/probe/bus/json/probebus.hpp>
 
 #include <WNS/service/phy/ofdma/Handler.hpp>
 #include <WNS/service/phy/ofdma/Notification.hpp>
@@ -249,6 +250,15 @@ namespace lte{
             deleteReceiveAntennaPatterns();
         private:
 
+#ifndef NDEBUG
+            void
+            traceIncoming(wns::ldk::CompoundPtr compound, wns::service::phy::power::PowerMeasurementPtr rxPowerMeasurement);
+
+            wns::ldk::CommandReaderInterface* schedulerCommandReader_;
+#endif 
+            
+            wns::pyconfig::View config_;
+
             /** @brief my DLL */
             dll::ILayer2* layer2;
             /** @brief the currently active State (typedef enum { Tx, Rx, BothRxTx } StateRxTx;) */
@@ -288,6 +298,9 @@ namespace lte{
             dll::StationManager* stationManager;
 
             wns::simulator::Time measurementDelay_;
+
+            wns::probe::bus::ContextCollectorPtr jsonTracingCC_;
+
         };
     } }
 #endif // NOT defined LTE_MACR_PHYUSER_HPP
