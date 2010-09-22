@@ -792,6 +792,16 @@ ResourceScheduler::finishCollection(int frameNr, simTimeType _startTime) {
                 {
                     phyCommand->magic.destination = user.getNode();
                 }
+                if(myCommand->magic.schedulingTimeSlotPtr->harq.retryCounter > 0 
+                    && myCommand->magic.schedulingTimeSlotPtr->harq.NDI == false)
+                {
+                    phyCommand->magic.isRetransmission = true;
+                }
+                else
+                {
+                    phyCommand->magic.isRetransmission = false;
+                }
+
                 phyCommand->magic.txp         = timeSlotPtr->getTxPower(); // TxPower to use for sending
 
                 phyCommand->local.subBand     = timeSlotPtr->subChannelIndex;

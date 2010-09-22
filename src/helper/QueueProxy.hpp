@@ -134,6 +134,8 @@ namespace lte { namespace helper {
             virtual wns::scheduler::queue::QueueInterface::ProbeOutput
             resetQueue(wns::scheduler::ConnectionID cid);
 
+            virtual void frameStarts();
+
             /** @brief write queue contens (bits) into probe */
             virtual void
             writeProbe(wns::scheduler::ConnectionID cid, unsigned int priority) const;

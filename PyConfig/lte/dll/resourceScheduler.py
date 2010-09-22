@@ -154,7 +154,7 @@ class ResourceScheduler(openwns.FUN.FunctionalUnit, lte.modes.hasModeName.HasMod
             _commandName = mode.modeBase + mode.separator + 'um' # tdd100_um
 
             # Segmentation/Concatenation according to 3GPP TS 36.322 V8.6.0 (5 bit SN)
-            self.queue = openwns.Scheduler.SegmentingQueue(segmentHeaderFUName = _funame, segmentHeaderCommandName = _commandName, parentLogger = self.logger, sizeProbeName = self.probeNameQueue, overheadProbeName = self.probeNameQueueOverhead)
+            self.queue = openwns.Scheduler.SegmentingQueue(segmentHeaderFUName = _funame, segmentHeaderCommandName = _commandName, parentLogger = self.logger, sizeProbeName = self.probeNameQueue, overheadProbeName = self.probeNameQueueOverhead, isDropping=True)
 
             # Only once per subframe, 8 bit RLC, 16 bit MAC, 24 bit CRC
             self.queue.fixedHeaderSize = 48

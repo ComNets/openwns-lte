@@ -349,6 +349,14 @@ QueueProxy::resetQueue(wns::scheduler::ConnectionID cid)
     }
 }
 
+void
+QueueProxy::frameStarts()
+{
+    if (queue!=NULL) {
+        queue->frameStarts();
+    }
+}
+
 std::string
 QueueProxy::printAllQueues()
 {

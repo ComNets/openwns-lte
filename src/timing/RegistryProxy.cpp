@@ -410,9 +410,9 @@ RegistryProxy::estimateTxSINRAt(const UserID user, int)
 	return wns::scheduler::ChannelQualityOnOneSubChannel(wns::Ratio::from_dB(0.0), interference, rxPower);
     }
     // lookup the results reported by the user in the local cache
-    rxPower = iCache->getAveragedCarrier(user.getNode());
-    interference = iCache->getAveragedInterference(user.getNode());
-    pathloss = iCache->getAveragedPathloss(user.getNode());
+    rxPower = iCache->getPerSCAveragedCarrier(user.getNode());
+    interference = iCache->getPerSCAveragedInterference(user.getNode());
+    pathloss = iCache->getPerSCAveragedPathloss(user.getNode());
 
     //MESSAGE_SINGLE(NORMAL, logger, "estimateTxSINROf("<<user->getName()<<"): C="<<rxPower.get_mW()<<"mW, I="<<interference.get_mW()<<"mW");
     if (rxPower.get_mW() < 1e-18)
@@ -437,9 +437,9 @@ RegistryProxy::estimateRxSINROf(const UserID user, int) {
         getStationByNode(user.getNode())->
         getManagementService<dll::services::management::InterferenceCache>("INTERFERENCECACHE"+modeBase);
 
-    wns::Power rxPower = remoteCache->getAveragedCarrier(getMyUserID().getNode());
-    wns::Power interference = remoteCache->getAveragedInterference(getMyUserID().getNode());
-    wns::Ratio pathloss = remoteCache->getAveragedPathloss(getMyUserID().getNode());
+    wns::Power rxPower = remoteCache->getPerSCAveragedCarrier(getMyUserID().getNode());
+    wns::Power interference = remoteCache->getPerSCAveragedInterference(getMyUserID().getNode());
+    wns::Ratio pathloss = remoteCache->getPerSCAveragedPathloss(getMyUserID().getNode());
 
     /* Ask our cache about the UL interference caused by this node */
     wns::Ratio interferencePathloss = iCache->getAverageEmittedInterferencePathloss(user.getNode());

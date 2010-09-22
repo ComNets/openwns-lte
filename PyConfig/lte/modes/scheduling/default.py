@@ -38,12 +38,12 @@ class DownlinkSchedulerSetting:
         self.subStrategiesTXDL =(
             lte.dll.bch.BCHSchedulerStrategy(), # for priority 0
             openwns.Scheduler.HARQRetransmission(), # for priority 1
-            openwns.Scheduler.RoundRobin(), # for priority 2
-            openwns.Scheduler.RoundRobin(), # for priority 3
-            openwns.Scheduler.RoundRobin(useHARQ=useHARQ), # for priority 4
-            openwns.Scheduler.RoundRobin(useHARQ=useHARQ), # for priority 5
-            openwns.Scheduler.RoundRobin(useHARQ=useHARQ), # for priority 6
-            openwns.Scheduler.RoundRobin(useHARQ=useHARQ) # for priority 7
+            openwns.Scheduler.ExhaustiveRoundRobin(), # for priority 2
+            openwns.Scheduler.ExhaustiveRoundRobin(), # for priority 3
+            openwns.Scheduler.ExhaustiveRoundRobin(useHARQ=useHARQ), # for priority 4
+            openwns.Scheduler.ExhaustiveRoundRobin(useHARQ=useHARQ), # for priority 5
+            openwns.Scheduler.ExhaustiveRoundRobin(useHARQ=useHARQ), # for priority 6
+            openwns.Scheduler.ExhaustiveRoundRobin(useHARQ=useHARQ) # for priority 7
             )
 
         self.dsastrategyDL = openwns.scheduler.DSAStrategy.LinearFFirst(oneUserOnOneSubChannel = True, useRandomChannel = True)
@@ -69,19 +69,19 @@ class UplinkMasterSchedulerSetting:
         self.subStrategiesRXUL =(
             openwns.Scheduler.Disabled(), # for priority 0
             openwns.Scheduler.HARQUplinkRetransmission(), # for priority 1
-            openwns.Scheduler.RoundRobin(), # for priority 2
-            openwns.Scheduler.RoundRobin(), # for priority 3
-            openwns.Scheduler.RoundRobin(useHARQ=useHARQ), # for priority 4
-            openwns.Scheduler.RoundRobin(useHARQ=useHARQ), # for priority 5
-            openwns.Scheduler.RoundRobin(useHARQ=useHARQ), # for priority 6
-            openwns.Scheduler.RoundRobin(useHARQ=useHARQ) # for priority 7
+            openwns.Scheduler.DSADrivenRR(), # for priority 2
+            openwns.Scheduler.DSADrivenRR(), # for priority 3
+            openwns.Scheduler.DSADrivenRR(useHARQ=useHARQ), # for priority 4
+            openwns.Scheduler.DSADrivenRR(useHARQ=useHARQ), # for priority 5
+            openwns.Scheduler.DSADrivenRR(useHARQ=useHARQ), # for priority 6
+            openwns.Scheduler.DSADrivenRR(useHARQ=useHARQ) # for priority 7
             )
 
-        self.dsastrategyULMaster = openwns.scheduler.DSAStrategy.LinearFFirst(oneUserOnOneSubChannel = True, useRandomChannel = True)
+        self.dsastrategyULMaster = openwns.scheduler.DSAStrategy.Fixed(oneUserOnOneSubChannel = True)
 
-        self.dsafbstrategyULMaster = openwns.scheduler.DSAStrategy.LinearFFirst(oneUserOnOneSubChannel = True, useRandomChannel = True)
+        self.dsafbstrategyULMaster = openwns.scheduler.DSAStrategy.Fixed(oneUserOnOneSubChannel = True)
 
-        self.apcstrategy = openwns.scheduler.APCStrategy.UseNominalTxPower()
+        self.apcstrategy = openwns.scheduler.APCStrategy.LTE_UL(sinrMargin = "0.0 dB")
 
 
     def createStrategy(self, parentLogger = None):
@@ -110,7 +110,7 @@ class UplinkSlaveSchedulerSetting:
 
         self.dsastrategyULSlave  = openwns.scheduler.DSAStrategy.DSASlave(oneUserOnOneSubChannel = True)
         self.dsafbstrategyULSlave  = openwns.scheduler.DSAStrategy.DSASlave(oneUserOnOneSubChannel = True)
-        self.apcstrategy  = openwns.scheduler.APCStrategy.UseNominalTxPower()
+        self.apcstrategy  = openwns.scheduler.APCStrategy.APCSlave()
 
     def createStrategy(self, parentLogger = None):
         strategy = openwns.Scheduler.StaticPriority(parentLogger=parentLogger,
