@@ -58,6 +58,7 @@ srcFiles = [
     'src/helper/Keys.cpp',
     'src/helper/SwitchConnector.cpp',
     'src/helper/QueueProxy.cpp',
+    'src/helper/PhyMeasurementsProbe.cpp',
 ]
 
 hppFiles = [
@@ -141,6 +142,7 @@ hppFiles = [
     'src/helper/SwitchConnector.hpp',
     'src/helper/SwitchLink.hpp',
     'src/helper/QueueProxy.hpp',
+    'src/helper/PhyMeasurementsProbe.hpp',
 ]
 
 pyconfigs = [
@@ -191,6 +193,7 @@ pyconfigs = [
     'lte/dll/rrHandler.py',
     'lte/dll/dispatcher.py',
     'lte/dll/rach.py',
+    'lte/dll/measurements.py',
     'lte/llmapping/__init__.py',
     'lte/llmapping/default.py',
     'lte/support/__init__.py',

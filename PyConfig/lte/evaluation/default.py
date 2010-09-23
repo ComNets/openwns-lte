@@ -57,4 +57,101 @@ def installModeIndependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueI
             uts.appendChildren(PDF(name = sourceName + "ALLUT", minXValue = 0.0, maxXValue=10e6, resolution=100) )
 
 def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdList, settlingTime):
-    pass
+
+    sourceName = probeNamePrefix + 'SINR'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
+    # center cell DL
+    dl = node.appendChildren(Accept(by='MAC.Id', ifIn = ueIdList, suffix='DL_CenterCell'))
+    #dl.getLeafs().appendChildren(Moments(name=sourceName, description='Center Cell DL SINR distribution [dB]'))
+    dl.getLeafs().appendChildren(PDF(name = sourceName,
+                                     description = 'Center Cell DL SINR distribution [dB]',
+                                     minXValue = -20.0,
+                                     maxXValue = 30.0,
+                                     resolution = 100))
+    # center cell UL: only UEs in center cell assiciated to any center cell BS
+    ul = node.appendChildren(Accept(by='MAC.Id', ifIn = eNBIdList, suffix='UL_CenterCell'))
+    # ul.getLeafs().appendChildren(Logger())
+    ul.getLeafs().appendChildren(Accept(by='Peer.NodeID', ifIn = ueIdList))
+    #ul.getLeafs().appendChildren(Moments(name=sourceName, description='Center Cell UL SINR distribution [dB]'))
+    ul.getLeafs().appendChildren(PDF(name = sourceName,
+                                     description = 'Center Cell UL SINR distribution [dB]',
+                                     minXValue = -20.0,
+                                     maxXValue = 30.0,
+                                     resolution = 100))
+
+    sourceName = probeNamePrefix + 'SINRestError'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    s=node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
+    downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="DL_CenterCell"))
+    uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="UL_CenterCell"))
+    downlink.appendChildren(PDF(name = sourceName,
+                                description = 'Downlink SINR error distribution',
+                                minXValue = -20.0,
+                                maxXValue = 20.0,
+                                resolution = 100))
+    uplink.appendChildren(PDF(name = sourceName,
+                              description = 'Uplink SINR error distribution',
+                              minXValue = -20.0,
+                              maxXValue = 20.0,
+                              resolution = 100))
+
+    sourceName = probeNamePrefix + 'SINRest'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    s=node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
+    downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="DL_CenterCell"))
+    uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="UL_CenterCell"))
+    downlink.appendChildren(PDF(name = sourceName,
+                                description = 'Downlink estimated SINR distribution',
+                                minXValue = -20.0,
+                                maxXValue = 60.0,
+                                resolution = 100))
+    uplink.appendChildren(PDF(name = sourceName,
+                              description = 'Uplink estimated SINR distribution',
+                              minXValue = -20.0,
+                              maxXValue = 60.0,
+                              resolution = 100))
+
+    sourceName = probeNamePrefix + 'TxPower'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    s=node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
+    downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="DL_CenterCell"))
+    uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="UL_CenterCell"))
+    downlink.appendChildren(PDF(name = sourceName,
+                                description = 'Downlink Tx Power distribution',
+                                minXValue = -10.0,
+                                maxXValue = 40.0,
+                                resolution = 100))
+    uplink.appendChildren(PDF(name = sourceName,
+                              description = 'Uplink Tx Power distribution',
+                              minXValue = -110.0,
+                              maxXValue = 22.0,
+                              resolution = 100))
+
+    sourceName = probeNamePrefix + 'IoT'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    s = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
+    downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="DL_CenterCell"))
+    uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="UL_CenterCell"))
+    downlink.appendChildren(PDF(name = sourceName, minXValue = 0.0, maxXValue=70.0, resolution=100, description = 'Interference over Thermal (IoT) [dB]'))
+    uplink.appendChildren(PDF(name = sourceName, minXValue = 0.0, maxXValue=70.0, resolution=100, description = 'Interference over Thermal (IoT) [dB]'))
+
+    sourceName = probeNamePrefix + 'PhyMode'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
+    dl = node.appendChildren(Accept(by='MAC.Id', ifIn = ueIdList, suffix='DL_CenterCell'))
+    ul = node.appendChildren(Accept(by='MAC.Id', ifIn = eNBIdList, suffix='UL_CenterCell'))
+    ul.appendChildren(PDF(name = sourceName,
+                          description = 'UL PhyMode',
+                          minXValue = 0.0,
+                          maxXValue = 20.0,
+                          resolution = 20.0))
+
+    dl.appendChildren(PDF(name = sourceName,
+                          description = 'DL PhyMode',
+                          minXValue = 0.0,
+                          maxXValue = 20.0,
+                          resolution = 20.0))
+

@@ -32,6 +32,7 @@ import lte.dll.mapHandler
 import lte.dll.rrHandler
 import lte.dll.bch
 import lte.dll.rach
+import lte.dll.measurements
 import lte.modes.timing.timingConfig
 import lte.llmapping.default
 from lte.support.helper import connectFUs
@@ -142,6 +143,9 @@ class UT:
         rrHandlerShortcut = lte.dll.rrHandler.ShortcutUT(mode)
         fun.add(rrHandlerShortcut)
 
+        phyMeasurement = self._setupPhyMeasurements(fun, mode)
+        fun.add(phyMeasurement)
+
         connectFUs([
                 (lowerFlowSep, lowerFlowGate),
                 (lowerFlowGate, controlPlaneDispatcher),
@@ -165,10 +169,11 @@ class UT:
                 (schedulerTX, dispatcher),
                 (schedulerRX, dispatcher),
                 (mapHandler, dispatcher),
+                (dispatcher, phyMeasurement),
                 ])
 
         self.top = lowerFlowSep
-        self.bottom = dispatcher
+        self.bottom = phyMeasurement
 
     def _setupTxScheduler(self, fun, mode):
         rsNameSuffix = 'resourceScheduler'
@@ -232,3 +237,10 @@ class UT:
             commandName = mode.modeBase + mode.separator + name)
 
         return flowSeparator
+
+    def _setupPhyMeasurements(self, fun, mode):
+
+        phyModeMapping = lte.llmapping.default.LTEMapper(mode)
+        phyMeasurement = lte.dll.measurements.PhyMeasurement(mode, phyModeMapping)
+        return phyMeasurement
+
