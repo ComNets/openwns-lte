@@ -80,38 +80,6 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
                                      maxXValue = 30.0,
                                      resolution = 100))
 
-    sourceName = probeNamePrefix + 'SINRestError'
-    node = openwns.evaluation.createSourceNode(sim, sourceName)
-    s=node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
-    downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="DL_CenterCell"))
-    uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="UL_CenterCell"))
-    downlink.appendChildren(PDF(name = sourceName,
-                                description = 'Downlink SINR error distribution',
-                                minXValue = -20.0,
-                                maxXValue = 20.0,
-                                resolution = 100))
-    uplink.appendChildren(PDF(name = sourceName,
-                              description = 'Uplink SINR error distribution',
-                              minXValue = -20.0,
-                              maxXValue = 20.0,
-                              resolution = 100))
-
-    sourceName = probeNamePrefix + 'SINRest'
-    node = openwns.evaluation.createSourceNode(sim, sourceName)
-    s=node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
-    downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="DL_CenterCell"))
-    uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="UL_CenterCell"))
-    downlink.appendChildren(PDF(name = sourceName,
-                                description = 'Downlink estimated SINR distribution',
-                                minXValue = -20.0,
-                                maxXValue = 60.0,
-                                resolution = 100))
-    uplink.appendChildren(PDF(name = sourceName,
-                              description = 'Uplink estimated SINR distribution',
-                              minXValue = -20.0,
-                              maxXValue = 60.0,
-                              resolution = 100))
-
     sourceName = probeNamePrefix + 'TxPower'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
     s=node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))

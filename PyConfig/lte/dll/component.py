@@ -143,8 +143,8 @@ class eNBLayer2( dll.Layer2.Layer2 ):
 
     def _setupManagementServicesPerMode(self, mode):
         i = dll.Services.InterferenceCache("INTERFERENCECACHE"+mode.modeName,
-                                           alphaLocal = 0.2,
-                                           alphaRemote= 0.05,
+                                           alphaLocal = 1.0,
+                                           alphaRemote= 1.0,
                                            parent = mode.logger)
         # If we have no value, we assume that we are located at the cell edge
         # and have an SINR of 1dB with interference set to background noise
@@ -187,7 +187,7 @@ class ueLayer2( dll.Layer2.Layer2 ):
 
         throughput = openwns.ldk.Probe.Window(name = 'throughput',
                                               prefix = "lte.total",
-                                              windowSize = 0.5,
+                                              windowSize = 1.0,
                                               commandName = 'throughput')
         self.fun.add(throughput)
 
@@ -268,8 +268,8 @@ class ueLayer2( dll.Layer2.Layer2 ):
 
     def _setupManagementServicesPerMode(self, mode):
         i = dll.Services.InterferenceCache("INTERFERENCECACHE"+mode.modeName,
-                                           alphaLocal = 0.2,
-                                           alphaRemote= 0.05,
+                                           alphaLocal = 1.0,
+                                           alphaRemote= 1.0,
                                            parent = mode.logger)
         # If we have no value, we assume that we are located at the cell edge
         # and have an SINR of 1dB with interference set to background noise
