@@ -80,7 +80,7 @@ def setupPhyDetail(simulator, freq, pathloss, bsTxPower, utTxPower, plmName, rxN
     #    ut.dll.ulscheduler.config.txScheduler.registry.powerCapabilitiesUT = utPower
     #    ut.phy.ofdmaStation.txPower = bsTxPower
 
-def setupUL_APC(simulator, modes, alpha):
+def setupUL_APC(simulator, modes, alpha, pNull):
     import lte.modes
     import openwns.scheduler.APCStrategy
 
@@ -98,6 +98,7 @@ def setupUL_APC(simulator, modes, alpha):
                         fu.strategy.apcstrategy, 
                         openwns.scheduler.APCStrategy.LTE_UL), "Uplink APC strategy is not of type LTE_UL"
                     fu.strategy.apcstrategy.alpha = alpha
+                    fu.strategy.apcstrategy.pNull = pNull
                     found = True    
         assert found, "Could not find uplink master scheduler in BS"
 
