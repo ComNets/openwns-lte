@@ -101,6 +101,63 @@ def setupUL_APC(simulator, modes, alpha, pNull):
                     fu.strategy.apcstrategy.pNull = pNull
                     found = True    
         assert found, "Could not find uplink master scheduler in BS"
-
-	
     
+def setupFTFading(simulator, scenario, modes):
+
+    if scenario == "InH":
+        setupFTFadingDetails(simulator, modes, 3.0, 3.4E9)
+    elif scenario == "UMa":
+        setupFTFadingDetails(simulator, modes, 30.0, 2.0E9)
+    elif scenario == "UMi":
+        setupFTFadingDetails(simulator, modes, 3.0, 2.5E9)
+    elif scenario == "RMa":
+        setupFTFadingDetails(simulator, modes, 120.0, 0.8E9)
+    elif scenario == "SMa":
+        setupFTFadingDetails(simulator, modes, 90.0, 2.0E9)
+    else:
+        raise "Unknown scenario %s" % scenario      
+
+
+def setupFTFadingDetails(simulator, modes, speed, freq):
+    for mode in modes:
+        modeCreator = lte.modes.getModeCreator(mode)
+        aMode = modeCreator(default = False)
+
+        dlFrequency = freq
+        if aMode.modeName.find("tdd") >= 0:
+            ulFrequency = dlFrequency
+        else:
+            ulFrequency = dlFrequency - 0.1E9
+      
+        speed = (speed * 1000.0) / 3600.0
+        ulDoppler = speed / 3E8 * (ulFrequency)
+        dlDoppler = speed / 3E8 * (dlFrequency)
+        
+        import rise.scenario.FTFading
+        
+        bsNodes = simulator.simulationModel.getNodesByProperty("Type", "eNB")
+        utNodes = simulator.simulationModel.getNodesByProperty("Type", "UE")
+
+        assert len(bsNodes) > 0, "No BS in scenario. First setup your scenario!"
+        
+        for node in bsNodes:
+            node.phys[aMode.modeName].ofdmaStation.receiver[0].FTFadingStrategy = rise.scenario.FTFading.FTFadingFneighbourCorrelation(
+                    samplingTime = 0.001,
+                    neighbourCorrelationFactor = 0.8,
+                    dopFreq = ulDoppler,
+                    numWaves = 100,
+                    numSubCarriers =
+                    node.phys[mode].ofdmaStation.numberOfSubCarrier)
+            node.phys[aMode.modeName].ofdmaStation.receiver[0].doMeasurementUpdates = True
+            node.phys[aMode.modeName].ofdmaStation.receiver[0].measurementUpdateInterval = 0.001
+
+        for node in utNodes:
+            node.phys[aMode.modeName].ofdmaStation.receiver[0].FTFadingStrategy = rise.scenario.FTFading.FTFadingFneighbourCorrelation(
+                    samplingTime = 0.001,
+                    neighbourCorrelationFactor = 0.8,
+                    dopFreq = dlDoppler,
+                    numWaves = 100,
+                    numSubCarriers = node.phys[mode].ofdmaStation.numberOfSubCarrier)
+            node.phys[aMode.modeName].ofdmaStation.receiver[0].doMeasurementUpdates = True
+            node.phys[aMode.modeName].ofdmaStation.receiver[0].measurementUpdateInterval = 0.001
+
