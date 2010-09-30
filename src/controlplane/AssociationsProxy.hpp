@@ -35,6 +35,7 @@
 #include <WNS/ldk/buffer/Dropping.hpp>
 #include <WNS/service/dll/Address.hpp>
 #include <WNS/logger/Logger.hpp>
+#include <WNS/probe/bus/ContextCollector.hpp>
 #include <DLL/Layer2.hpp>
 #include <DLL/UpperConvergence.hpp>
 
@@ -80,6 +81,9 @@ namespace lte { namespace controlplane {
       std::list<ModeName> myModes;
       wns::logger::Logger logger;
       UserInfoLookup activeUsers;
+      
+      bool probed;
+      wns::probe::bus::ContextCollectorPtr numUsers;
     };
 
     class AssociationsProxyBS :

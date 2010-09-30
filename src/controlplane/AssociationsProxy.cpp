@@ -35,6 +35,7 @@
 #include <DLL/RANG.hpp>
 #include <DLL/StationManager.hpp>
 #include <WNS/simulator/Time.hpp>
+#include <WNS/probe/bus/utils.hpp>
 
 #define A2N(a) layer2->getStationManager()->getStationByMAC(a)->getName()
 
@@ -56,12 +57,18 @@ AssociationsProxy::AssociationsProxy(wns::ldk::ControlServiceRegistry* csr, cons
   rlcReader(NULL),
   myModes(),
   logger(config.get("logger")),
-  activeUsers()
+  activeUsers(),
+  probed(false)
 {
   for (int i = 0; i < config.len("modeNames"); ++i) {
     std::string modeName = config.get<std::string>("modeNames", i);
     myModes.push_back(modeName);
   }
+    
+    wns::probe::bus::ContextProviderCollection* cpcParent = 
+        &getCSR()->getLayer()->getContextProviderCollection();
+        
+    numUsers = wns::probe::bus::collector(cpcParent, config, "numUsersProbeName");
 }
 
 AssociationsProxy::~AssociationsProxy()
@@ -79,6 +86,11 @@ AssociationsProxy::onCSRCreated()
 void
 AssociationsProxy::periodically()
 {
+  if(!probed && wns::simulator::getEventScheduler()->getTime() > 0.01)
+  {
+    numUsers->put(activeUsers.size());
+    probed = true;
+  }
   // Walk through the modes
   for(std::list<std::string>::iterator iter = myModes.begin(); iter != myModes.end(); ++iter)
     {

@@ -35,6 +35,7 @@ class ENBAssociationsProxy(dll.Services.Service):
     def __init__(self, parentLogger = None):
         self.nameInServiceFactory = 'lte.controlplane.ENBAssociationsProxy'
         self.serviceName = 'AssociationsProxy'
+        self.numUsersProbeName = "lte.numUsers"
         self.modeNames = []
         self.logger = openwns.logger.Logger("LTE", "AssociationsProxy", True, parentLogger)
 
@@ -46,6 +47,7 @@ class UEAssociationsProxy(dll.Services.Service):
     def __init__(self, parentLogger = None):
         self.nameInServiceFactory = 'lte.controlplane.UEAssociationsProxy'
         self.serviceName = 'AssociationsProxy'
+        self.numUsersProbeName = "lte.numUsers"
         self.modeNames = []
         self.modePriority = {}
         self.logger = openwns.logger.Logger("LTE", "AssociationsProxy", True, parentLogger)

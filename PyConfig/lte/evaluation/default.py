@@ -51,10 +51,26 @@ def installModeIndependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueI
             uts=ut.getLeafs().appendChildren(SeparateOnlyUTs())
             bs.getLeafs().appendChildren(Separate(by = 'MAC.Id', forAll = eNBIdList, format='BS_MAC.Id%d'))
             ut.getLeafs().appendChildren(Separate(by = 'MAC.Id', forAll = ueIdList, format='UT_MAC.Id%d'))
-	    bs.getLeafs().appendChildren(Moments(name = sourceName, description = 'Top %s %s throughput [Bit/s]' % (direction, what)))
+            bs.getLeafs().appendChildren(Moments(name = sourceName, description = 'Top %s %s throughput [Bit/s]' % (direction, what)))
             ut.getLeafs().appendChildren(Moments(name = sourceName, description = 'Top %s %s throughput [Bit/s]' % (direction, what)))
 
-            uts.appendChildren(PDF(name = sourceName + "ALLUT", minXValue = 0.0, maxXValue=10e6, resolution=100) )
+            uts.appendChildren(PDF(name = sourceName + "ALLUT", minXValue = 0.0, maxXValue=20e6, resolution=1000) )
+
+    sourceName = probeNamePrefix + 'numUsers'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+
+    node = node.appendChildren(PDF(name = sourceName,
+                      description = 'Associated UTs',
+                      minXValue = 0,
+                      maxXValue = 20,
+                      resolution = 20))
+
+    node = node.appendChildren(Separate(by = 'MAC.Id', forAll = eNBIdList, format='BS_MAC.Id%d'))                      
+    node.getLeafs().appendChildren(PDF(name = sourceName,
+                      description = 'Associated UTs',
+                      minXValue = 0,
+                      maxXValue = 20,
+                      resolution = 20))                      
 
 def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdList, settlingTime):
 
