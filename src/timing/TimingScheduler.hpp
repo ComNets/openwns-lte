@@ -29,9 +29,7 @@
 #define LTE_TIMING_TIMINGSCHEDULER_HPP
 
 #include <LTE/helper/HasModeName.hpp>
-/* deleted by chen */
-// #include <LTE/controlplane/MapHandler.hpp>
-/* inserted by chen */
+
 #include <DLL/services/control/Association.hpp>
 
 #include <WNS/ldk/ManagementServiceInterface.hpp>
@@ -51,7 +49,7 @@
 
 namespace lte {
     namespace controlplane {
-        class MapHandler; /* inserted by chen */
+        class MapHandler;
         namespace associationHandler {
             class AssociationHandler;
         }

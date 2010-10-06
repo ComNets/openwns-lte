@@ -29,8 +29,6 @@
 #define LTE_TIMING_EVENTS_RAP_EVENTS_HPP
 
 #include <LTE/timing/events/Base.hpp>
-/* deleted by chen */
-// #include <LTE/timing/RegistryProxy.hpp>
 
 namespace lte {
     namespace controlplane {
