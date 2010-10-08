@@ -3,9 +3,27 @@ import openwns.FUN
 from lte.modes.hasModeName import HasModeName
 import dll.Services
 
+class ThresholdCriterion(object):
+    name = None
+    margin = None
+
+    def __init__(self, name, margin = None):
+        self.name = name
+        self.margin = margin
+        if self.margin == None:
+            if self.name == "SINR" or self.name == "Pathloss":
+                self.margin = "0 dB"
+            elif self.name == "RxPower":
+                self.margin = "0 dBm"
+            else:
+                self.margin = 0.0
+
+
 class BCHService(dll.Services.Service, HasModeName):
     # Criterion for which terminal decides for best BS/RN in reach: ???
-    Criterion  = "RxPower" # can be one of [ "SINR", "RxPower", "Distance", "Pathloss"]
+
+    # can be one of [ "SINR", "RxPower", "Distance", "Pathloss"]
+    criterion  = ThresholdCriterion("RxPower") 
     logger = None
     timeout = None
     upperThreshold = None
@@ -20,9 +38,10 @@ class BCHService(dll.Services.Service, HasModeName):
         self.nameInServiceFactory = 'lte.controlplane.BCHService'
         self.serviceName = 'BCHSERVICE' + self.separator + self.modeName
         self.timeout = 0.01 # seconds
-        self.Criterion = mode.thresholdCriterion
+        self.criterion = mode.thresholdCriterion
         self.upperThreshold = mode.upperThreshold
         self.lowerThreshold = mode.lowerThreshold
+        self.triggersReAssociation = mode.triggersReAssociation
         self.logger = openwns.logger.Logger("LTE",
                                             "BCHService"+self.separator+self.modeName,
                                             True,

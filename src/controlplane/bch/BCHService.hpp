@@ -59,6 +59,10 @@ namespace lte {
 	{
 		BCHStorage<wns::service::dll::UnicastAddress> bchStorage;
 		std::string criterion;
+        wns::Power powerMargin;
+        wns::Ratio ratioMargin;
+        double distanceMargin;
+
 		double upperThreshold;
 		double lowerThreshold;
 		dll::ILayer2* layer2;

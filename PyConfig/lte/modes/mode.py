@@ -31,6 +31,7 @@ import lte.modes.scheduling.default
 
 import lte.partitioning.fdd
 import lte.phy.plm
+import lte.dll.bch
 
 import openwns.logger
 
@@ -45,9 +46,10 @@ class Mode(lte.modes.hasModeName.HasModeName):
 	# for mode selection
 	priority = None
 	# Thresholds
-	thresholdCriterion = "SINR"
+	thresholdCriterion = lte.dll.bch.ThresholdCriterion("SINR")
 	upperThreshold = None
 	lowerThreshold = None
+	triggersReAssociation = True
 
 	taskFUNs = None # taskFUNs[taskID]
 
@@ -120,9 +122,10 @@ class LTEFDD20(Mode):
             self.addTaskFUN( self.taskFUNModule.NoTask( "ltefdd20", ltefdd20, parentLogger ) )
         self.defaultPartitioning = lte.partitioning.fdd.LTEFDDReuse1(noChannels = ltefdd20.numSubchannels, noSubFrames = 10)
         self.priority = 5
-        self.thresholdCriterion = "Pathloss"
+        self.thresholdCriterion = lte.dll.bch.ThresholdCriterion("Pathloss", "1.0 dB")
         self.upperThreshold = -200.0 #[dBm]
         self.lowerThreshold = -250.0 #[dBm]
+        self.triggersReAssociation = False
         self.capabilities = ModeCapabilities(3)
 
 ltefdd15 = lte.phy.plm.getByName("ltefdd15") 
@@ -135,9 +138,10 @@ class LTEFDD15(Mode):
             self.addTaskFUN( self.taskFUNModule.NoTask( "ltefdd15", ltefdd15, parentLogger ) )
         self.defaultPartitioning = lte.partitioning.fdd.LTEFDDReuse1(noChannels = ltefdd15.numSubchannels, noSubFrames = 10)
         self.priority = 5
-        self.thresholdCriterion = "Pathloss"
+        self.thresholdCriterion = lte.dll.bch.ThresholdCriterion("Pathloss", "1.0 dB")
         self.upperThreshold = -200.0 #[dBm]
         self.lowerThreshold = -250.0 #[dBm]
+        self.triggersReAssociation = False
         self.capabilities = ModeCapabilities(3)
 
 ltefdd10 = lte.phy.plm.getByName("ltefdd10") 
@@ -150,9 +154,10 @@ class LTEFDD10(Mode):
             self.addTaskFUN( self.taskFUNModule.NoTask( "ltefdd10", ltefdd10, parentLogger ) )
         self.defaultPartitioning = lte.partitioning.fdd.LTEFDDReuse1(noChannels = ltefdd10.numSubchannels, noSubFrames = 10)
         self.priority = 5
-        self.thresholdCriterion = "Pathloss"
+        self.thresholdCriterion = lte.dll.bch.ThresholdCriterion("Pathloss", "1.0 dB")
         self.upperThreshold = -200.0 #[dBm]
         self.lowerThreshold = -250.0 #[dBm]
+        self.triggersReAssociation = False
         self.capabilities = ModeCapabilities(3)
 
 ltefdd5 = lte.phy.plm.getByName("ltefdd5") 
@@ -165,9 +170,10 @@ class LTEFDD5(Mode):
             self.addTaskFUN( self.taskFUNModule.NoTask( "ltefdd5", ltefdd5, parentLogger ) )
         self.defaultPartitioning = lte.partitioning.fdd.LTEFDDReuse1(noChannels = ltefdd5.numSubchannels, noSubFrames = 10)
         self.priority = 5
-        self.thresholdCriterion = "Pathloss"
+        self.thresholdCriterion = lte.dll.bch.ThresholdCriterion("Pathloss", "1.0 dB")
         self.upperThreshold = -200.0 #[dBm]
         self.lowerThreshold = -250.0 #[dBm]
+        self.triggersReAssociation = False
         self.capabilities = ModeCapabilities(3)
 
 ltefdd3 = lte.phy.plm.getByName("ltefdd3") 
@@ -180,9 +186,10 @@ class LTEFDD3(Mode):
             self.addTaskFUN( self.taskFUNModule.NoTask( "ltefdd3", ltefdd3, parentLogger ) )
         self.defaultPartitioning = lte.partitioning.fdd.LTEFDDReuse1(noChannels = ltefdd3.numSubchannels, noSubFrames = 10)
         self.priority = 5
-        self.thresholdCriterion = "Pathloss"
+        self.thresholdCriterion = lte.dll.bch.ThresholdCriterion("Pathloss", "1.0 dB")
         self.upperThreshold = -200.0 #[dBm]
         self.lowerThreshold = -250.0 #[dBm]
+        self.triggersReAssociation = False
         self.capabilities = ModeCapabilities(3)
 
 ltefdd1p4 = lte.phy.plm.getByName("ltefdd1p4") 
@@ -195,7 +202,8 @@ class LTEFDD1p4(Mode):
             self.addTaskFUN( self.taskFUNModule.NoTask( "ltefdd1p4", ltefdd1p4, parentLogger ) )
         self.defaultPartitioning = lte.partitioning.fdd.LTEFDDReuse1(noChannels = ltefdd1p4.numSubchannels, noSubFrames = 10)
         self.priority = 5
-        self.thresholdCriterion = "Pathloss"
+        self.thresholdCriterion = lte.dll.bch.ThresholdCriterion("Pathloss", "1.0 dB")
         self.upperThreshold = -200.0 #[dBm]
         self.lowerThreshold = -250.0 #[dBm]
+        self.triggersReAssociation = False
         self.capabilities = ModeCapabilities(3)

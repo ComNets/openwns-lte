@@ -40,6 +40,8 @@
 
 #include <WNS/service/dll/Address.hpp>
 
+#include <boost/function.hpp>
+
 #include <vector>
 
 namespace lte { namespace controlplane { namespace bch {
@@ -108,6 +110,22 @@ namespace lte { namespace controlplane { namespace bch {
 
 			return std::max_element<typename BCHMap::const_iterator>(bchMap.begin(), bchMap.end(), T())->second;
 		}
+
+        template <typename T>
+        std::vector<BCHRecordPtr> 
+        getBestInRange(T lowerBound, T upperBound, boost::function<T (BCHRecord*)> getter,  boost::function<bool (T, T)> cmp) const
+        {
+            std::vector<BCHRecordPtr> r;
+
+            for (typename BCHMap::const_iterator it = bchMap.begin(); it != bchMap.end(); ++it)
+            {
+                    if ( cmp(lowerBound, getter(it->second.getPtr())) && cmp(getter(it->second.getPtr()), upperBound))
+                    {
+                        r.push_back(it->second);
+                    }
+            }
+            return r;
+        }
 
 		/** @brief get Measuremment for a certain Station, identified by its
 		 * address

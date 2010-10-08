@@ -38,6 +38,7 @@ srcFiles = [
     'src/controlplane/bch/BCHService.cpp',
     'src/controlplane/bch/BCHUnit.cpp',
     'src/controlplane/bch/BCHSchedulerStrategy.cpp',
+    'src/controlplane/bch/tests/BCHStorageTests.cpp',
 
     'src/timing/TimingScheduler.cpp',
     'src/timing/events/Base.cpp',
