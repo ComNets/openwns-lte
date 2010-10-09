@@ -43,6 +43,7 @@
 #include <LTE/helper/HasModeName.hpp>
 #include <string>
 
+namespace wns { namespace scheduler { namespace harq { class HARQInterface;}}}
 namespace dll { class Layer2;}
 namespace dll { namespace services { namespace control { class Association; }}}
 namespace dll { namespace services { namespace management { class InterferenceCache; }}}
@@ -135,7 +136,7 @@ namespace lte { namespace timing {
 
             /** @brief reduce the set of connections to those that can be reached at the given frameNr */
             wns::scheduler::ConnectionSet
-            filterReachable(wns::scheduler::ConnectionSet connections, const int frameNr);
+            filterReachable(wns::scheduler::ConnectionSet connections, const int frameNr, bool useHARQ);
 
 
 	    /**
@@ -200,6 +201,9 @@ namespace lte { namespace timing {
             void
             setAssociationHandler(lte::controlplane::associationHandler::AssociationHandler* ah);
 
+            void
+            setHARQ(wns::scheduler::harq::HARQInterface* harq);
+
             bool
             duplexGroupIsReachableAt(const wns::scheduler::UserID user, const int frameNr) const;
 
@@ -231,7 +235,7 @@ namespace lte { namespace timing {
         private:
             /** @brief Determine whether the given user is listening at the given frame */
             bool
-            isReachableAt(const wns::scheduler::UserID user, const int frameNr) const;
+            isReachableAt(const wns::scheduler::UserID user, const int frameNr, bool useHARQ) const;
 
             /** @brief registerCID given next hop userID (not end-to-end) */
             void
@@ -267,9 +271,10 @@ namespace lte { namespace timing {
 
             /** @brief neighbour FUs in my FUN. We need to exchange infos with them */
             struct Friends {
-                Friends() {rlcCommandReader=NULL;macgCommandReader=NULL;timer=NULL;associationHandler=NULL;rrHandler=NULL; rrHandlerUT=NULL; flowManager=NULL;};
+                Friends() {rlcCommandReader=NULL;macgCommandReader=NULL;harq=NULL;timer=NULL;associationHandler=NULL;rrHandler=NULL; rrHandlerUT=NULL; flowManager=NULL;};
                 wns::ldk::CommandReaderInterface* rlcCommandReader;
                 wns::ldk::CommandReaderInterface* macgCommandReader;
+                wns::scheduler::harq::HARQInterface* harq;
                 lte::timing::TimingScheduler* timer;
                 lte::controlplane::associationHandler::AssociationHandler* associationHandler;
                 lte::controlplane::RRHandlerBS* rrHandler;

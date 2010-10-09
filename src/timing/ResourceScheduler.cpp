@@ -174,6 +174,7 @@ ResourceScheduler::onFUNCreated()
     /* Registry= System specific proxy that forwards queries from generic scheduler
      * components to the system specific entities */
     colleagues.registry->setFUN(fun); // ? rs: why again? fun is given with registryCreator->create(fun...) above
+    colleagues.registry->setHARQ(colleagues.harq);
 
     //lte::timing::RegistryProxy *registryInLte =
     //    dynamic_cast<lte::timing::RegistryProxy*>(colleagues.registry);
@@ -490,6 +491,7 @@ ResourceScheduler::startCollection(int frameNr /* for advance scheduling */,
     wns::scheduler::SchedulingMapPtr inputSchedulingMap;
     if (schedulerSpot==wns::scheduler::SchedulerSpot::ULSlave())
     {
+        colleagues.registry->setDL(false);
         // inputSchedulingMap should be a deep_copy of the original SchedulingMap from BS.
         // Currently it is not!
         // But it works well and this saves a lot of time.
@@ -507,8 +509,10 @@ ResourceScheduler::startCollection(int frameNr /* for advance scheduling */,
         // ^ this SchedulingMap counts as the "master mask" that the slave scheduler must obeye to.
         _slotDuration = inputSchedulingMap->getSlotLength(); // workaround for wrong slotDuration from Python
     } else if (schedulerSpot==wns::scheduler::SchedulerSpot::ULMaster()) {
+        colleagues.registry->setDL(false);
         MESSAGE_SINGLE(NORMAL, logger, "MasterScheduling for UL");
     } else if (schedulerSpot==wns::scheduler::SchedulerSpot::DLMaster()) {
+        colleagues.registry->setDL(true);
         MESSAGE_SINGLE(NORMAL, logger, "MasterScheduling for DL");
     } // switch(schedulerSpot)
 

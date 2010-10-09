@@ -47,6 +47,7 @@
 #include <WNS/scheduler/SchedulerTypes.hpp>
 #include <WNS/ldk/sar/SAR.hpp>
 #include <WNS/Ttos.hpp>
+#include <WNS/scheduler/harq/HARQInterface.hpp>
 
 #include <iostream>
 #include <string>
@@ -116,6 +117,12 @@ void
 RegistryProxy::setFriends(const wns::ldk::CommandTypeSpecifierInterface* _classifier)
 {
     assure(false,"RegistryProxy::setFriends(): obsolete");
+}
+
+void
+RegistryProxy::setHARQ(wns::scheduler::harq::HARQInterface* harq)
+{
+    friends.harq = harq;
 }
 
 void
@@ -493,7 +500,7 @@ RegistryProxy::filterReachable(wns::scheduler::UserSet users, const int frameNr)
         if (( relaysOnly == true && stationType==wns::service::dll::StationTypes::FRS() )
             || relaysOnly ==false)
         {
-            if (isReachableAt(*iter,frameNr))
+            if (isReachableAt(*iter,frameNr, false))
             {
                 MESSAGE_SINGLE(NORMAL, logger, "filterReachable: trying user=" << iter->getName() << " type=" << wns::service::dll::StationTypes::toString(stationType));
                 if ( (stationType!=wns::service::dll::StationTypes::FRS()) && (stationType!=wns::service::dll::StationTypes::eNB()) )
@@ -517,7 +524,7 @@ RegistryProxy::filterReachable(wns::scheduler::UserSet users, const int frameNr)
 }
 
 wns::scheduler::ConnectionSet
-RegistryProxy::filterReachable(wns::scheduler::ConnectionSet connections, const int frameNr)
+RegistryProxy::filterReachable(wns::scheduler::ConnectionSet connections, const int frameNr, bool useHARQ)
 {
     wns::scheduler::ConnectionSet result;
 
@@ -533,7 +540,7 @@ RegistryProxy::filterReachable(wns::scheduler::ConnectionSet connections, const 
         }
 
         // user from the connection is reachable
-        if ( isReachableAt(user,frameNr) )
+        if ( isReachableAt(user,frameNr, useHARQ) )
         {
             result.insert(*iterConnection);
         }
@@ -587,7 +594,7 @@ RegistryProxy::duplexGroupIsReachableAt(const wns::scheduler::UserID user, const
 // checks if the peer is reachable now and able to receive the map
 // needed for RNs
 bool
-RegistryProxy::isReachableAt(const UserID user, const int frameNr) const
+RegistryProxy::isReachableAt(const UserID user, const int frameNr, bool useHARQ) const
 {
     if (user.isBroadcast())
     {
@@ -608,7 +615,19 @@ RegistryProxy::isReachableAt(const UserID user, const int frameNr) const
             // This is an UL packet. Of course, we can reach our RAP
             // We have been granted UL resources in the UL map
             MESSAGE_SINGLE(NORMAL, logger, "isReachableAt(User=" << A2N(targetAddress) << ", frameNr=" << frameNr << "): UT UL: Yes");
-            return true;
+
+            bool freeHARQProcesses = true;
+            if (useHARQ)
+            {
+                freeHARQProcesses = friends.harq->hasFreeSenderProcess(user);
+            }
+
+            if(!freeHARQProcesses)
+            {
+                MESSAGE_SINGLE(NORMAL, logger, "isReachableAt(User=" << A2N(targetAddress) << ", frameNr=" << frameNr << "): max HARQ processes reached.");
+            }
+
+            return freeHARQProcesses;
         }
         else if (friends.timer->stationTaskAtFrame(frameNr) == lte::timing::StationTasks::UT())
         {
@@ -622,8 +641,31 @@ RegistryProxy::isReachableAt(const UserID user, const int frameNr) const
            == lte::timing::StationTasks::RAP(), "We must be a RAP in this frame!");
     bool ir = (friends.timer->isPeerListeningAt(targetAddress, frameNr) /* for data transmission in future frame */
                && friends.timer->canReceiveMapNow(targetAddress));
+
+    bool freeHARQProcesses = true;
+
+    if (useHARQ)
+    {
+        if (getDL())
+        {
+            freeHARQProcesses = friends.harq->hasFreeSenderProcess(user);
+            if(!freeHARQProcesses)
+            {
+                MESSAGE_SINGLE(NORMAL, logger, "isReachableAt(User=" << A2N(targetAddress) << ", frameNr=" << frameNr << "): max HARQ processes reached.");
+            }
+        }
+        else
+        {
+            freeHARQProcesses = friends.harq->hasFreeReceiverProcess(user);
+            if(!freeHARQProcesses)
+            {
+                MESSAGE_SINGLE(NORMAL, logger, "isReachableAt(User=" << A2N(targetAddress) << ", frameNr=" << frameNr << "): max HARQ processes reached.");
+            }
+        }
+    }
+
     MESSAGE_SINGLE(NORMAL, logger, "isReachableAt(User=" << A2N(targetAddress) << ", frameNr=" << frameNr << "): reachable=" << ir);
-    return ir;
+    return ir && (freeHARQProcesses);
 }
 
 /**
