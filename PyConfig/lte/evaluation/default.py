@@ -34,14 +34,15 @@ def installEvaluation(sim,
                       loggingStations = None,
                       eNBIdList = [],
                       ueIdList = [],
-                      settlingTime = 0.0):
+                      settlingTime = 0.0,
+                      maxThroughputPerUE = 20.0e6):
 
-    installModeIndependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdList, settlingTime)
+    installModeIndependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdList, settlingTime, maxThroughputPerUE)
     installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdList, settlingTime)
 
-def installModeIndependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdList, settlingTime):
+def installModeIndependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdList, settlingTime, maxThroughputPerUE):
     for direction in [ 'incoming', 'outgoing', 'aggregated' ]:
-        for what in [ 'bit', 'compound' ]:
+        for what in ['compound', 'bit']:
             sourceName = probeNamePrefix + 'total.window.' + direction + '.' + what + 'Throughput'
             node = openwns.evaluation.createSourceNode(sim, sourceName)
             s = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
@@ -54,7 +55,8 @@ def installModeIndependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueI
             bs.getLeafs().appendChildren(Moments(name = sourceName, description = 'Top %s %s throughput [Bit/s]' % (direction, what)))
             ut.getLeafs().appendChildren(Moments(name = sourceName, description = 'Top %s %s throughput [Bit/s]' % (direction, what)))
 
-            uts.appendChildren(PDF(name = sourceName + "ALLUT", minXValue = 0.0, maxXValue=20e6, resolution=1000) )
+            if what == "bit":
+                uts.appendChildren(PDF(name = sourceName, minXValue = 0.0, maxXValue=maxThroughputPerUE, resolution=1000) )
 
     sourceName = probeNamePrefix + 'numUsers'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
