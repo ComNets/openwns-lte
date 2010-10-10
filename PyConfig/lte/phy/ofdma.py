@@ -83,9 +83,9 @@ class BSOFDMAComponent(ofdmaSTA.OFDMAComponent):
 
         phyStation.txFrequency = mode.plm.phy.dlCenterFreq * 1E-6
         phyStation.rxFrequency = mode.plm.phy.ulCenterFreq * 1E-6
-        phyStation.txPower = mode.plm.phy.txPwrUT.nominalPerSubband
+        phyStation.txPower = mode.plm.phy.txPwrBS.nominalPerSubband
         # overall Power
-        phyStation.totalPower = mode.plm.phy.txPwrUT.maxOverall
+        phyStation.totalPower = mode.plm.phy.txPwrBS.maxOverall
         phyStation.numberOfSubCarrier = mode.plm.numSubchannels
         phyStation.bandwidth = mode.plm.bandwidth
         #phyStation.antennas = [rise.Antenna.Isotropic([0,0,1.5])]
