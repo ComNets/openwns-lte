@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 # This file is part of openWNS (open Wireless Network Simulator)
 # _____________________________________________________________________________
@@ -106,6 +107,8 @@ class ResourceScheduler(openwns.FUN.FunctionalUnit, lte.modes.hasModeName.HasMod
     writeMapOutput = False
     mapOutputFileName = None
 
+    maxTxPower = None
+
     def setPhyModeMapper(self, phyModeMapper):
         self.registry.setPhyModeMapper(phyModeMapper)
 
@@ -116,7 +119,7 @@ class ResourceScheduler(openwns.FUN.FunctionalUnit, lte.modes.hasModeName.HasMod
         self.subCarriersPerSubChannel = plm.phy.phyResourceSize # rs: for correct PhyMode construction
 
     def __init__(self, mode, PLM, strategy, functionalUnitName, commandName,
-                 uplinkMaster = False, group = None, parentLogger = None, txSchedulerFUName = None,
+                 uplinkMaster = False, group = None, parentLogger = None, txSchedulerFUName = None, maxTxPower = None,
                  **kw):
         super(ResourceScheduler,self).__init__(functionalUnitName, commandName)
         self.setMode(mode)
@@ -129,6 +132,7 @@ class ResourceScheduler(openwns.FUN.FunctionalUnit, lte.modes.hasModeName.HasMod
         self.framesPerSuperFrame = PLM.mac.framesPerSuperFrame
         self.uplinkMaster = uplinkMaster
         self.symbolDuration = PLM.mac.symbolLength + PLM.mac.cpLength
+        self.maxTxPower = maxTxPower
 
         if (self.uplinkMaster):
             self.slotDuration = PLM.mac.ulSymbols * PLM.mac.fullSymbolDur
@@ -171,7 +175,7 @@ class ResourceScheduler(openwns.FUN.FunctionalUnit, lte.modes.hasModeName.HasMod
 class BS(ResourceScheduler):
     __plugin__ = 'lte.timing.ResourceScheduler.BS'
 
-    def __init__(self, mode, fuName, commandName, uplinkMaster = False, group = None, parentLogger = None, txSchedulerFUName=""):
+    def __init__(self, mode, fuName, commandName, uplinkMaster = False, group = None, parentLogger = None, txSchedulerFUName="", maxTxPower = None):
         if uplinkMaster:
             ResourceScheduler.__init__(self,
                                        mode,
@@ -182,7 +186,8 @@ class BS(ResourceScheduler):
                                        uplinkMaster,
                                        group,
                                        parentLogger,
-                                       txSchedulerFUName)
+                                       txSchedulerFUName,
+                                       maxTxPower = maxTxPower)
         else:
             ResourceScheduler.__init__(self,
                                        mode,
@@ -193,11 +198,12 @@ class BS(ResourceScheduler):
                                        uplinkMaster,
                                        group,
                                        parentLogger,
-                                       txSchedulerFUName)
+                                       txSchedulerFUName,
+                                       maxTxPower = maxTxPower)
 
 class UT(ResourceScheduler):
     __plugin__ = 'lte.timing.ResourceScheduler.UT'
-    def __init__(self, mode, fuName, commandName, group=None, parentLogger = None):
+    def __init__(self, mode, fuName, commandName, group=None, parentLogger = None, maxTxPower = None):
             ResourceScheduler.__init__(self,
                                        mode,
                                        mode.plm,
@@ -206,7 +212,8 @@ class UT(ResourceScheduler):
                                        commandName,
                                        False,
                                        group,
-                                       parentLogger)
+                                       parentLogger,
+                                       maxTxPower = maxTxPower)
 
 class No(openwns.FUN.FunctionalUnit):
     __plugin__ = 'lte.timing.ResourceScheduler.None'

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 # This file is part of openWNS (open Wireless Network Simulator)
 # _____________________________________________________________________________
@@ -184,7 +185,9 @@ class BS:
 
         phyModeMapping = lte.llmapping.default.LTEMapper(mode)
 
-        resourceSchedulerTX = lte.dll.resourceScheduler.BS(mode, txFUName, txTaskName, False, group, self.logger)
+        powerLimit = mode.plm.phy.txPwrBS.maxOverall
+    
+        resourceSchedulerTX = lte.dll.resourceScheduler.BS(mode, txFUName, txTaskName, False, group, self.logger, maxTxPower=powerLimit)
         resourceSchedulerTX.setPhyModeMapper(phyModeMapping)
 
         return resourceSchedulerTX
@@ -202,7 +205,8 @@ class BS:
         resourceSchedulerRX = lte.dll.resourceScheduler.BS(mode,
                                                            rxFUName, rxTaskName,
                                                            uplinkMaster = True, group = group, parentLogger = self.logger,
-                                                           txSchedulerFUName = txFUName
+                                                           txSchedulerFUName = txFUName,
+                                                           maxTxPower = "0.0 dBm"
                                                            )
         resourceSchedulerRX.setPhyModeMapper(phyModeMapping)
 

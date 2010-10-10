@@ -184,7 +184,9 @@ class UT:
 
         phyModeMapping = lte.llmapping.default.LTEMapper(mode)
 
-        resourceSchedulerTX = lte.dll.resourceScheduler.UT(mode, txFUName, txTaskName, group, self.logger)
+        powerLimit = mode.plm.phy.txPwrUT.maxOverall
+
+        resourceSchedulerTX = lte.dll.resourceScheduler.UT(mode, txFUName, txTaskName, group, self.logger, maxTxPower = powerLimit)
         resourceSchedulerTX.setPhyModeMapper(phyModeMapping)
 
         return resourceSchedulerTX

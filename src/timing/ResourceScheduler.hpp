@@ -251,6 +251,9 @@ protected:
     virtual void
     deliverReceived();
 
+    virtual void
+    applyPowerLimitation(wns::scheduler::SchedulingMapPtr);
+
     /** @brief Python Config View */
     wns::pyconfig::View pyConfig;
 
@@ -380,6 +383,8 @@ protected:
     long int transportBlockCounter;
 
     wns::scheduler::harq::HARQInterface::DecodeStatusContainer receivedNonHARQTimeslots_;
+
+    wns::Power maxTxPower;
 };
 }
 } // lte::timing

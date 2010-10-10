@@ -71,7 +71,8 @@ ResourceScheduler::ResourceScheduler(wns::ldk::fun::FUN* fun, const wns::pyconfi
     IamUplinkMaster(config.get<bool>("uplinkMaster")), // uplink==true only for RS-RX
     writeMapOutput(config.get<bool>("writeMapOutput")),
     mapFile(NULL),
-    transportBlockCounter(0)
+    transportBlockCounter(0),
+    maxTxPower(config.get<wns::Power>("maxTxPower"))
 {
     MESSAGE_SINGLE(NORMAL, logger,"Constructor: Strategy="<<config.get<std::string>("strategy.nameInStrategyFactory"));
     if (writeMapOutput)
@@ -664,6 +665,9 @@ ResourceScheduler::finishCollection(int frameNr, simTimeType _startTime) {
                 }
             }
         } // if HARQ
+
+        applyPowerLimitation(schedulingMap);
+
         // currently the "SDMA antenna patterns" are set for each packet by bfTransmission->startTransmission() in PhyUser
         // but it would be more efficient to set it once, like this:
         // set SDMA antenna patterns first
@@ -849,6 +853,65 @@ ResourceScheduler::finishCollection(int frameNr, simTimeType _startTime) {
     } // TxScheduler
     schedulingResultOfFrame[frameNr] = wns::scheduler::strategy::StrategyResultPtr(); // clear result; not needed anymore; must be clean before next round
 } // finishCollection
+
+void
+ResourceScheduler::applyPowerLimitation(wns::scheduler::SchedulingMapPtr schedulingMap)
+{
+    // First pass: Find the sum TxPower
+    wns::Power sum = wns::Power::from_mW(0.0);
+    wns::scheduler::UserID myOwnUserID = wns::scheduler::UserID(layer2->getNode());
+
+    for (wns::scheduler::SubChannelVector::iterator iterSubChannel = schedulingMap->subChannels.begin(); iterSubChannel != schedulingMap->subChannels.end(); ++iterSubChannel)
+    {
+        wns::scheduler::SchedulingSubChannel& subChannel = *iterSubChannel;
+        for ( wns::scheduler::SchedulingTimeSlotPtrVector::iterator iterTimeSlot = subChannel.temporalResources.begin();
+              iterTimeSlot != subChannel.temporalResources.end(); ++iterTimeSlot)
+        {
+            wns::scheduler::SchedulingTimeSlotPtr timeSlotPtr = *iterTimeSlot;
+
+            if (schedulerSpot==wns::scheduler::SchedulerSpot::ULSlave())
+            {
+                if (timeSlotPtr->getUserID() != myOwnUserID)
+                {
+                    // Not my transmission. Belongs to another user
+                    continue;
+                }
+            }
+            sum += timeSlotPtr->getTxPower();
+        }
+    }
+
+    wns::Ratio downscale = wns::Ratio::from_factor(1.0);
+
+    if (sum > maxTxPower)
+    {
+        downscale = maxTxPower / sum;
+
+        MESSAGE_SINGLE(NORMAL, logger, "Power limitation reached, downscaling by " << downscale);
+
+        // Second pass:
+        for (wns::scheduler::SubChannelVector::iterator iterSubChannel = schedulingMap->subChannels.begin(); iterSubChannel != schedulingMap->subChannels.end(); ++iterSubChannel)
+        {
+            wns::scheduler::SchedulingSubChannel& subChannel = *iterSubChannel;
+            for ( wns::scheduler::SchedulingTimeSlotPtrVector::iterator iterTimeSlot = subChannel.temporalResources.begin();
+                  iterTimeSlot != subChannel.temporalResources.end(); ++iterTimeSlot)
+            {
+                wns::scheduler::SchedulingTimeSlotPtr timeSlotPtr = *iterTimeSlot;
+
+                if (schedulerSpot==wns::scheduler::SchedulerSpot::ULSlave())
+                {
+                    if (timeSlotPtr->getUserID() != myOwnUserID)
+                    {
+                        // Not my transmission. Belongs to another user
+                        continue;
+                    }
+                }
+
+                timeSlotPtr->setTxPower( timeSlotPtr->getTxPower() * downscale);
+            }
+        }
+    }
+}
 
 void
 ResourceScheduler::resetHARQScheduledPeerRetransmissions()

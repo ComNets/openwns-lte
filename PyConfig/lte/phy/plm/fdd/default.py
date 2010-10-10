@@ -156,9 +156,9 @@ class LTE:
 
         # Power of 4.0 dBm for nominalPerSubband is calculated for 20 MHz case
         # Power UT/BS according to ITU-R M.2135
-        self.phy.txPwrUT = openwns.Scheduler.PowerCapabilities( maxPerSubband     = "39.0 dBm",
-                                                                nominalPerSubband = "29.0 dBm",
-                                                                maxOverall        = "49.0 dBm")
+        self.phy.txPwrUT = openwns.Scheduler.PowerCapabilities( maxPerSubband     = "14.0 dBm",
+                                                                nominalPerSubband = "4.0 dBm",
+                                                                maxOverall        = "24.0 dBm")
         self.phy.txPwrBS = openwns.Scheduler.PowerCapabilities( maxPerSubband     = "39.0 dBm",
                                                                 nominalPerSubband = "29.0 dBm",
                                                                 maxOverall        = "49.0 dBm")
