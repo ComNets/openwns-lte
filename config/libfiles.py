@@ -87,7 +87,6 @@ hppFiles = [
     'src/macr/PhyCommand.hpp',
     'src/macr/Mode.hpp',
     'src/macr/RACHInterface.hpp',
-    'src/macr/CQIMeasurementInterface.hpp',
     'src/macr/ScorerInterface.hpp',
     'src/macr/Scorer.hpp',
     'src/macr/NamedDispatcher.hpp',
@@ -97,7 +96,6 @@ hppFiles = [
     'src/controlplane/MapHandler.hpp',
     'src/controlplane/bch/BCHUnitInterface.hpp',
 
-    'src/controlplane/AssociationsProxyInterface.hpp',
     'src/controlplane/AssociationsProxy.hpp',
     'src/controlplane/associationHandler/IAssociationHandler.hpp',
     'src/controlplane/associationHandler/AssociationHandler.hpp',
