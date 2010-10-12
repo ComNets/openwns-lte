@@ -29,11 +29,7 @@
 
 #include <LTE/timing/events/rap/Events.hpp>
 #include <LTE/timing/TimingScheduler.hpp>
-/* deleted by chen */
-// #include <LTE/timing/ResourceScheduler.hpp>
-// #include <LTE/controlplane/MapHandler.hpp>
-// #include <LTE/macr/RACH.hpp>
-// #include <LTE/controlplane/bch/BCHUnit.hpp>
+#include <LTE/macr/PhyUser.hpp>
 
 #include <LTE/timing/ResourceSchedulerInterface.hpp>
 #include <LTE/controlplane/MapHandlerInterface.hpp>

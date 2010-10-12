@@ -29,11 +29,7 @@
 
 #include <LTE/timing/events/Base.hpp>
 #include <LTE/timing/TimingScheduler.hpp>
-/* deleted by chen */
-// #include <LTE/macr/PhyUser.hpp>
-// #include <LTE/timing/ResourceScheduler.hpp>
-// #include <LTE/controlplane/MapHandler.hpp>
-// #include <LTE/macr/RACH.hpp>
+#include <LTE/macr/PhyUser.hpp>
 
 using namespace lte::timing;
 using namespace lte::timing::events;

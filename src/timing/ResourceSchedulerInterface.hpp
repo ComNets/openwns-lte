@@ -151,8 +151,6 @@ namespace lte { namespace timing {
     {
     public:
 
-      virtual ~SlaveScheduler(){};
-
         /**
          * @brief trigger slave scheduling. calls
          * colleagues.strategy->startScheduling

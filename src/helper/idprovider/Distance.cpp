@@ -26,8 +26,6 @@
  ******************************************************************************/
 
 #include <LTE/helper/idprovider/Distance.hpp>
-/* deleted by chen */
-// #include <LTE/macg/MACg.hpp>
 
 #include <DLL/StationManager.hpp>
 
