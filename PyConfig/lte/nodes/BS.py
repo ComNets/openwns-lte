@@ -73,7 +73,10 @@ class BS(scenarios.interfaces.INode, openwns.node.Node):
         return self.mobility.mobility.getCoords()
 
     def setAntenna(self, antenna):
-        self.antenna = antenna
+        assert len(self.phys.keys()) == 1, "Only one antenna per BS!"
+
+        for key in self.phys.keys():
+            self.phys[key].ofdmaStation.antennas = [antenna]
 
     def setChannelModel(self, channelModel):
         for phy in self.phys.values():

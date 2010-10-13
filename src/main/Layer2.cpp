@@ -37,8 +37,7 @@
 #include <LTE/timing/ResourceSchedulerInterface.hpp>
 
 #include <LTE/macr/Mode.hpp>
-#include <LTE/macr/CQIMeasurementInterface.hpp>
-#include <LTE/controlplane/AssociationsProxyInterface.hpp>
+#include <LTE/controlplane/AssociationsProxy.hpp>
 
 #include <WNS/service/dll/StationTypes.hpp>
 #include <WNS/service/phy/ofdma/Handler.hpp>
