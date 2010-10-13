@@ -4,3 +4,4 @@ build
 include
 config/private.py
 config/pushMailRecipients.py
+addOn
