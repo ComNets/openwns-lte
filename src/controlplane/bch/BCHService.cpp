@@ -51,7 +51,7 @@ BCHService::BCHService(wns::ldk::ControlServiceRegistry* csr,
 	lte::helper::HasModeName(config),
 
 	bchStorage(),
-	criterion(config.get<std::string>("criterion.name")),
+	criterion(config.get("criterion")),
 
 	upperThreshold(config.get<double>("upperThreshold")),
 	lowerThreshold(config.get<double>("lowerThreshold")),
@@ -62,15 +62,6 @@ BCHService::BCHService(wns::ldk::ControlServiceRegistry* csr,
 	triggersAssociation(config.get<bool>("triggersAssociation")),
 	triggersReAssociation(config.get<bool>("triggersReAssociation"))
 {
-    if(criterion == "SINR" || criterion == "Pathloss")
-        ratioMargin = config.get<wns::Ratio>("criterion.margin");
-    else if(criterion == "RxPower")
-        powerMargin = config.get<wns::Power>("criterion.margin");
-    else if(criterion == "Distance")
-        distanceMargin == config.get<double>("criterion.margin");
-    else
-		throw wns::Exception("Unsupported BCH Storage criterion");
-
 	bchStorage.reset();
     startPeriodicTimeout(timeout, 0);
 }
@@ -82,13 +73,13 @@ BCHService::getBest() const
 
 	double observedValue = 0;
 
-	if (criterion == "SINR"){
+	if (criterion.name == "SINR"){
 		best = bchStorage.getBest<compare::BestSINR>();
 		if (best != BCHRecordPtr())
         {
-            if(ratioMargin > wns::Ratio::from_dB(0.0))
+            if(criterion.ratioMargin > wns::Ratio::from_dB(0.0))
             {
-                wns::Ratio lowerBoundpl = best->sinr - ratioMargin;
+                wns::Ratio lowerBoundpl = best->sinr - criterion.ratioMargin;
                 wns::Ratio upperBoundpl = best->sinr;
 
                 using namespace boost::lambda;
@@ -105,13 +96,13 @@ BCHService::getBest() const
         }
         
 	}
-	else if (criterion == "RxPower"){
+	else if (criterion.name == "RxPower"){
 		best = bchStorage.getBest<compare::BestRXPWR>();
 		if (best != BCHRecordPtr())
         {
-            if(powerMargin > wns::Power::from_dBm(0.0))
+            if(criterion.powerMargin > wns::Power::from_dBm(0.0))
             {
-                wns::Power lowerBoundpl = best->rxpower - powerMargin;
+                wns::Power lowerBoundpl = best->rxpower - criterion.powerMargin;
                 wns::Power upperBoundpl = best->rxpower;
 
                 using namespace boost::lambda;
@@ -127,14 +118,14 @@ BCHService::getBest() const
 			observedValue = best->rxpower.get_dBm();
         }
 	}
-	else if (criterion == "Distance"){
+	else if (criterion.name == "Distance"){
 		best = bchStorage.getBest<compare::BestDIST>();
 		if (best != BCHRecordPtr())
         {
-            if(distanceMargin > 0.0)
+            if(criterion.distanceMargin > 0.0)
             {
                 double lowerBoundpl = best->distance;
-                double upperBoundpl = best->distance + distanceMargin;
+                double upperBoundpl = best->distance + criterion.distanceMargin;
 
                 using namespace boost::lambda;
                 boost::function<bool (double, double)> cmpd = _1 <= _2;
@@ -149,14 +140,14 @@ BCHService::getBest() const
 			observedValue = (-1) * best->distance;
         }
 	}
-	else if (criterion == "Pathloss"){
+	else if (criterion.name == "Pathloss"){
 		best = bchStorage.getBest<compare::BestPathloss>();
 		if (best != BCHRecordPtr())
         {
-            if(ratioMargin > wns::Ratio::from_dB(0.0))
+            if(criterion.ratioMargin > wns::Ratio::from_dB(0.0))
             {
                 wns::Ratio lowerBoundpl = best->pathloss;
-                wns::Ratio upperBoundpl = best->pathloss + ratioMargin;
+                wns::Ratio upperBoundpl = best->pathloss + criterion.ratioMargin;
 
                 using namespace boost::lambda;
                 boost::function<bool (wns::Ratio, wns::Ratio)> cmpr = _1 <= _2;
@@ -171,6 +162,11 @@ BCHService::getBest() const
    			observedValue = (-1) * best->pathloss.get_dB();
         }
 	}
+    else if (criterion.name == "MAC_ID")
+    {
+        best = bchStorage.get(criterion.address);
+        observedValue = upperThreshold;
+    }
 	else
 	{
 		throw wns::Exception("Unsupported BCH Storage criterion");
@@ -217,7 +213,7 @@ BCHService::periodically()
 		  << "PL: " << best->pathloss.get_dB() << "\n"
 		  << "RxPwr: " << best->rxpower.get_dBm() << "\n"
 		  << "Dist.: " << best->distance << "\n"
-		  << "Active Criterion is '"<< criterion << "'\n";
+		  << "Active Criterion is '"<< criterion.name << "'\n";
 		MESSAGE_END();
 
 		if (triggersAssociation)
@@ -225,14 +221,14 @@ BCHService::periodically()
 			// report to associationHandler
 			if (observedValue >= upperThreshold)
 			{
-				MESSAGE_SINGLE(NORMAL, logger, "BCHService detected " << criterion << " value above threshold (" << upperThreshold << ")");
+				MESSAGE_SINGLE(NORMAL, logger, "BCHService detected " << criterion.name << " value above threshold (" << upperThreshold << ")");
 				associationHandler->bestRAP(best->source);
 			}
 			else if (observedValue <= lowerThreshold)
 			{
 				if (bchStorage.getBCHKeys().size() != 1)
 				{
-					MESSAGE_SINGLE(NORMAL, logger, "BCHService detected " << criterion
+					MESSAGE_SINGLE(NORMAL, logger, "BCHService detected " << criterion.name
 							   << " value below threshold (actual=" << observedValue <<
 							   ", threshold="<< lowerThreshold << ")");
 					associationHandler->belowThreshold(best->source);
@@ -240,7 +236,7 @@ BCHService::periodically()
 				else
 				{
 					// if only one BS, do not do disassociation
-					MESSAGE_SINGLE(NORMAL, logger, "BCHService detected " << criterion
+					MESSAGE_SINGLE(NORMAL, logger, "BCHService detected " << criterion.name
 								   << " value below threshold (actual=" << observedValue <<
 								   ", threshold="<< lowerThreshold << ")");
 					MESSAGE_SINGLE(NORMAL, logger, "Only one AP ("<<A2N(best->source)<<") is detected. Disassociation isn't needed");

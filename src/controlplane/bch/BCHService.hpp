@@ -58,10 +58,34 @@ namespace lte {
 		  public lte::helper::HasModeName
 	{
 		BCHStorage<wns::service::dll::UnicastAddress> bchStorage;
-		std::string criterion;
-        wns::Power powerMargin;
-        wns::Ratio ratioMargin;
-        double distanceMargin;
+
+        struct Criterion {
+            Criterion(const wns::pyconfig::View& config):
+                name(config.get<std::string>("name"))
+            {
+                if(name == "SINR" || name == "Pathloss")
+                    ratioMargin = config.get<wns::Ratio>("margin");
+                else if(name == "RxPower")
+                    powerMargin = config.get<wns::Power>("margin");
+                else if(name == "Distance")
+                    distanceMargin == config.get<double>("margin");
+                else if(name == "MAC_ID")
+                {
+                    assure(!config.isNone("address"), "MAC_ID criterion needs address of serving station");
+                    address = wns::service::dll::UnicastAddress(config.get<int>("address"));              
+                }                
+                else
+		            throw wns::Exception("Unsupported BCH Storage criterion");  
+            }
+
+    		std::string name;
+            wns::Power powerMargin;
+            wns::Ratio ratioMargin;
+            double distanceMargin;
+            wns::service::dll::UnicastAddress address;
+        };
+
+        Criterion criterion;
 
 		double upperThreshold;
 		double lowerThreshold;

@@ -6,9 +6,11 @@ import dll.Services
 class ThresholdCriterion(object):
     name = None
     margin = None
+    address = None
 
-    def __init__(self, name, margin = None):
+    def __init__(self, name, margin = None, address = None):
         self.name = name
+        self.address = address
         self.margin = margin
         if self.margin == None:
             if self.name == "SINR" or self.name == "Pathloss":

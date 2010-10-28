@@ -263,8 +263,8 @@ class ueLayer2( dll.Layer2.Layer2 ):
         mode.partInfo = p
         self.controlServices.append(p)
 
-        bchService = lte.dll.bch.BCHService(mode)
-        self.controlServices.append(bchService)
+        self.bchService = lte.dll.bch.BCHService(mode)
+        self.controlServices.append(self.bchService)
 
     def _setupManagementServicesPerMode(self, mode):
         i = dll.Services.InterferenceCache("INTERFERENCECACHE"+mode.modeName,
@@ -289,3 +289,7 @@ class ueLayer2( dll.Layer2.Layer2 ):
 
     def setPhyNotification(self, modeName, serviceName):
         self.phyNotification[modeName] = serviceName
+
+    def associateTo(self, address):
+        self.bchService.criterion = lte.dll.bch.ThresholdCriterion("MAC_ID", 
+                                                                   address = address)
