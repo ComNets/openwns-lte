@@ -63,7 +63,7 @@ BCHService::BCHService(wns::ldk::ControlServiceRegistry* csr,
 	triggersReAssociation(config.get<bool>("triggersReAssociation"))
 {
 	bchStorage.reset();
-    startPeriodicTimeout(timeout, 0);
+    startPeriodicTimeout(timeout, 0.01);
 }
 
 lte::controlplane::bch::Best
@@ -165,6 +165,16 @@ BCHService::getBest() const
     else if (criterion.name == "MAC_ID")
     {
         best = bchStorage.get(criterion.address);
+
+        // We did not yet receive a BCH but associate anyways
+        // this is needed because relays do not receive BCH from their serving BS
+        // since they have to transmit their own BCH
+        if(best == BCHRecordPtr())
+        {
+            best = BCHRecordPtr(new BCHRecord(criterion.address, wns::Ratio(), wns::Ratio(), 
+                                                wns::Power(), 0.0, 0));
+        }
+
         observedValue = upperThreshold;
     }
 	else
