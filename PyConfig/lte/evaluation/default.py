@@ -84,9 +84,9 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
     #dl.getLeafs().appendChildren(Moments(name=sourceName, description='Center Cell DL SINR distribution [dB]'))
     dl.getLeafs().appendChildren(PDF(name = sourceName,
                                      description = 'Center Cell DL SINR distribution [dB]',
-                                     minXValue = -20.0,
-                                     maxXValue = 30.0,
-                                     resolution = 100))
+                                     minXValue = -50.0,
+                                     maxXValue = 100.0,
+                                     resolution = 1500))
     # center cell UL: only UEs in center cell assiciated to any center cell BS
     ul = node.appendChildren(Accept(by='MAC.Id', ifIn = eNBIdList, suffix='UL_CenterCell'))
     # ul.getLeafs().appendChildren(Logger())
@@ -94,9 +94,53 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
     #ul.getLeafs().appendChildren(Moments(name=sourceName, description='Center Cell UL SINR distribution [dB]'))
     ul.getLeafs().appendChildren(PDF(name = sourceName,
                                      description = 'Center Cell UL SINR distribution [dB]',
-                                     minXValue = -20.0,
-                                     maxXValue = 30.0,
-                                     resolution = 100))
+                                     minXValue = -50.0,
+                                     maxXValue = 100.0,
+                                     resolution = 1500))
+
+    sourceName = probeNamePrefix + 'Carrier'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
+    # center cell DL
+    dl = node.appendChildren(Accept(by='MAC.Id', ifIn = ueIdList, suffix='DL_CenterCell'))
+    #dl.getLeafs().appendChildren(Moments(name=sourceName, description='Center Cell DL SINR distribution [dB]'))
+    dl.getLeafs().appendChildren(PDF(name = sourceName,
+                                     description = 'Center Cell DL SINR distribution [dB]',
+                                     minXValue = -200.0,
+                                     maxXValue = 200.0,
+                                     resolution = 4000))
+    # center cell UL: only UEs in center cell assiciated to any center cell BS
+    ul = node.appendChildren(Accept(by='MAC.Id', ifIn = eNBIdList, suffix='UL_CenterCell'))
+    # ul.getLeafs().appendChildren(Logger())
+    ul.getLeafs().appendChildren(Accept(by='Peer.NodeID', ifIn = ueIdList))
+    #ul.getLeafs().appendChildren(Moments(name=sourceName, description='Center Cell UL SINR distribution [dB]'))
+    ul.getLeafs().appendChildren(PDF(name = sourceName,
+                                     description = 'Center Cell UL SINR distribution [dB]',
+                                     minXValue = -200.0,
+                                     maxXValue = 200.0,
+                                     resolution = 4000))
+
+    sourceName = probeNamePrefix + 'Interference'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
+    # center cell DL
+    dl = node.appendChildren(Accept(by='MAC.Id', ifIn = ueIdList, suffix='DL_CenterCell'))
+    #dl.getLeafs().appendChildren(Moments(name=sourceName, description='Center Cell DL SINR distribution [dB]'))
+    dl.getLeafs().appendChildren(PDF(name = sourceName,
+                                     description = 'Center Cell DL SINR distribution [dB]',
+                                     minXValue = -200.0,
+                                     maxXValue = 200.0,
+                                     resolution = 4000))
+    # center cell UL: only UEs in center cell assiciated to any center cell BS
+    ul = node.appendChildren(Accept(by='MAC.Id', ifIn = eNBIdList, suffix='UL_CenterCell'))
+    # ul.getLeafs().appendChildren(Logger())
+    ul.getLeafs().appendChildren(Accept(by='Peer.NodeID', ifIn = ueIdList))
+    #ul.getLeafs().appendChildren(Moments(name=sourceName, description='Center Cell UL SINR distribution [dB]'))
+    ul.getLeafs().appendChildren(PDF(name = sourceName,
+                                     description = 'Center Cell UL SINR distribution [dB]',
+                                     minXValue = -200.0,
+                                     maxXValue = 200.0,
+                                     resolution = 4000))
 
     sourceName = probeNamePrefix + 'TxPower'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
@@ -140,4 +184,19 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
                           minXValue = 0.0,
                           maxXValue = 20.0,
                           resolution = 20.0))
+
+    sourceName = probeNamePrefix + 'resourceUsage'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
+
+    node = node.appendChildren(Accept(by='MAC.Id', ifIn = loggingStations, suffix='CenterCell'))
+    dl = node.appendChildren(Accept(by = 'SchedulerSpot', ifIn = [1], suffix='DL'))
+    ulm = node.appendChildren(Accept(by = 'SchedulerSpot', ifIn = [2], suffix='ULMaster'))
+    uls = node.appendChildren(Accept(by = 'SchedulerSpot', ifIn = [3], suffix='ULSlave'))
+    node.getLeafs().appendChildren(PDF(name = sourceName,
+                                     description = 'Resource Usage',
+                                     minXValue = 0.0,
+                                     maxXValue = 1.0,
+                                     resolution = 100))
+    
 

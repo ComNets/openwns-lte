@@ -79,6 +79,8 @@ PhyMeasurementProbe::PhyMeasurementProbe(wns::ldk::fun::FUN* fun, const wns::pyc
 	}
 
     sinrProbe        = new wns::probe::bus::ContextCollector(localIDs, "lte.SINR");
+    carrierProbe        = new wns::probe::bus::ContextCollector(localIDs, "lte.Carrier");
+    interferenceProbe        = new wns::probe::bus::ContextCollector(localIDs, "lte.Interference");
     sinrEstProbe = new wns::probe::bus::ContextCollector(localIDs, "lte.SINRest");
     sinrEstErrProbe = new wns::probe::bus::ContextCollector(localIDs, "lte.SINRestError");
     rxPwrProbe      = new wns::probe::bus::ContextCollector(localIDs, "lte.RxPower");
@@ -94,6 +96,8 @@ PhyMeasurementProbe::PhyMeasurementProbe(wns::ldk::fun::FUN* fun, const wns::pyc
 PhyMeasurementProbe::~PhyMeasurementProbe()
 {
     delete sinrProbe; sinrProbe = NULL;
+    delete carrierProbe; sinrProbe = NULL;
+    delete interferenceProbe; sinrProbe = NULL;
     delete sinrEstProbe; sinrEstProbe = NULL;
     delete sinrEstErrProbe; sinrEstErrProbe = NULL;
     delete rxPwrProbe; rxPwrProbe = NULL;
@@ -132,8 +136,12 @@ PhyMeasurementProbe::processIncoming(const wns::ldk::CompoundPtr& compound)
 
     double sinr = phyCommand->local.rxPowerMeasurementPtr->getSINR().get_dB();
     double estimationError = sinrEstimation.get_dB() - sinr;
+    double carrier = phyCommand->local.rxPowerMeasurementPtr->getRxPower().get_dBm();
+    double interference = phyCommand->local.rxPowerMeasurementPtr->getInterferencePower().get_dBm();
 
     sinrProbe->put(compound, sinr, boost::make_tuple("Peer.NodeID", phyCommand->magic.source->getNodeID()));
+    interferenceProbe->put(compound, interference, boost::make_tuple("Peer.NodeID", phyCommand->magic.source->getNodeID()));
+    carrierProbe->put(compound, carrier, boost::make_tuple("Peer.NodeID", phyCommand->magic.source->getNodeID()));
     sinrEstProbe->put(compound, sinrEstimation.get_dB());
     sinrEstErrProbe->put(compound, estimationError);
     rxPwrProbe->put(compound, phyCommand->local.rxPowerMeasurementPtr->getRxPower().get_dBm());

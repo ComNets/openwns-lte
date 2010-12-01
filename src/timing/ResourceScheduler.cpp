@@ -37,6 +37,8 @@
 #include <LTE/helper/QueueProxy.hpp>
 
 #include <WNS/ldk/helper/FakePDU.hpp>
+#include <WNS/probe/bus/ContextProviderCollection.hpp>
+#include <WNS/probe/bus/utils.hpp>
 
 #include <boost/bind.hpp>
 
@@ -66,7 +68,6 @@ ResourceScheduler::ResourceScheduler(wns::ldk::fun::FUN* fun, const wns::pyconfi
     partitionGroup(config.get<uint32_t>("group")),
     schedulingResultOfFrame(framesPerSuperFrame), // vector schedulingResultOfFrame[frameNr]
     scorer(mode,config),
-    resourceUsageProbeName(config.get<std::string>("resourceUsageProbeName")), // for ResourceUsage*X
     schedulerSpot(-1), // initialized to good value in setFriends
     IamUplinkMaster(config.get<bool>("uplinkMaster")), // uplink==true only for RS-RX
     writeMapOutput(config.get<bool>("writeMapOutput")),
@@ -85,6 +86,10 @@ ResourceScheduler::ResourceScheduler(wns::ldk::fun::FUN* fun, const wns::pyconfi
 
     colleagues.harq = STATIC_FACTORY_NEW_INSTANCE(wns::scheduler::harq::HARQInterface, wns::PyConfigViewCreator, pyConfig.get("harq"), pyConfig.get("harq"));
     assure(colleagues.harq, "HARQ creation failed");
+
+	wns::probe::bus::ContextProviderCollection* cpcParent = &fun->getLayer()->getContextProviderCollection();
+    wns::probe::bus::ContextProviderCollection cpc(cpcParent);
+    resUsageProbe_ = wns::probe::bus::collector(cpc, config, "resUsageProbeName");
 
 } // ResourceScheduler
 
@@ -244,19 +249,6 @@ ResourceScheduler::onFUNCreated()
     assure(colleagues.queue!=NULL,"colleagues.queue==NULL");
     colleagues.queue->setColleagues(colleagues.registry);
 
-    // Init the probe
-    wns::probe::bus::ContextProviderCollection *globalContext = &(layer2->getContextProviderCollection());
-    wns::probe::bus::ContextProviderCollection localContext(globalContext);
-    // read the localIDs from the config
-    MESSAGE_SINGLE(NORMAL, logger, "onFUNCreated(): "<<pyConfig.len("localIDs.keys()")<<" localIDs, resourceUsageProbeName="<<this->resourceUsageProbeName);
-    for (int ii = 0; ii<pyConfig.len("localIDs.keys()"); ++ii)
-    {
-        std::string key = pyConfig.get<std::string>("localIDs.keys()",ii);
-        uint32_t value  = pyConfig.get<uint32_t>("localIDs.values()",ii);
-        localContext.addProvider(wns::probe::bus::contextprovider::Constant(key, value));
-    }
-
-    resourceUsageProbe = wns::probe::bus::ContextCollectorPtr(new wns::probe::bus::ContextCollector(localContext, this->resourceUsageProbeName));
     if (writeMapOutput) prepareMapOutput();
     MESSAGE_SINGLE(NORMAL, logger, "ResourceScheduler::onFUNCreated() finished");
 } // onFUNCreated
@@ -619,9 +611,10 @@ ResourceScheduler::finishCollection(int frameNr, simTimeType _startTime) {
     double resourceUsage = schedulingMap->getResourceUsage();
     MESSAGE_SINGLE(NORMAL, logger,"finishCollection(frameNr="<<frameNr<<", startTime="<<_startTime<<"): "
                    <<"schedulingMap="<<resourceUsage*100.0<<"% full");
-    // write resourceUsageProbe (currently done in *UT and *BS implementations)
-    if (not IamUplinkMaster)
-        resourceUsageProbe->put(resourceUsage);
+
+    if(resUsageProbe_->hasObservers())
+        probeResourceUsage(schedulingMap);
+
     wns::scheduler::UserID myOwnUserID = wns::scheduler::UserID(layer2->getNode());
     if (schedulerSpot == wns::scheduler::SchedulerSpot::ULMaster())
     { // only beamforming etc.
@@ -767,7 +760,6 @@ ResourceScheduler::finishCollection(int frameNr, simTimeType _startTime) {
                     MESSAGE_SINGLE(NORMAL, logger, "WARNING: 0 dBm transmit power. I will not send this");
                     continue;
                 }
-
                 myCommand->magic.schedulingTimeSlotPtr = wns::scheduler::SchedulingTimeSlotPtr(new wns::scheduler::SchedulingTimeSlot(*timeSlotPtr));; // SmartPtr
 
 		// Check for HARQ validity
@@ -853,6 +845,45 @@ ResourceScheduler::finishCollection(int frameNr, simTimeType _startTime) {
     } // TxScheduler
     schedulingResultOfFrame[frameNr] = wns::scheduler::strategy::StrategyResultPtr(); // clear result; not needed anymore; must be clean before next round
 } // finishCollection
+
+void 
+ResourceScheduler::probeResourceUsage(wns::scheduler::SchedulingMapPtr schedulingMap)
+{
+    wns::scheduler::SubChannelVector& subChannels  = schedulingMap->subChannels;
+
+    double _slotDuration = schedulingMap->getSlotLength();
+
+    unsigned int numResources = 0;
+    unsigned int usedResources = 0;
+
+    for ( wns::scheduler::SubChannelVector::iterator iterSubChannel = subChannels.begin();
+          iterSubChannel != subChannels.end(); ++iterSubChannel)
+    {
+        wns::scheduler::SchedulingSubChannel& subChannel = *iterSubChannel;
+        for ( wns::scheduler::SchedulingTimeSlotPtrVector::iterator iterTimeSlot = subChannel.temporalResources.begin();
+              iterTimeSlot != subChannel.temporalResources.end(); ++iterTimeSlot)
+        {
+            wns::scheduler::SchedulingTimeSlotPtr timeSlotPtr = *iterTimeSlot;
+            // Only count resources for this UT in ULSlave
+            if(schedulerSpot == wns::scheduler::SchedulerSpot::ULSlave())
+            {
+                wns::scheduler::UserID myOwnUserID = wns::scheduler::UserID(layer2->getNode());
+                if(timeSlotPtr->getUserID() == myOwnUserID)
+                    numResources++;            
+            }
+            // Count all resources in master
+            else
+            {
+                numResources++;
+            }
+            
+            if(!timeSlotPtr->isEmpty() && timeSlotPtr->countScheduledCompounds() > 0)
+               usedResources++;
+        }
+    }
+    resUsageProbe_->put(double(usedResources)/double(numResources), 
+        boost::make_tuple("SchedulerSpot", schedulerSpot));
+}
 
 void
 ResourceScheduler::applyPowerLimitation(wns::scheduler::SchedulingMapPtr schedulingMap)

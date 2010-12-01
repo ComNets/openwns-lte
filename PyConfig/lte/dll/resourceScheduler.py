@@ -133,11 +133,11 @@ class ResourceScheduler(openwns.FUN.FunctionalUnit, lte.modes.hasModeName.HasMod
         self.uplinkMaster = uplinkMaster
         self.symbolDuration = PLM.mac.symbolLength + PLM.mac.cpLength
         self.maxTxPower = maxTxPower
+        self.resUsageProbeName = "lte.resourceUsage"
 
         if (self.uplinkMaster):
             self.slotDuration = PLM.mac.ulSymbols * PLM.mac.fullSymbolDur
             self.logger = openwns.logger.Logger("LTE", "RS-RX", True, parentLogger)
-            self.resourceUsageProbeName = "lte.ResourceUsageRX"
             self.probeNameQueue = "lte.schedulerRXQueueSize"
             self.probeNameQueueOverhead = "lte.schedulerRXSegmentOverhead"
             self.queueProxy = QueueProxy(parentLogger = self.logger, sizeProbeName = self.probeNameQueue)

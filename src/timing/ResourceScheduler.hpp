@@ -44,6 +44,7 @@
 #include <WNS/scheduler/grouper/SpatialGrouper.hpp>
 #include <WNS/ldk/FunctionalUnit.hpp>
 #include <WNS/service/dll/FlowID.hpp>
+#include <WNS/probe/bus/ContextCollector.hpp>
 
 #include <map>
 #include <list>
@@ -254,6 +255,9 @@ protected:
     virtual void
     applyPowerLimitation(wns::scheduler::SchedulingMapPtr);
 
+    void 
+    probeResourceUsage(wns::scheduler::SchedulingMapPtr schedulingMap);
+
     /** @brief Python Config View */
     wns::pyconfig::View pyConfig;
 
@@ -354,11 +358,9 @@ protected:
     lte::macr::Scorer scorer;
 
     /**
-     * @brief probe to record the resource usage of the scheduling strategy
+     * @brief probe to record ratio of used resources
      */
-    wns::probe::bus::ContextCollectorPtr resourceUsageProbe;
-
-    std::string resourceUsageProbeName;
+    wns::probe::bus::ContextCollectorPtr resUsageProbe_;
 
     /**
      * @brief there are three positions for the scheduler...
