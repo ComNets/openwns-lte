@@ -36,16 +36,15 @@ import rise.Mobility
 import openwns.node
 import openwns.logger
 
-class BS(scenarios.interfaces.INode, openwns.node.Node):
+class BS(openwns.node.Node, scenarios.interfaces.INode):
     
     def __init__(self, config, mobility):
         openwns.node.Node.__init__(self, "eNB")
 
         self.logger = openwns.logger.Logger("LTE", "eNB%d" % self.nodeID, True)
 
-        self.properties = {}
-        self.properties["Type"] = "eNB"
-        self.properties["Ring"] = 1
+        self.setProperty("Type", "eNB")
+        self.setProperty("Ring", 1)
         self.phys = {}
 
         self.name += str(self.nodeID)
@@ -83,8 +82,3 @@ class BS(scenarios.interfaces.INode, openwns.node.Node):
             phy.ofdmaStation.receiver[0].propagation.configure(channelModel)
             phy.ofdmaStation.transmitter[0].propagation.configure(channelModel)
 
-    def getProperty(self, propertyName):
-        return self.properties[propertyName]
-
-    def setProperty(self, propertyName, propertyValue):
-        self.properties[propertyName] = propertyValue

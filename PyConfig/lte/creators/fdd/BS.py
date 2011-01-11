@@ -60,7 +60,7 @@ class BSCreator(scenarios.interfaces.INodeCreator):
                     listenerBindingInRANG = constanze.node.UDPServerListenerBinding(777, trafficDL, parentLogger = rang.logger)
 
             else: # no traffic RANG is responding with
-                if self.useTCP:
+                if self.config.useTCP:
                     listenerBindingInRANG=constanze.node.TCPListenerBinding(1024,parentLogger=rang.logger)
                 else:
                     listenerBindingInRANG=constanze.node.UDPListenerBinding(777,parentLogger=rang.logger)

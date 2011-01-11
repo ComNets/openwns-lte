@@ -41,7 +41,7 @@ import scenarios.interfaces
 
 import openwns.node
 
-class UE(scenarios.interfaces.INode, openwns.node.Node):
+class UE(openwns.node.Node, scenarios.interfaces.INode):
     
     def __init__(self, config, mobility):
         openwns.node.Node.__init__(self, "UE")
@@ -50,9 +50,8 @@ class UE(scenarios.interfaces.INode, openwns.node.Node):
 
         self.name += str(self.nodeID)
 
-        self.properties = {}
-        self.properties["Type"] = "UE"
-        self.properties["Ring"] = 1
+        self.setProperty("Type", "UE")
+        self.setProperty("Ring", 1)
         self.phys = {}
 
         self.dll = lte.dll.component.ueLayer2(node = self, name = "UE", modetypes = config.modes, parentLogger = self.logger)
@@ -121,11 +120,5 @@ class UE(scenarios.interfaces.INode, openwns.node.Node):
             phy.ofdmaStation.receiver[0].propagation.configure(channelModel)
             phy.ofdmaStation.transmitter[0].propagation.configure(channelModel)
     
-    def getProperty(self, propertyName):
-        return self.properties[propertyName]
-
-    def setProperty(self, propertyName, propertyValue):
-        self.properties[propertyName] = propertyValue
-
     def addTraffic(self, binding, load):
         self.load.addTraffic(binding, load)

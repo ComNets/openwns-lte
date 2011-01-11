@@ -101,6 +101,59 @@ def setupUL_APC(simulator, modes, alpha, pNull):
                     fu.strategy.apcstrategy.pNull = pNull
                     found = True    
         assert found, "Could not find uplink master scheduler in BS"
+
+def setupScheduler(simulator, sched, modes):
+    setupDLScheduler(simulator, sched, modes)
+    setupULScheduler(simulator, sched, modes)
+
+def setupULScheduler(simulator, sched, modes):
+    setupSchedulerDetail(simulator, sched, "UL", modes)
+
+def setupDLScheduler(simulator, sched):
+    setupSchedulerDetail(simulator, sched, "DL", modes)
+
+def setupSchedulerDetail(simulator, sched, direction, modes):
+    if direction == "UL":
+        suffix = "RX"
+    elif direction == "DL":
+        suffix == "TX"
+    else:
+        assert false, "Unknown direction"
+
+    import lte.modes
+    import openwns.scheduler.DSAStrategy
+    import openwns.Scheduler
+
+    if sched == "Fixed":
+        Strat = openwns.Scheduler.DSADrivenRR
+        DSA = openwns.scheduler.DSAStrategy.Fixed
+    elif sched == "Random":
+        Strat = openwns.Scheduler.RoundRobin
+        DSA = openwns.scheduler.DSAStrategy.Random
+    elif sched == "ExhaustiveRR":
+        Strat = openwns.Scheduler.ExhaustiveRoundRobin
+        DSA = openwns.scheduler.DSAStrategy.LinearFFirst
+
+    bsNodes = simulator.simulationModel.getNodesByProperty("Type", "eNB")
+
+    for n in bsNodes:
+        found = False
+        fun = n.dll.fun.functionalUnit
+        for mt in modes:
+            modeCreator = lte.modes.getModeCreator(mt)
+            aMode = modeCreator(default = False)
+            for fu in fun:
+                if aMode.modeBase + aMode.separator + "resourceScheduler" + suffix in fu.commandName:
+                    fu.strategy.dsastrategy = DSA(oneUserOnOneSubChannel = True)
+                    fu.strategy.dsafbstrategy = DSA(oneUserOnOneSubChannel = True)
+                    fu.strategy.subStrategies[4] = Strat(useHARQ = True)
+                    fu.strategy.subStrategies[5] = Strat(useHARQ = True)
+                    fu.strategy.subStrategies[6] = Strat(useHARQ = True)
+                    fu.strategy.subStrategies[7] = Strat(useHARQ = True)
+                    found = True    
+        assert found, "Could not find scheduler in BS"
+
+    
     
 def setupFTFading(simulator, scenario, modes):
 

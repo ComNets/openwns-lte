@@ -54,7 +54,7 @@ class Tunnel( dll.Layer2.Layer2 ):
         self.dllDataTransmissions.append(openwns.node.FQSN(bs, bs.dll.dataTransmission))
         self.dllNotifications.append(openwns.node.FQSN(bs, bs.dll.notification))
 
-class RANG(scenarios.interfaces.INode, openwns.node.Node):
+class RANG(openwns.node.Node, scenarios.interfaces.INode):
     tunnel = None
     nl  = None
     load = None
@@ -63,8 +63,7 @@ class RANG(scenarios.interfaces.INode, openwns.node.Node):
     def __init__(self, useTCP=True):
         super(RANG, self).__init__("RANG")
 
-        self.properties = {}
-        self.properties["Type"] = "RANG"
+        self.setProperty("Type", "RANG")
 
         # create Tunnel to reach the BSs
         self.tunnel = Tunnel(self, self.logger)
@@ -106,8 +105,3 @@ class RANG(scenarios.interfaces.INode, openwns.node.Node):
     def setChannelModel(self, channelModel):
         pass
 
-    def getProperty(self, propertyName):
-        return self.properties[propertyName]
-
-    def setProperty(self, propertyName, propertyValue):
-        self.properties[propertyName] = propertyValue
