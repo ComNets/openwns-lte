@@ -256,7 +256,9 @@ namespace lte{
 
             wns::ldk::CommandReaderInterface* schedulerCommandReader_;
 #endif 
-            
+            void
+            measureInterference(PhyCommand*, wns::Power);            
+
             wns::pyconfig::View config_;
 
             /** @brief my DLL */
@@ -296,6 +298,13 @@ namespace lte{
 
             /** @brief pointer to the station Manager info service */
             dll::StationManager* stationManager;
+
+            /** @brief Send all data as broadcast to measure interference */
+            bool sendAllBroadcast;
+
+            std::map<int, wns::Power> interf;
+
+            wns::simulator::Time lastMeasureTime;
 
             wns::simulator::Time measurementDelay_;
 

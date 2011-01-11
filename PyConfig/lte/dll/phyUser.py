@@ -45,6 +45,8 @@ class PhyUser(openwns.FUN.FunctionalUnit,
 
         self.measurementDelay = 6.0e-03
 
+        self.sendAllBroadcast = False
+
         self.logger = openwns.logger.Logger('LTE','PhyUser', True, parentLogger)
 
         self.schedulingCommandReaderName = schedulingCommandReaderName

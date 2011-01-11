@@ -76,7 +76,9 @@ PhyUser::PhyUser(wns::ldk::fun::FUN* fun, const wns::pyconfig::View& pyConfigVie
     notificationService(NULL),
     mobility(NULL),
     stationManager(NULL),
-    measurementDelay_(pyConfigView.get<wns::simulator::Time>("measurementDelay"))
+    measurementDelay_(pyConfigView.get<wns::simulator::Time>("measurementDelay")),
+    sendAllBroadcast(pyConfigView.get<bool>("sendAllBroadcast")),
+    lastMeasureTime(0.0)
 {
     MESSAGE_BEGIN(NORMAL, logger, m, "PhyUser() created.");
     if (fddCapable) m << " fddCapable";
@@ -256,6 +258,15 @@ PhyUser::onData(wns::osi::PDUPtr pdu, wns::service::phy::power::PowerMeasurement
     bool broadcast = (myCommand->magic.destination == NULL);
     if (broadcast) {
         MESSAGE_SINGLE(NORMAL,logger, "RECEIVED BROADCAST COMPOUND FROM " <<source->getName());
+    }
+    else if(myCommand->magic.destination != layer2->getNode())
+    {
+         // Measure the UL interference from other nodes in eNB
+        if(layer2->getStationType() == wns::service::dll::StationTypes::eNB())
+        {
+            measureInterference(myCommand, rxPowerMeasurement->getRxPower());
+        }
+        return;
     }
 
     // perform the first part of the LL mapping, the second part (Mapping from
@@ -485,7 +496,7 @@ PhyUser::startTransmission(const wns::ldk::CompoundPtr& compound)
 
     assure(compound->getLengthInBits() <= capacity , "SDU too long: len="<<compound->getLengthInBits()<<" <= cap="<<capacity<<" ("<<phyModePtr->getString()<<", D="<<duration<<"s)");
 
-    if (myCommand->magic.destination == 0) {
+    if (myCommand->magic.destination == 0 || sendAllBroadcast) {
         // no destination, send broadcast
         assure(beam==0,"broadcast is only possible with beam==0, but beam="<<beam);
         transmission->startBroadcast(compound, subBand, txPower, phyModePtr);
@@ -576,6 +587,31 @@ PhyUser::isFddCapable() const
     return fddCapable;
 }
 
+void
+PhyUser::measureInterference(PhyCommand* myCommand, wns::Power rxPower)
+{
+    int sc = myCommand->local.subBand; 
+    if(es->getTime() > lastMeasureTime)
+    {
+        for(std::map<int, wns::Power>::iterator it = interf.begin(); 
+            it != interf.end();
+            it++)
+        {
+            MESSAGE_SINGLE(NORMAL,logger, "Storing interference for slot: " 
+                            << it->first << " " <<  it->second);
 
+            iCache->storeInterference(layer2->getNode(),
+                                      it->second,
+                                      dll::services::management::InterferenceCache::Local,
+                                      it->first);
+        }
+        lastMeasureTime = es->getTime();
+        interf.clear();
+    }
+    interf[sc] += rxPower;
+    MESSAGE_SINGLE(NORMAL,logger, "Added interference from: "  
+        << myCommand->magic.source->getName() << " "
+        << rxPower << " total on SC " << sc << " is " << interf[sc]);
+}
 
 
