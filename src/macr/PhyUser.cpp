@@ -100,13 +100,9 @@ void
 PhyUser::onFUNCreated()
 {
     wns::ldk::fun::FUN* fun = getFUN();
-
     layer2 = fun->getLayer<dll::ILayer2*>();
-
     iCache = layer2->getManagementService<dll::services::management::InterferenceCache>("INTERFERENCECACHE"+modeBase);
-
-    stationManager =
-        layer2->getStationManager();
+    stationManager = layer2->getStationManager();
 
 #ifndef NDEBUG
     schedulerCommandReader_ = getFUN()->getCommandReader(config_.get<std::string>("schedulingCommandReaderName"));
@@ -136,26 +132,34 @@ PhyUser::doSendData(const wns::ldk::CompoundPtr& compound)
     PhyCommand* myCommand = getCommand(compound->getCommandPool());
     if (myCommand->local.modeRxTx == lte::macr::PhyCommand::Tx)
     {
-        MESSAGE_SINGLE(NORMAL, logger,"doSendData(Tx): start="<< myCommand->local.start <<"s..stop=" << myCommand->local.stop <<"s => d="<<(myCommand->local.stop-myCommand->local.start)*1e6<<"us, subBand=" << myCommand->local.subBand << ", len="<<compound->getLengthInBits() << "bits");
+        MESSAGE_SINGLE(NORMAL, logger,"doSendData(Tx): start="
+            << myCommand->local.start <<"s..stop=" 
+            << myCommand->local.stop <<"s => d="
+            << (myCommand->local.stop-myCommand->local.start) * 1e6
+            << "us, subBand=" << myCommand->local.subBand 
+            << ", len="<<compound->getLengthInBits() << "bits");
+
         simTimeType startTime = myCommand->local.start;
-        // TODO: check/assure that we don't send FakePDUPtr.
-        // this can happen with compounds from RS-RX, created in RRHandler
-        //assure(dynamic_cast<wns::ldk::helper::FakePDU*>(compound->getData().getPtr())==NULL,"FakePDU in Tx mode");
+
+        // Will call this->startTransmission at startTime
         es->schedule(StartTxEvent(compound, this), startTime);
         // Inform FUs that have added a callback that the compound is on air now
-	if (!myCommand->local.onAirCallback.empty())
+	    if (!myCommand->local.onAirCallback.empty())
 	    {
-		myCommand->local.onAirCallback();
+		    myCommand->local.onAirCallback();
 	    }
     }
     else
     { // reception (Rx)
-        //MESSAGE_SINGLE(NORMAL, logger,"doSendData(Rx): startTime="<< myCommand->local.start <<", stopTime=" << myCommand->local.stop << ", subBand=" << myCommand->local.subBand << ", len="<<compound->getLengthInBits() << "bits");
-        MESSAGE_SINGLE(NORMAL, logger,"doSendData(Rx): startTime="<< myCommand->local.start <<", stopTime=" << myCommand->local.stop << ", subBand=" << myCommand->local.subBand << ", len="<<compound->getLengthInBits() << "bits" << " SHALL NOT OCCUR");
-        //es->schedule(StartRxEvent(compound, this), myCommand->local.start);
-        assure(false,"doSendData(Rx): startTime="<< myCommand->local.start <<", stopTime=" << myCommand->local.stop << ", subBand=" << myCommand->local.subBand << ", len="<<compound->getLengthInBits() << "bits" << " SHALL NOT OCCUR");
-    }
+        MESSAGE_SINGLE(NORMAL, logger,"doSendData(Rx): startTime="
+            << myCommand->local.start <<", stopTime=" 
+            << myCommand->local.stop << ", subBand=" 
+            << myCommand->local.subBand << ", len="
+            << compound->getLengthInBits() << "bits" 
+            << " SHALL NOT OCCUR");
 
+        assure(false,"Tryed to transmit while in RX mode");
+    }
     // stamp link to my InterferenceCache into the Command
     myCommand->magic.remoteCache = iCache;
 } // doSendData
@@ -274,57 +278,25 @@ PhyUser::onData(wns::osi::PDUPtr pdu, wns::service::phy::power::PowerMeasurement
     // re-assembled (SAR-FU).
     // Store measurements in the phyCommand, e.g. for evaluation in the BCHUnit
     myCommand->local.rxPowerMeasurementPtr = rxPowerMeasurement;
-    //assure(myCommand->local.subBand == rxPowerMeasurement->getSubChannel(),"subChannel mismatch");
-
-    /** magic distance calculation. In a real world, the receiver would have to
-     * use info about the timing advance or the synchronization for this, but we
-     * can use this shortcut.
-     */
-    // TODO [rs]: shift this functionality into rxPowerMeasurement and get rid of myCommand->local.distance
-    assure(mobility!=NULL,"mobility==NULL");
-    myCommand->local.distance = mobility->getDistance( source->getService<wns::PositionableInterface*>("mobility") );
-    //myCommand->local.distance = rxPowerMeasurement->getDistance();
-    // myCommand->magic.source is a wns::node::Interface*
-    // wns::PositionableInterface* mobility we get by PhyUser::setMobility() called by ILayer2 class:
-    // phyUser->setMobility( getNode()->getService<wns::PositionableInterface*>("mobility") );
-
-    // estimate pathloss (including tx and rx antenna gains)
-    //wns::Ratio pathloss = rxPowerMeasurement->getPathLoss();
-    //myCommand->local.pathloss = rxPowerMeasurement->getPathLoss();
 
     MESSAGE_BEGIN(NORMAL, logger, m, "DataInd ");
-    wns::service::dll::UnicastAddress sourceAddress =
-        stationManager->getStationByNode(source)->getDLLAddress();
-    m << "from " << A2N(sourceAddress) << ":";
-    m << " SubBand=" << myCommand->local.subBand;
-    //m << " SubBand=" << rxPowerMeasurement->getSubChannel();
-    m << ", PhyMode=" << *phyModePtr;
-    m << std::fixed << std::setprecision( 1 ); // Nachkommastellen
-    m << ", "<<rxPowerMeasurement->getString();
-    m << std::fixed << std::setprecision( 2 ); // Nachkommastellen
-    m << ", MIB=" << rxPowerMeasurement->getMIB();
-    m << ", PL=" << rxPowerMeasurement->getPathLoss();
+        wns::service::dll::UnicastAddress sourceAddress =
+            stationManager->getStationByNode(source)->getDLLAddress();
+        m << "from " << A2N(sourceAddress) << ":";
+        m << " SubBand=" << myCommand->local.subBand;
+        //m << " SubBand=" << rxPowerMeasurement->getSubChannel();
+        m << ", PhyMode=" << *phyModePtr;
+        m << std::fixed << std::setprecision( 1 ); // Nachkommastellen
+        m << ", "<<rxPowerMeasurement->getString();
+        m << std::fixed << std::setprecision( 2 ); // Nachkommastellen
+        m << ", MIB=" << rxPowerMeasurement->getMIB();
+        m << ", PL=" << rxPowerMeasurement->getPathLoss();
     MESSAGE_END();
 
     // During Broadcast Phases, Interference is not representative, therefore we
-    // do not store it
+    // do not store it, we also do not consider retransmissions
     if (broadcast == false && !myCommand->magic.isRetransmission)
     {
-        // store pathloss measurement for source station in local InterferenceCache
-        /*iCache->storePathloss( source,
-                               rxPowerMeasurement->getLoss(),
-                               dll::services::management::InterferenceCache::Local );*/
-        /* ^ this is ok, but doing the following seems to mix up UL and DL vached values:
-           iCache->storeMeasurements( source,
-           rxPowerMeasurement,
-           dll::services::management::InterferenceCache::Local );
-        */
-        // "magically" store my measurements in remote InterferenceCache
-        /*myCommand->magic.remoteCache->storeMeasurements( getFUN()->getLayer<dll::ILayer2*>()->getNode(),
-                                                         rxPowerMeasurement,
-                                                         dll::services::management::InterferenceCache::Remote,
-                                                         myCommand->local.subBand );*/
-
         wns::simulator::getEventScheduler()->scheduleDelay(boost::bind(
             &dll::services::management::InterferenceCache::storeMeasurements,
             myCommand->magic.remoteCache,
@@ -345,18 +317,9 @@ PhyUser::onData(wns::osi::PDUPtr pdu, wns::service::phy::power::PowerMeasurement
             MESSAGE_END();
         }
     }
-    /* Use braodcast to determine pathloss */
-    else
-    {
-        /*myCommand->magic.remoteCache->storePathloss(getFUN()->getLayer<dll::ILayer2*>()->getNode(),
-                                                         rxPowerMeasurement->getLoss(),
-                                                         dll::services::management::InterferenceCache::Remote );*/
-    }
-
 #ifndef NDEBUG
     traceIncoming(compound, rxPowerMeasurement);
 #endif
-
     // deliver compound
     doOnData(compound);
 }
@@ -468,56 +431,75 @@ PhyUser::startTransmission(const wns::ldk::CompoundPtr& compound)
 {
     assure(getFUN()->getProxy()->commandIsActivated( compound->getCommandPool(), this),
            "PhyCommand not specified. PhyUser can not handle this compound!");
+
     PhyCommand* myCommand = getCommand(compound->getCommandPool());
-    MESSAGE_SINGLE(NORMAL, logger,"startTransmission(): start="<< myCommand->local.start <<"s..stop=" << myCommand->local.stop <<"s => d="<<myCommand->local.stop-myCommand->local.start<<"s, subBand=" << myCommand->local.subBand);
+
+    MESSAGE_SINGLE(NORMAL, logger,"startTransmission(): start="
+        << myCommand->local.start 
+        << "s..stop=" << myCommand->local.stop 
+        << "s => d=" << myCommand->local.stop-myCommand->local.start
+        << "s, subBand=" << myCommand->local.subBand);
 
     wns::Power txPower = myCommand->magic.txp;
 
     int subBand = myCommand->local.subBand;
     int beam = myCommand->local.beam;
     wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr = myCommand->local.phyModePtr;
-    simTimeType duration = myCommand->local.stop - myCommand->local.start; // duration should be multiple of OFDM symbol length
+
+    // duration should be multiple of OFDM symbol length
+    simTimeType duration = myCommand->local.stop - myCommand->local.start; 
+
     assure(myCommand->local.start == es->getTime(), "myCommand->local.start is not now");
-    assure(phyModePtr->dataRateIsValid(),"!dataRateIsValid for "<<*phyModePtr);
+    assure(phyModePtr->dataRateIsValid(), "!dataRateIsValid for " << *phyModePtr);
+
     int capacity = phyModePtr->getBitCapacityFractional(duration);
-    MESSAGE_SINGLE(NORMAL, logger,"PhyMode="<<*phyModePtr<<" supports "<<phyModePtr->getBitCapacityFractional(1.0)<<" bit/s/subChannel");
+
+    MESSAGE_SINGLE(NORMAL, logger,"PhyMode=" << *phyModePtr
+        << " supports " << phyModePtr->getBitCapacityFractional(1.0)
+        << " bit/s/subChannel");
+
     MESSAGE_BEGIN(NORMAL, logger, m, "startTransmission on subBand=");
-    m << subBand
-        //<< std::ios::fixed // puts "4" into output!?
-      << ", PhyMode=" << *phyModePtr
-        //<< std::ios::floatfield << std::setprecision(3) // puts "260" into output!?
-      << ", D=" << duration*1e6 << "us"
-      << ", " << compound->getLengthInBits() << " bit"
-      << ", cap=" << capacity << " bit"
-      << ", source=" << myCommand->magic.source->getName()
-      << ", dest=" << (myCommand->magic.destination == NULL ? "BROADCAST" : myCommand->magic.destination->getName())
-      << ", P=" << txPower;
+        m << subBand
+          << ", PhyMode=" << *phyModePtr
+          << ", D=" << duration*1e6 << "us"
+          << ", " << compound->getLengthInBits() << " bit"
+          << ", cap=" << capacity << " bit"
+          << ", source=" << myCommand->magic.source->getName()
+          << ", dest=" << (myCommand->magic.destination == NULL ? "BROADCAST" : myCommand->magic.destination->getName())
+          << ", P=" << txPower;
     MESSAGE_END();
 
-    assure(compound->getLengthInBits() <= capacity , "SDU too long: len="<<compound->getLengthInBits()<<" <= cap="<<capacity<<" ("<<phyModePtr->getString()<<", D="<<duration<<"s)");
+    assure(compound->getLengthInBits() <= capacity , "SDU too long: len="<<compound->getLengthInBits()
+        << " <= cap="<<capacity
+        << " ("<<phyModePtr->getString()
+        << ", D="<<duration<<"s)");
 
-    if (myCommand->magic.destination == 0 || sendAllBroadcast) {
+    if (myCommand->magic.destination == 0 || sendAllBroadcast) 
+    {
         // no destination, send broadcast
         assure(beam==0,"broadcast is only possible with beam==0, but beam="<<beam);
         transmission->startBroadcast(compound, subBand, txPower, phyModePtr);
-    } else {
+    } 
+    else 
+    {
         // we have a destination, this is not a broadcast
-        if (myCommand->local.beamforming == true){
+        if (myCommand->local.beamforming == true)
+        {
             assure(myCommand->local.pattern, "No Beamforming Pattern set.");
             // call startTransmission method of dataTransmission service
             // which is located in WNS/service/phy/ofdma/Station.cpp: Station::startTransmission
             bfTransmission->startTransmission(compound,
                                               myCommand->magic.destination,
                                               subBand,
-                                              //beam, // <- cannot be used here
                                               myCommand->local.pattern,
                                               txPower,
                                               phyModePtr);
-        } else {
+        } 
+        else 
+        {
             transmission->startUnicast(compound,
                                        myCommand->magic.destination,
                                        subBand,
-                                       //beam, // for MIMO
                                        txPower,
                                        phyModePtr);
         }

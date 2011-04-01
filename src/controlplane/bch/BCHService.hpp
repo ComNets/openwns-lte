@@ -113,7 +113,7 @@ namespace lte {
         void
         storeMeasurement(const wns::service::dll::UnicastAddress& source,
                          const wns::service::phy::power::PowerMeasurementPtr&  phyMeasurementPtr,
-                         double distance, int subband);
+                         int subband);
 		void
 		storeMeasurement(const wns::service::dll::UnicastAddress& source,
 						 const lte::macr::PhyCommand& phyCommand);

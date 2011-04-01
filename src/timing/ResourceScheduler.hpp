@@ -246,7 +246,6 @@ protected:
     deliverSchedulingTimeSlot(bool canBeDecoded,
                               const wns::scheduler::SchedulingTimeSlotPtr& schedulingTimeSlot,
                               wns::service::phy::power::PowerMeasurementPtr&,
-                              double distance,
                               int subband);
 
     virtual void

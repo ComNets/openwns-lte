@@ -39,13 +39,10 @@ namespace lte { namespace helper { namespace idprovider {
 	class Distance :
 		virtual public wns::probe::bus::CompoundContextProvider
 	{
-		/** @brief points to this nodes mobility component */
-		wns::PositionableInterface* myPosition;
-		/** @brief StationManager Handle */
-		dll::StationManager* stationManager;
+		wns::ldk::CommandReaderInterface* cmdReader;
 		const std::string key;
 	public:
-		Distance(wns::ldk::fun::FUN* fun, dll::StationManager* sm);
+		Distance(wns::ldk::fun::FUN* fun, wns::ldk::CommandReaderInterface* cmdReader);
 
 		virtual
 		~Distance();

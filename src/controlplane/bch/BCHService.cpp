@@ -272,7 +272,7 @@ BCHService::periodically()
 
 void
 BCHService::storeMeasurement(const wns::service::dll::UnicastAddress& source,
-                             const wns::service::phy::power::PowerMeasurementPtr&  phyMeasurementPtr, double distance, int subband)
+                             const wns::service::phy::power::PowerMeasurementPtr&  phyMeasurementPtr, int subband)
 {
 	if (!layer2){
 		layer2 = dynamic_cast<dll::ILayer2*>(getCSR()->getLayer());
@@ -283,7 +283,7 @@ BCHService::storeMeasurement(const wns::service::dll::UnicastAddress& source,
 			      phyMeasurementPtr->getSINR(),
 			      phyMeasurementPtr->getPathLoss(),
 			      phyMeasurementPtr->getRxPower(),
-			      distance,
+			      phyMeasurementPtr->getDistance(),
                   subband));
 
 	// store data
@@ -308,7 +308,7 @@ BCHService::storeMeasurement(const wns::service::dll::UnicastAddress& source,
 	}
 	assure(layer2!=NULL,"invalid layer2");
 	wns::service::phy::power::PowerMeasurementPtr phyMeasurementPtr = phyCommand.local.rxPowerMeasurementPtr;
-    this->storeMeasurement(source, phyMeasurementPtr, phyCommand.local.distance, phyCommand.local.subBand);
+    this->storeMeasurement(source, phyMeasurementPtr, phyCommand.local.subBand);
 }
 
 uint32_t

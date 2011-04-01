@@ -32,23 +32,20 @@
 #include <WNS/service/Service.hpp>
 #include <WNS/ldk/CommandReaderInterface.hpp>
 #include <WNS/ldk/Compound.hpp>
-
-#include <WNS/isClass.hpp>
+#include <LTE/macr/PhyCommand.hpp>
 
 
 using namespace lte::helper::idprovider;
 
-Distance::Distance(wns::ldk::fun::FUN* fun, dll::StationManager* sm) :
-	myPosition(fun->getLayer<dll::ILayer2*>()->getNode()->getService<wns::PositionableInterface*>("mobility")),
-	stationManager(sm),
+Distance::Distance(wns::ldk::fun::FUN* fun, wns::ldk::CommandReaderInterface* _cmdReader) :
+	cmdReader(_cmdReader),
 	key("MAC.Distance")
 {}
 
 
 Distance::~Distance()
 {
-	myPosition = NULL;
-	stationManager = NULL;
+	cmdReader = NULL;
 }
 
 void
@@ -56,28 +53,16 @@ Distance::doVisit(wns::probe::bus::IContext& c, const wns::ldk::CompoundPtr& com
 {
     assure(compound, "Received NULL CompoundPtr");
 
-	const wns::ldk::fun::FUN* origin   = compound->getCommandPool()->getOrigin();
-	const wns::ldk::fun::FUN* receiver = compound->getCommandPool()->getReceiver();
+    if (cmdReader->commandIsActivated(compound->getCommandPool())) 
+    {
 
-	// If origin or receiver invalid, do nothing
-	if (NULL == origin)
-	{
-		return;
-	}
-	if (NULL == receiver)
-	{
-		return;
-	}
+        macr::PhyCommand* phyCommand = cmdReader->readCommand<macr::PhyCommand>(compound->getCommandPool());
+    	double distance = phyCommand->local.rxPowerMeasurementPtr->getDistance();
 
-	wns::node::Interface* sourceNode = origin->getLayer<dll::ILayer2*>()->getNode();
-	wns::node::Interface* destNode = receiver->getLayer<dll::ILayer2*>()->getNode();
+    	assure(distance > 0, "PANIC: negative distance (" << distance << ") in lte::helper::idprovider::Distance");
 
-	double distance = sourceNode->getService<wns::PositionableInterface*>("mobility")->getDistance(
-		destNode->getService<wns::PositionableInterface*>("mobility") );
-
-	assure(distance > 0, "PANIC: negative distance ("<<distance<<") in lte::helper::idprovider::Distance");
-
-	c.insertInt( this->key, int(distance) );
+    	c.insertInt( this->key, int(distance) );
+    }
 }
 
 

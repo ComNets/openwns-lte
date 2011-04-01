@@ -292,7 +292,6 @@ ResourceScheduler::deliverSchedulingTimeSlot(
     bool canBeDecoded,
     const wns::scheduler::SchedulingTimeSlotPtr& schedulingTimeSlot,
     wns::service::phy::power::PowerMeasurementPtr& phyMeasurement,
-    double distance,
     int subband)
 {
     // Iterate over spatial domain
@@ -334,7 +333,6 @@ ResourceScheduler::deliverSchedulingTimeSlot(
             }
             SchedulerCommand* myCommand = this->getCommand(compoundIt->compoundPtr->getCommandPool());
             myCommand->local.phyMeasurementPtr = phyMeasurement;
-            myCommand->local.distance = distance;
             myCommand->local.subBand = subband;
 
             getDeliverer()->getAcceptor(compoundIt->compoundPtr)->onData(compoundIt->compoundPtr);
@@ -360,7 +358,6 @@ ResourceScheduler::deliverReceived()
         deliverSchedulingTimeSlot(it->first->harq.successfullyDecoded,
                                   it->first,
                                   it->second.powerMeasurement_,
-                                  it->second.distance_,
                                   it->second.sc_);
     }
 
@@ -379,7 +376,6 @@ ResourceScheduler::deliverReceived()
         deliverSchedulingTimeSlot(it->first->harq.successfullyDecoded,
                                   it->first,
                                   it->second.powerMeasurement_,
-                                  it->second.distance_,
                                   it->second.sc_);
     }
 }
@@ -416,7 +412,6 @@ ResourceScheduler::postDecoding(const wns::ldk::CompoundPtr compound)
         MESSAGE_SINGLE(NORMAL, logger, "Received compound " <<  myCommand->magic.schedulingTimeSlotPtr->toString());
 
         wns::scheduler::harq::HARQInterface::TimeSlotInfo ti(phyCommand->local.rxPowerMeasurementPtr,
-                                                             phyCommand->local.distance,
                                                              phyCommand->local.subBand);
         // Process Non-HARQ protected compounds first
         if (!ts->isHARQEnabled())

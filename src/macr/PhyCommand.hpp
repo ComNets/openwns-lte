@@ -78,13 +78,6 @@ namespace lte {
 				local.stop = 0.0;
 				local.modeRxTx = Rx;
 
-				// these are all included in rxPowerMeasurementPtr
-				//local.mib = 0.0;
-				//local.sinr = wns::Ratio();
-				//local.interference = wns::Power();
-				//local.rxp = wns::Power();
-				//local.distance = 0.0;
-
 				magic.source = NULL;
 				magic.destination = NULL;
 				magic.remoteCache = NULL;
@@ -134,18 +127,6 @@ namespace lte {
 				//@{
 				/** @brief measurement information for CQI (contains MI,SINR,...) */
 				wns::service::phy::power::PowerMeasurementPtr rxPowerMeasurementPtr;
-				/** @brief stored MI/bit (MIB) measurement */
-				//double mib;
-				/** @brief stored SINR measurement */
-				//wns::Ratio sinr;
-				/** @brief stored pathloss estimation */
-				//wns::Ratio pathloss;
-				/** @brief stored Interference measurement */
-				//wns::Power interference;
-				/** @brief stored RxPower measurement */
-				//wns::Power rxp;
-				/** @brief stored distance measurement */
-				double distance;
 
 				/** @brief Used to callback upper FUs when a PDU is put on Air */
 			        boost::function<void()> onAirCallback;

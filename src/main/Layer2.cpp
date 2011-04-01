@@ -92,10 +92,6 @@ Layer2::onNodeCreated()
 {
   MESSAGE_SINGLE(NORMAL, logger, "Layer2::onNodeCreated()");
 
-  // register IDProvider for per-compound distance Calculation
-  getNode()->getContextProviderCollection().
-    addProvider(lte::helper::idprovider::Distance(fun,getStationManager()));
-
   // Initialize management and control services
   getMSR()->onMSRCreated();
   getCSR()->onCSRCreated();
@@ -106,6 +102,15 @@ Layer2::onNodeCreated()
   wns::pyconfig::View phyDataTransView(config, "phyDataTransmission");
   wns::pyconfig::View phyNotifyView(config, "phyNotification");
   wns::pyconfig::View phyMeasurementsView(config, "phyMeasurements");
+
+  // register IDProvider for per-compound distance Calculation
+  std::string modeName = phyDataTransView.get<std::string>("keys()", 0);
+  wns::ldk::CommandReaderInterface* cmdReader;
+  cmdReader = getFUN()->getCommandReader(modeName + "_phyUser");
+
+  getNode()->getContextProviderCollection().
+    addProvider(lte::helper::idprovider::Distance(fun, cmdReader));
+
 
   // Check whether the dicts are complete (i.e., contain equal number of modes.)
   int numModes  = phyDataTransView.get<int>("__len__()");

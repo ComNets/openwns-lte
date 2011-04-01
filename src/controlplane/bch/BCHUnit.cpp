@@ -204,7 +204,7 @@ LTEBCHUnitUT::doOnData(const CompoundPtr& compound)
   wns::service::dll::UnicastAddress comingFrom = myCommand->magic.source;
   /** Inform the LTEBCHService about the Measurement */
   assure(bchService, "LTEBCHUnit unexpectedly received a BCH compound.");
-  bchService->storeMeasurement(comingFrom, schedulerCommand->local.phyMeasurementPtr, schedulerCommand->local.distance, schedulerCommand->local.subBand);
+  bchService->storeMeasurement(comingFrom, schedulerCommand->local.phyMeasurementPtr, schedulerCommand->local.subBand);
 
   { // Probe measurement Values
     assure(associationService, "Trying to probe BCH Measurement in a RAP.");
