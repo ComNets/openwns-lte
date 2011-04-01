@@ -35,7 +35,7 @@ using namespace wns::scheduler::queue;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(QueueProxy,
                                      wns::scheduler::queue::QueueInterface,
-                                     "QueueProxy",
+                                     "lte.QueueProxy",
                                      wns::HasReceptorConfigCreator);
 
 QueueProxy::QueueProxy(wns::ldk::HasReceptorInterface* hasReceptor, const wns::pyconfig::View& _config)

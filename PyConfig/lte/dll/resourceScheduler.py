@@ -55,7 +55,7 @@ class RegistryProxy(openwns.Scheduler.RegistryProxy, lte.modes.hasModeName.HasMo
         For the RS-RX this must be more since here the queue reflects the state
         of all slave UT queues. So count numUTs times please
         """
-        self.nameInRegistryProxyFactory = "RegistryProxy"
+        self.nameInRegistryProxyFactory = "lte.RegistryProxy"
         self.logger = openwns.logger.Logger("LTE", "RegProxy", True, parentLogger)
         self.powerCapabilitiesUT = mode.plm.phy.txPwrUT
         self.powerCapabilitiesBS = mode.plm.phy.txPwrBS
@@ -73,7 +73,7 @@ class QueueProxy(openwns.Scheduler.SimpleQueue):
     def __init__(self, parentLogger = None, sizeProbeName="QueueProxySize"):
         super(QueueProxy, self).__init__(parentLogger = parentLogger)
         self.logger = openwns.logger.Logger("WNS", "QueueProxy", True, parentLogger); # logger overwritten
-        self.nameInQueueFactory = "QueueProxy"
+        self.nameInQueueFactory = "lte.QueueProxy"
         self.sizeProbeName = sizeProbeName
 
 class ResourceScheduler(openwns.FUN.FunctionalUnit, lte.modes.hasModeName.HasModeName):

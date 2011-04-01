@@ -60,7 +60,7 @@ using namespace wns::scheduler;
 
 #define A2N(a) (((a).getInteger()>0) ? layer2->getStationManager()->getStationByMAC(a)->getName() : "DLL<0")
 
-STATIC_FACTORY_REGISTER_WITH_CREATOR(RegistryProxy, wns::scheduler::RegistryProxyInterface, "RegistryProxy", wns::ldk::FUNConfigCreator);
+STATIC_FACTORY_REGISTER_WITH_CREATOR(RegistryProxy, wns::scheduler::RegistryProxyInterface, "lte.RegistryProxy", wns::ldk::FUNConfigCreator);
 
 RegistryProxy::RegistryProxy(wns::ldk::fun::FUN* _fun, const wns::pyconfig::View& config)
     : HasModeName(config),
