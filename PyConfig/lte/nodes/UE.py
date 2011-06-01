@@ -122,3 +122,16 @@ class UE(openwns.node.Node, scenarios.interfaces.INode):
     
     def addTraffic(self, binding, load):
         self.load.addTraffic(binding, load)
+
+class AppUE(UE):
+
+    def __init__(self, config, mobility):
+        UE.__init__(self, config, mobility)
+        self.components.remove(self.load)
+
+        domainName = "UT" + str(self.nodeID) + ".lte.wns.org"
+        
+        import applications
+        import applications.component
+        self.load = applications.component.Client(self, domainName + ".applications", self.logger)
+

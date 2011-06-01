@@ -105,3 +105,15 @@ class RANG(openwns.node.Node, scenarios.interfaces.INode):
     def setChannelModel(self, channelModel):
         pass
 
+class AppRANG(RANG):
+
+    def __init__(self, useTCP = True):
+        super(AppRANG, self).__init__(useTCP)
+        self.components.remove(self.load)
+
+        domainName = "RANG.lte.wns.org"
+
+        import applications
+        import applications.component
+        self.load = applications.component.Server(self, domainName + ".applications", self.logger)
+

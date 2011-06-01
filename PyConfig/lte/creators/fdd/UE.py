@@ -44,5 +44,10 @@ class UECreator(scenarios.interfaces.INodeCreator):
 
         mobility = rise.Mobility.No(position)
 
-        return lte.nodes.UE(self.config, mobility)
+        if self.config.useApp:
+            node = lte.nodes.AppUE(self.config, mobility)
+        else:
+            node = lte.nodes.UE(self.config, mobility)
+
+        return node
 

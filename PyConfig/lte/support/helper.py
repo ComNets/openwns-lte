@@ -214,3 +214,42 @@ def setupFTFadingDetails(simulator, modes, speed, freq):
             node.phys[aMode.modeName].ofdmaStation.receiver[0].doMeasurementUpdates = True
             node.phys[aMode.modeName].ofdmaStation.receiver[0].measurementUpdateInterval = 0.001
 
+try:
+    import applications.clientSessions
+    import applications.serverSessions
+    import applications.codec
+    import applications.component
+
+    ### Application VoIP
+    def createDLVoIPTraffic(simulator, codecType = applications.codec.AMR_12_2(), comfortNoiseChoice = True, settlingTime = 0.0):
+        rangs = simulator.simulationModel.getNodesByProperty("Type", "RANG")
+        rang = rangs[0]
+
+        voipDL = applications.serverSessions.VoIP(codecType = codecType,
+                                                comfortNoiseChoice = comfortNoiseChoice, settlingTime = settlingTime)
+
+        tlListenerBinding = applications.component.TLListenerBinding(rang.nl.domainName, "127.0.0.1", 1028,
+                                                                    lte.dll.qos.conversationalQosClass, 1028, voipDL,
+                                                                    parentLogger = rang.logger)
+        rang.load.addListenerBinding(tlListenerBinding)
+    
+    def createULVoIPTraffic(simulator, codecType = applications.codec.AMR_12_2(), comfortNoiseChoice = True,
+                            settlingTime = 0.0, minStartDelay = 0.1, maxStartDelay = 1.0):
+        rangs = simulator.simulationModel.getNodesByProperty("Type", "RANG")
+        rang = rangs[0]
+        utNodes = simulator.simulationModel.getNodesByProperty("Type", "UE")
+                
+        for ut in utNodes:
+            voipUL = applications.clientSessions.VoIP(codecType = codecType,
+                                                    comfortNoiseChoice = comfortNoiseChoice, settlingTime = settlingTime,
+                                                    minStartDelay = minStartDelay, maxStartDelay = maxStartDelay)
+    
+            tlBinding = applications.component.TLBinding(ut.nl.domainName, rang.nl.domainName,
+                                                        1028, lte.dll.qos.conversationalQosClass,
+                                                        1028, parentLogger = ut.logger)
+            ut.load.addTraffic(tlBinding, voipUL)
+
+except ImportError:
+    pass
+
+
