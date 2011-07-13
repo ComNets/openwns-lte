@@ -81,8 +81,8 @@ ResourceSchedulerBS::startCollection(int frameNr)
         } 
         else 
         { // RS-RX
-            assure(colleagues.queueProxy!=NULL,"colleagues.queueProxy==NULL");
-            m << ": Queue(cid:bits,pdus) = " << colleagues.queueProxy->printAllQueues(); // show queue sizes:
+            assure(colleagues.queue != NULL,"colleagues.queueProxy==NULL");
+            m << ": Queue(cid:bits,pdus) = " << colleagues.queue->printAllQueues(); 
         }
     MESSAGE_END();
 

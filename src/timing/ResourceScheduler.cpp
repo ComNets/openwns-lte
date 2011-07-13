@@ -113,12 +113,7 @@ ResourceScheduler::~ResourceScheduler()
         delete colleagues.grouper;
         colleagues.grouper = NULL;
     }
-    if (colleagues.queueProxy) 
-    {
-        delete colleagues.queueProxy; 
-        colleagues.queueProxy = NULL;
-    } 
-    else if(colleagues.queue)  
+    if(colleagues.queue)  
     {
         delete colleagues.queue;
         colleagues.queue = NULL;
@@ -246,9 +241,9 @@ ResourceScheduler::onFUNCreated()
         colleagues.queue = queueProxySimple; 
         MESSAGE_SINGLE(NORMAL, logger, "ResourceScheduler::onFUNCreated(): QueueProxy created");
 
-        colleagues.queueProxy = dynamic_cast<lte::helper::QueueProxy*>(queueProxySimple);
-        assure(colleagues.queueProxy != NULL, "QueueProxy creation failed");
-        colleagues.queueProxy->setRRHandler(friends.rrHandler);
+        lte::helper::QueueProxy* queueProxy = dynamic_cast<lte::helper::QueueProxy*>(queueProxySimple);
+        assure(queueProxy != NULL, "QueueProxy creation failed");
+        queueProxy->setRRHandler(friends.rrHandler);
         friends.rrHandler->setColleagues(colleagues.registry);
 
         // Create the HARQRetransmissionProxy for the uplink scheduler
@@ -258,12 +253,12 @@ ResourceScheduler::onFUNCreated()
 
         colleagues.harq->setDownlinkHARQ(downlinkHARQ);
 
-        colleagues.strategy->setColleagues(colleagues.queueProxy, 
+        colleagues.strategy->setColleagues(colleagues.queue, 
                                            colleagues.grouper,
                                            colleagues.registry,
                                            colleagues.harq);
 
-        colleagues.queueProxy->setColleagues(colleagues.registry);
+        queueProxy->setColleagues(colleagues.registry);
     } 
     else 
     {

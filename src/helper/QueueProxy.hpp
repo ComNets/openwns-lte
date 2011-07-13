@@ -46,21 +46,6 @@ namespace lte { namespace helper {
         class QueueProxy :
             public wns::scheduler::queue::QueueInterface
         {
-        private:
-            wns::scheduler::queue::QueueInterface* queue;
-            lte::controlplane::RRHandlerBS* rrhandler;
-            struct Colleagues {
-                Colleagues() : registry(NULL) {}
-                wns::scheduler::RegistryProxyInterface* registry;
-            } colleagues;
-            lte::controlplane::RequestStorageInterface* rrStorage;
-            /** @brief if queue has been set from outside, treat memory responsibility external (don't delete in destructor) */
-            bool queueIsExternal;
-            wns::logger::Logger logger;
-            wns::pyconfig::View config;
-            wns::probe::bus::contextprovider::Variable* probeContextProviderForCid;
-            wns::probe::bus::contextprovider::Variable* probeContextProviderForPriority;
-            wns::probe::bus::ContextCollectorPtr sizeProbeBus;
         public:
             QueueProxy(wns::ldk::HasReceptorInterface*, const wns::pyconfig::View& config);
             virtual ~QueueProxy();
@@ -107,11 +92,7 @@ namespace lte { namespace helper {
             getHeadOfLinePDUbits(wns::scheduler::ConnectionID cid);
 
             wns::simulator::Time 
-            getHeadOfLinePDUWaitingTime(wns::scheduler::ConnectionID cid)
-            {
-                assure(false, "getHeadOfLinePDUWaitingTime not implemented.");
-                return 0.0;
-            };
+            getHeadOfLinePDUWaitingTime(wns::scheduler::ConnectionID cid);
 
             virtual bool
             isEmpty() const;
@@ -154,6 +135,20 @@ namespace lte { namespace helper {
 
             virtual std::string
             printAllQueues();
+
+        private:
+            wns::scheduler::queue::QueueInterface* queue;
+            lte::controlplane::RRHandlerBS* rrhandler;
+
+            struct Colleagues {
+                Colleagues() : registry(NULL) {}
+                wns::scheduler::RegistryProxyInterface* registry;
+            } colleagues;
+
+            lte::controlplane::RequestStorageInterface* rrStorage;
+            wns::logger::Logger logger;
+            wns::pyconfig::View config;;
+            wns::probe::bus::ContextCollectorPtr sizeProbeBus;
         };
 
 

@@ -270,10 +270,16 @@ protected:
      * @brief friend classes. We need direct access to them.
      */
     struct Friends {
-        Friends()
+        Friends() :
+            rlcReader(NULL),
+            macg(NULL),
+            phyUser(NULL),
+            timer(NULL),
+            flowManager(NULL),
+            mapHandler(NULL),
+            rrHandler(NULL),
+            partitioningInfo(NULL)
             {
-                rlcReader=NULL; macg=NULL; phyUser=NULL; timer=NULL;
-                flowManager=NULL; mapHandler=NULL; rrHandler=NULL; partitioningInfo=NULL;
             };
 
         wns::ldk::CommandReaderInterface* rlcReader;
@@ -290,15 +296,18 @@ protected:
      * @brief colleagues are objects that are no FU themselves but helpers
      */
     struct Colleagues {
-        Colleagues()
-            {
-                registry=NULL; strategy=NULL; queue=NULL; queueProxy=NULL;
-                grouper=NULL; harq=NULL;
-            };
+        Colleagues() :
+            registry(NULL), 
+            strategy(NULL), 
+            queue(NULL),
+            grouper(NULL), 
+            harq(NULL)
+        {
+        };
+
         wns::scheduler::strategy::StrategyInterface* strategy;
         lte::timing::RegistryProxy* registry;
         wns::scheduler::queue::QueueInterface* queue;
-        lte::helper::QueueProxy* queueProxy;
         wns::scheduler::grouper::GroupingProviderInterface* grouper;
         wns::scheduler::harq::HARQInterface* harq;
     } colleagues;
