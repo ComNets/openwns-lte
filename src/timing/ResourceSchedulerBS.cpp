@@ -50,7 +50,8 @@ ResourceSchedulerBS::ResourceSchedulerBS(wns::ldk::fun::FUN* fun, const wns::pyc
     wns::ldk::HasConnector<>(),
     wns::ldk::HasDeliverer<>(),
     wns::Cloneable<ResourceSchedulerBS>()
-{}
+{
+}
 
 ResourceSchedulerBS::~ResourceSchedulerBS()
 {
@@ -62,52 +63,60 @@ ResourceSchedulerBS::onFUNCreated()
 {
     ResourceScheduler::onFUNCreated();
     MESSAGE_SINGLE(NORMAL, logger, "ResourceSchedulerBS::onFUNCreated()");
+
     lte::timing::RegistryProxy* registryInLte = dynamic_cast<lte::timing::RegistryProxy*>(colleagues.registry);
+
+    // Registry must know it. Caution: this is set quite late, after all onFUNCreated() actions
     registryInLte->setDL(!IamUplinkMaster);
-    // ^ registry must know it. Caution: this is set quite late, after all onFUNCreated() actions
 }
 
 void
-ResourceSchedulerBS::startCollection(int frameNr) {
-    MESSAGE_BEGIN(NORMAL, logger, m, "Starting Master Scheduling("<<(IamUplinkMaster?"UL":"DL")<<") for frame="<<frameNr);
-    if (!IamUplinkMaster) { // RS-TX
-        assure(colleagues.queue!=NULL,"colleagues.queue==NULL");
-        m << ": Queue(cid:bits,pdus) = " << colleagues.queue->printAllQueues(); // show queue sizes:
-    } else { // RS-RX
-        assure(colleagues.queueProxy!=NULL,"colleagues.queueProxy==NULL");
-        m << ": Queue(cid:bits,pdus) = " << colleagues.queueProxy->printAllQueues(); // show queue sizes:
-    }
+ResourceSchedulerBS::startCollection(int frameNr) 
+{
+    MESSAGE_BEGIN(NORMAL, logger, m, "Starting Master Scheduling("
+        << (IamUplinkMaster?"UL":"DL")
+        << ") for frame=" << frameNr);
+        if (!IamUplinkMaster) 
+        { // RS-TX
+            assure(colleagues.queue!=NULL,"colleagues.queue==NULL");
+            m << ": Queue(cid:bits,pdus) = " << colleagues.queue->printAllQueues(); 
+        } 
+        else 
+        { // RS-RX
+            assure(colleagues.queueProxy!=NULL,"colleagues.queueProxy==NULL");
+            m << ": Queue(cid:bits,pdus) = " << colleagues.queueProxy->printAllQueues(); // show queue sizes:
+        }
     MESSAGE_END();
 
     ResourceScheduler::startCollection(frameNr, slotDuration);
 
     lte::timing::RegistryProxy* registryInLte = dynamic_cast<lte::timing::RegistryProxy*>(colleagues.registry);
-    registryInLte->setAllStations(); // TODO: still needed?
+
+    // TODO: still needed?
+    registryInLte->setAllStations(); 
 }
 
 void
 ResourceSchedulerBS::resetQueues(wns::scheduler::UserID user)
 {
     // Delete all PDUs from the queue
-    assure(!colleagues.strategy->isTx(), "The scheduler queues should only be resetted for RX schedulers, exactly the fake PDUs.");
+    assure(!colleagues.strategy->isTx(), 
+        "The scheduler queues should only be resetted for RX schedulers, exactly the fake PDUs.");
     colleagues.queue->resetQueues(user);
-}
-
-void
-ResourceSchedulerBS::resetHARQScheduledPeerRetransmissions()
-{
-    ResourceScheduler::resetHARQScheduledPeerRetransmissions();
 }
 
 void
 ResourceSchedulerBS::onDisassociated(wns::service::dll::UnicastAddress userAdr, wns::service::dll::UnicastAddress dstAdr)
 {
     // userAdr is always UT; dstAdr is always RAP (UT's next hop)
-    if (layer2->getDLLAddress() == dstAdr) // user is directly connected to me (BS || RN-BS)
+    // user is directly connected to me (BS || RN-BS)
+    if (layer2->getDLLAddress() == dstAdr) 
     {
         wns::node::Interface* user = layer2->getStationManager()->getStationByMAC(userAdr)->getNode();
         colleagues.queue->resetQueues(wns::scheduler::UserID(user));
-        MESSAGE_SINGLE(NORMAL, logger, "onDisassociated("<<A2N(userAdr)<<","<<A2N(dstAdr)<<"): Removed Packets from " << A2N(dstAdr) << " to " << A2N(userAdr));
+        MESSAGE_SINGLE(NORMAL, logger, "onDisassociated("
+            << A2N(userAdr) << "," << A2N(dstAdr)
+            << "): Removed Packets from " << A2N(dstAdr) << " to " << A2N(userAdr));
     }
     else // multihop case: I am BS; user is connected via RN to me
     {
@@ -115,9 +124,14 @@ ResourceSchedulerBS::onDisassociated(wns::service::dll::UnicastAddress userAdr, 
         // (in RAP that has dstAdr in its set of associated stations)
         assure(associationService->hasAssociated(dstAdr), "Disassociation notification on unknown route.");
         wns::node::Interface* viaRelay = layer2->getStationManager()->getStationByMAC(dstAdr)->getNode();
-        MESSAGE_SINGLE(NORMAL, logger, "onDisassociated("<<A2N(userAdr)<<","<<A2N(dstAdr)<<"): Removing Packets from " << A2N(layer2->getDLLAddress()) << " via " << A2N(dstAdr) <<  " to " << A2N(userAdr));
+
+        MESSAGE_SINGLE(NORMAL, logger, "onDisassociated(" 
+            << A2N(userAdr) << ","<<A2N(dstAdr)<<"): Removing Packets from " 
+            << A2N(layer2->getDLLAddress()) << " via " << A2N(dstAdr) <<  " to " << A2N(userAdr));
+
         this->deletePacketsToVia(userAdr, viaRelay);
     }
+
     // disassociation of userAdr from dstAdr (in RAP that has dstAdr)
     if (scorer.hasRoute(userAdr))
         scorer.deleteRoute(userAdr);
@@ -134,9 +148,11 @@ ResourceSchedulerBS::onAssociated(wns::service::dll::UnicastAddress userAdr, wns
 
     else if (!(layer2->getDLLAddress() == userAdr))
     {
-        assure(associationService->hasAssociated(dstAdr), "onAssociated: trying to set route to a RN which not associated!");
+        assure(associationService->hasAssociated(dstAdr), 
+            "onAssociated: trying to set route to a RN which not associated!");
         scorer.setRoute(userAdr, dstAdr);
-        MESSAGE_SINGLE(NORMAL, logger, "onAssociated: setting route to address " << A2N(userAdr) << " via address " << A2N(dstAdr));
+        MESSAGE_SINGLE(NORMAL, logger, "onAssociated: setting route to address " 
+            << A2N(userAdr) << " via address " << A2N(dstAdr));
     }
 }
 
@@ -161,9 +177,14 @@ ResourceSchedulerBS::deletePacketsToVia(wns::service::dll::UnicastAddress destin
     for (wns::scheduler::ConnectionVector::const_iterator iter = conns.begin(); iter != conns.end(); ++iter)
     {
         wns::scheduler::ConnectionID cid = *iter;
-        if (friends.flowManager->isControlPlaneFlowID(RNAddress,cid)) {
-            continue; // don't delete. ControlPlane is always single/next-hop
-        } else { // data plane flowID. Delete queue
+        
+        // don't delete. ControlPlane is always single/next-hop
+        if(friends.flowManager->isControlPlaneFlowID(RNAddress,cid)) 
+        {
+            continue; 
+        } 
+        else 
+        { // data plane flowID. Delete queue
             colleagues.queue->resetQueue(cid);
         }
     } // for all cids in connections

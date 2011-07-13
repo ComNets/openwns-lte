@@ -158,9 +158,6 @@ public:
     //@}
 
     virtual void
-    resetHARQScheduledPeerRetransmissions();
-
-    virtual void
     sendPendingHARQFeedback();
 
     /** @name implementation of SchedulerFUInterface */

@@ -140,9 +140,6 @@ namespace lte { namespace timing {
          * e.g. StartMapTx in timing/Events.cpp) */
         virtual void
         startCollection(int frameNr) = 0;
-
-        virtual void
-        resetHARQScheduledPeerRetransmissions() = 0;
     };
 
     class SlaveScheduler :

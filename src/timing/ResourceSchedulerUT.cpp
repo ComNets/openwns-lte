@@ -58,89 +58,37 @@ ResourceSchedulerUT::onFUNCreated()
 {
     ResourceScheduler::onFUNCreated();
     MESSAGE_SINGLE(NORMAL, logger, "ResourceSchedulerUT::onFUNCreated()");
-    lte::timing::RegistryProxy* registryInLte = dynamic_cast<lte::timing::RegistryProxy*>(colleagues.registry);
+
+    lte::timing::RegistryProxy* registryInLte = 
+        dynamic_cast<lte::timing::RegistryProxy*>(colleagues.registry);
+
+    // Registry must know it. Caution: this is set quite late, after all onFUNCreated() actions
     registryInLte->setDL(false);
-    // ^ registry must know it. Caution: this is set quite late, after all onFUNCreated() actions
+    
 }
 
 void
-//ResourceSchedulerUT::startCollection(int frameNr, wns::scheduler::MapInfoCollectionPtr ulMapInfo) {
-ResourceSchedulerUT::startCollection(int frameNr) {
+ResourceSchedulerUT::startCollection(int frameNr) 
+{
     using namespace wns::scheduler;
-    MESSAGE_BEGIN(NORMAL, logger, m, "Slave("<<(myMasterUserID?myMasterUserID->getName():"")<<") Scheduling for frame="<<frameNr<<": ");
-    m << "Queue(cid:bits,pdus) = " << colleagues.queue->printAllQueues(); // show queue sizes:
+    MESSAGE_BEGIN(NORMAL, logger, m, "Slave(");
+        m << (myMasterUserID?myMasterUserID->getName():""); 
+        m << ") Scheduling for frame=" << frameNr << ": ";
+        m << "Queue(cid:bits,pdus) = " << colleagues.queue->printAllQueues(); 
     MESSAGE_END();
 
     // If we cannot send, then we do nothing.
-    if (colleagues.registry->hasResourcesGranted())
+    if(colleagues.registry->hasResourcesGranted())
     {
         MESSAGE_SINGLE(NORMAL, logger, "Slave(hasResourcesGranted==true)");
         ResourceScheduler::startCollection(frameNr, slotDuration);
-    // TODO: do this in base class. Use schedulingMap->getResourceUsage()
-    //float resourceUsage = colleagues.strategy->getResourceUsage();
-    //MESSAGE_SINGLE(NORMAL, logger, "Done scheduling. Used "<<100.0*resourceUsage<<"% of the available capacity.");
-    //resourceUsageProbe->put(resourceUsage);
         ResourceScheduler::finishCollection(frameNr, wns::simulator::getEventScheduler()->getTime());
     }
     else
     {
         MESSAGE_SINGLE(NORMAL, logger, "Slave(hasResourcesGranted==false)");
     }
-    /*
-      wns::scheduler::MapInfoCollectionPtr ulMapInfo =friends.mapHandler->getTxResources(frameNr)
-      assure(ulMapInfo != wns::scheduler::MapInfoCollectionPtr(),"ulMapInfo==NULL");
-      MESSAGE_BEGIN(NORMAL, logger, m, "Slave("<<(myMasterUserID?myMasterUserID->getName():"")<<") Scheduling for frame="<<frameNr<<": ");
-      m << ulMapInfo->size() << " ULEntries for ";
-      m << "Queue(cid:bits,pdus) = " << colleagues.queue->printAllQueues(); // show queue sizes:
-      MESSAGE_END();
-    */
-    /*
-      for (MapInfoCollection::iterator iter = ulMapInfo->begin(); iter != ulMapInfo->end(); ++iter)
-      {
-      MapInfoEntryPtr ulMapInfoEntry = (*iter);
-      if (myMasterUserID!=NULL)
-      ulMapInfoEntry->user = myMasterUserID; // "flip user": UTx->BSx
-      if (colleagues.queue->getQueuedUsers().size()) { // queue has got some PDUs
-
-      // retrieve slotDuration
-      simTimeType startTime    = ulMapInfoEntry->start; // Is a member. Why?
-      simTimeType slotDuration = ulMapInfoEntry->end - ulMapInfoEntry->start;
-
-      // for ScaleNet we need to have at least a full symbol duration as slotlength
-      if (slotDuration < symbolDuration)
-      {
-      slotDuration = symbolDuration + 1e-7;
-      ulMapInfoEntry->end = ulMapInfoEntry->start + slotDuration;
-      }
-
-      MESSAGE_SINGLE(NORMAL, logger, "RSUT: startTime="<<startTime*1e6<<"us, slotDuration=" << slotDuration*1e5<<"us");
-      // create full freqChannelSet
-      SubChannelRangeSet freqChannels;
-      // this is only one subband:
-      SubChannelRange myChannels = SubChannelRange::FromIncluding(ulMapInfoEntry->subBand).ToIncluding(ulMapInfoEntry->subBand);
-      freqChannels.push_back(myChannels);
-
-      ResourceScheduler::startCollection(frameNr, slotDuration, freqChannels, ulMapInfoEntry);
-      // TODO: ^ at this point it would be better to give the complete ulMapInfo instead of all the single ulMapInfoEntry's
-      float resourceUsage = colleagues.strategy->getResourceUsage();
-      MESSAGE_SINGLE(NORMAL, logger, "Done scheduling. Used "<<100.0*resourceUsage<<"% of the available capacity.");
-      resourceUsageProbe->put(resourceUsage);
-      ResourceScheduler::finishCollection(frameNr, wns::simulator::getEventScheduler()->getTime());
-      // ulMapInfoEntry->start is already accounted for in callBack()
-      //ResourceScheduler::finishCollection(frameNr, wns::simulator::getEventScheduler()->getTime() + ulMapInfoEntry->start);
-      }
-      } // forall mapInfo entries
-    */
 } // startCollection
-
-// called by event ut::StartData::execute() and rstx->setExpectations(frameNr): fetches expectation from maphandler.
-/* obsolete
-   void
-   ResourceSchedulerUT::setExpectations(int frameNr)
-   {
-   lte::timing::ResourceScheduler::setExpectation(friends.mapHandler->getDLResources(frameNr));
-   }
-*/
 
 void
 ResourceSchedulerUT::onDisassociated(wns::service::dll::UnicastAddress userAdr, wns::service::dll::UnicastAddress dstAdr)
@@ -149,12 +97,16 @@ ResourceSchedulerUT::onDisassociated(wns::service::dll::UnicastAddress userAdr, 
     if (layer2->getDLLAddress() == userAdr) // I am UT
     {
         assure(associationService->getAssociation() == dstAdr, "address mismatch when releasing association");
+
         // Notification about Disassociation of UT from RAP (in the UT)
         wns::node::Interface* rap = layer2->getStationManager()->getStationByMAC(dstAdr)->getNode();
-        MESSAGE_SINGLE(NORMAL, logger, "onDisassociated("<<A2N(userAdr)<<","<<A2N(dstAdr)<<"): Removing Packets from " << A2N(userAdr) << " to " << A2N(dstAdr));
+        MESSAGE_SINGLE(NORMAL, logger, "onDisassociated("<<A2N(userAdr)
+            << "," << A2N(dstAdr) << "): Removing Packets from " 
+            << A2N(userAdr) << " to " << A2N(dstAdr));
         colleagues.queue->resetQueues(wns::scheduler::UserID(rap));
     }
-    else // I am RN (UT task)
+    // I am RN (UT task)
+    else 
     {
         // Notification about Disassociation of UT from RAP (in the RN)
         if (layer2->getDLLAddress() == dstAdr)
@@ -165,7 +117,10 @@ ResourceSchedulerUT::onDisassociated(wns::service::dll::UnicastAddress userAdr, 
 
             wns::service::dll::UnicastAddress myAssociation = associationService->getAssociation();
             wns::node::Interface* hopDestination = layer2->getStationManager()->getStationByMAC(myAssociation)->getNode();
-            MESSAGE_SINGLE(NORMAL, logger, "onDisassociated("<<A2N(userAdr)<<","<<A2N(dstAdr)<<"): Removing Packets from " << A2N(userAdr) << " via " << A2N(dstAdr) <<  " to " << A2N(myAssociation));
+            MESSAGE_SINGLE(NORMAL, logger, "onDisassociated("
+                << A2N(userAdr) << ","<<A2N(dstAdr) 
+                << "): Removing Packets from " << A2N(userAdr) 
+                << " via " << A2N(dstAdr) <<  " to " << A2N(myAssociation));
             this->deletePacketsToFrom(hopDestination, userAdr);
         }
     }
@@ -193,7 +148,9 @@ ResourceSchedulerUT::deletePacketsToFrom(wns::node::Interface* destination,
     wns::ldk::CommandReaderInterface* rlcReader = getFUN()->getCommandReader("rlc");
     wns::scheduler::ConnectionVector conns = colleagues.registry->getConnectionsForUser(wns::scheduler::UserID(destination));
 
-    MESSAGE_SINGLE(NORMAL, logger, "deletePacketsToFrom("<<destination->getName()<<","<<A2N(source)<<"): "<<conns.size()<<" conns");
+    MESSAGE_SINGLE(NORMAL, logger, "deletePacketsToFrom("
+        << destination->getName() << ","
+        << A2N(source) << "): " << conns.size() << " conns");
 
     if (conns.size() == 0)
     {
@@ -205,9 +162,15 @@ ResourceSchedulerUT::deletePacketsToFrom(wns::node::Interface* destination,
     for (wns::scheduler::ConnectionVector::const_iterator iter = conns.begin(); iter != conns.end(); ++iter)
     {
         wns::scheduler::ConnectionID cid = *iter;
-        if (friends.flowManager->isControlPlaneFlowID(source, cid)) {
-            continue; // don't delete. ControlPlane is always single/next-hop
-        } else { // data plane flowID. Delete queue
+        
+        // don't delete. ControlPlane is always single/next-hop
+        if (friends.flowManager->isControlPlaneFlowID(source, cid)) 
+        {
+            continue; 
+        } 
+        // data plane flowID. Delete queue
+        else 
+        { 
             colleagues.queue->resetQueue(cid);
         }
     } // for all cids in connections

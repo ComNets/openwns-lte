@@ -72,9 +72,6 @@ namespace lte { namespace timing {
         virtual void
         resetQueues(wns::scheduler::UserID user);
 
-        virtual void
-        resetHARQScheduledPeerRetransmissions();
-
     private:
         /**
          * @brief Delete packets in queue during disassociation

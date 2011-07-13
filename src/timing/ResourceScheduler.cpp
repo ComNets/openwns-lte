@@ -84,7 +84,8 @@ ResourceScheduler::ResourceScheduler(wns::ldk::fun::FUN* fun, const wns::pyconfi
         MESSAGE_SINGLE(NORMAL, logger,"writing maps to "<<mapOutputFileName);
     } // else they are None
 
-    colleagues.harq = STATIC_FACTORY_NEW_INSTANCE(wns::scheduler::harq::HARQInterface, wns::PyConfigViewCreator, pyConfig.get("harq"), pyConfig.get("harq"));
+    colleagues.harq = STATIC_FACTORY_NEW_INSTANCE(wns::scheduler::harq::HARQInterface, 
+        wns::PyConfigViewCreator, pyConfig.get("harq"), pyConfig.get("harq"));
     assure(colleagues.harq, "HARQ creation failed");
 
 	wns::probe::bus::ContextProviderCollection* cpcParent = &fun->getLayer()->getContextProviderCollection();
@@ -97,19 +98,38 @@ ResourceScheduler::ResourceScheduler(wns::ldk::fun::FUN* fun, const wns::pyconfi
 ResourceScheduler::~ResourceScheduler()
 {
     MESSAGE_SINGLE(VERBOSE, logger, "ResourceScheduler::~ResourceScheduler()");
-    if (colleagues.registry) delete colleagues.registry; colleagues.registry=NULL;
-    if (colleagues.strategy) delete colleagues.strategy; colleagues.strategy=NULL;
-    if (colleagues.grouper)  delete colleagues.grouper; colleagues.grouper=NULL;
-    if (colleagues.queueProxy) {
-        delete colleagues.queueProxy; colleagues.queueProxy=NULL;
-    } else {
-        if (colleagues.queue) delete colleagues.queue;
-    }
-    for (int frame=0; frame<framesPerSuperFrame; ++frame)
+    if(colleagues.registry)
     {
-        schedulingResultOfFrame[frame] = wns::scheduler::strategy::StrategyResultPtr(); // empty
+        delete colleagues.registry; 
+        colleagues.registry = NULL;
     }
-    if (writeMapOutput) closeMapOutput();
+    if(colleagues.strategy) 
+    {
+        delete colleagues.strategy; 
+        colleagues.strategy = NULL;
+    }
+    if(colleagues.grouper)
+    {
+        delete colleagues.grouper;
+        colleagues.grouper = NULL;
+    }
+    if (colleagues.queueProxy) 
+    {
+        delete colleagues.queueProxy; 
+        colleagues.queueProxy = NULL;
+    } 
+    else if(colleagues.queue)  
+    {
+        delete colleagues.queue;
+        colleagues.queue = NULL;
+    }
+    for(int frame = 0; frame < framesPerSuperFrame; ++frame)
+    {
+        schedulingResultOfFrame[frame] = wns::scheduler::strategy::StrategyResultPtr();
+    }
+    if(writeMapOutput) 
+        closeMapOutput();
+
     MESSAGE_SINGLE(VERBOSE, logger, "ResourceScheduler::~ResourceScheduler() ready");
 } // ~ResourceScheduler
 
@@ -127,24 +147,32 @@ ResourceScheduler::onFUNCreated()
     MESSAGE_SINGLE(NORMAL, logger, "ResourceScheduler::onFUNCreated()");
     wns::ldk::fun::FUN* fun = getFUN();
     assure(fun, "Could not get my FUN");
+
     layer2 = fun->getLayer<dll::ILayer2*>();
     assure(layer2, "could not get ILayer2 from FUN");
 
-    std::string flowmanagername="FlowManager";
-    if (layer2->getStationType() == wns::service::dll::StationTypes::UE()) {
+    std::string flowmanagername = "FlowManager";
+    if(layer2->getStationType() == wns::service::dll::StationTypes::UE()) 
+    {
         flowmanagername += "UT";
-    } else if (layer2->getStationType() == wns::service::dll::StationTypes::FRS()) {
+    } 
+    else if(layer2->getStationType() == wns::service::dll::StationTypes::FRS()) 
+    {
         flowmanagername += "RN";
-    } else { // BS
+    } 
+    else 
+    { // BS
         flowmanagername += "BS";
     }
 
     // remember association service
-    associationService = layer2->getControlService<dll::services::control::Association>("ASSOCIATION"+modeBase);
+    associationService = 
+        layer2->getControlService<dll::services::control::Association>("ASSOCIATION"+modeBase);
+
     // Register as Observer at the association Info providers
     dll::ILayer2::AssociationInfoContainer ais = layer2->getAssociationInfoProvider(mode);
     dll::ILayer2::AssociationInfoContainer::const_iterator iter = ais.begin();
-    for (; iter != ais.end(); ++iter)
+    for(; iter != ais.end(); ++iter)
         this->startObserving(*iter);
 
     if (mode == modeBase)
@@ -152,47 +180,49 @@ ResourceScheduler::onFUNCreated()
     else
         friends.macg = fun->findFriend<lte::macg::MACg*>("macg"+separator+taskID);
 
-    friends.rlcReader        = fun->getCommandReader("rlc");
-    friends.phyUser          = fun->findFriend<lte::macr::PhyUser*>(modeBase+separator+"phyUser");
-    friends.mapHandler       = fun->findFriend<lte::controlplane::IMapHandlerRS*>(mode+separator+"mapHandler");
-    friends.rrHandler        = fun->findFriend<lte::controlplane::RRHandler*>(mode+separator+"RRHandler");
-    friends.timer            = layer2->getManagementService<lte::timing::TimingScheduler>(mode+separator+"Timer");
-    friends.flowManager      = layer2->getControlService<lte::controlplane::flowmanagement::FlowManager>(flowmanagername);
-    friends.partitioningInfo = layer2->getControlService<lte::timing::partitioning::PartitioningInfo>("PARTITIONINGINFO"+modeBase);
-    assure(friends.flowManager!=NULL,"friends.flowManager==NULL");
-    assure(friends.rrHandler!=NULL,"friends.rrHandler==NULL");
+    friends.rlcReader = fun->getCommandReader("rlc");
+    friends.phyUser = fun->findFriend<lte::macr::PhyUser*>(modeBase+separator+"phyUser");
+    friends.mapHandler = 
+        fun->findFriend<lte::controlplane::IMapHandlerRS*>(mode+separator+"mapHandler");
+
+    friends.rrHandler = 
+        fun->findFriend<lte::controlplane::RRHandler*>(mode+separator+"RRHandler");
+
+    friends.timer = 
+        layer2->getManagementService<lte::timing::TimingScheduler>(mode+separator+"Timer");
+
+    friends.flowManager = 
+        layer2->getControlService<lte::controlplane::flowmanagement::FlowManager>(flowmanagername);
+
+    friends.partitioningInfo = 
+        layer2->getControlService<lte::timing::partitioning::PartitioningInfo>("PARTITIONINGINFO"+modeBase);
+
+    assure(friends.flowManager != NULL,"friends.flowManager == NULL");
+    assure(friends.rrHandler != NULL,"friends.rrHandler == NULL");
 
     // inform my scorer about things it needs to know
     scorer.setRLC(friends.rlcReader);
     scorer.setAssociationService(associationService);
 
-    std::string registryName   = pyConfig.get<std::string>("registry.nameInRegistryProxyFactory");
-    std::string strategyName   = pyConfig.get<std::string>("strategy.nameInStrategyFactory");
-    std::string grouperName    = pyConfig.get<std::string>("grouper.nameInGrouperFactory");
+    std::string registryName = pyConfig.get<std::string>("registry.nameInRegistryProxyFactory");
+    std::string strategyName = pyConfig.get<std::string>("strategy.nameInStrategyFactory");
+    std::string grouperName = pyConfig.get<std::string>("grouper.nameInGrouperFactory");
 
     // the first thing to do is to set up the registry because other colleagues
     // may depend on it for their initialization
     wns::pyconfig::View registryView = pyConfig.get<wns::pyconfig::View>("registry");
     wns::scheduler::RegistryCreator* registryCreator = wns::scheduler::RegistryFactory::creator(registryName);
     colleagues.registry = dynamic_cast<lte::timing::RegistryProxy*>(registryCreator->create(fun, registryView));
-    //registryInLte = colleagues.registry;
     assure(colleagues.registry, "Registry creation failed");
-    /* Registry= System specific proxy that forwards queries from generic scheduler
-     * components to the system specific entities */
-    colleagues.registry->setFUN(fun); // ? rs: why again? fun is given with registryCreator->create(fun...) above
+
+    colleagues.registry->setFUN(fun); 
     colleagues.registry->setHARQ(colleagues.harq);
-
-    //lte::timing::RegistryProxy *registryInLte =
-    //    dynamic_cast<lte::timing::RegistryProxy*>(colleagues.registry);
-
-    //assure(registryInLte, "dynamic_cast failed when try to get registryInLte");
     colleagues.registry->setAssociationHandler(fun->findFriend<lte::controlplane::associationHandler::AssociationHandler*>(mode+separator+ "associationHandler"));
 
     // create the grouper
     wns::scheduler::grouper::SpatialGrouperCreator* grouperCreator = wns::scheduler::grouper::SpatialGrouperFactory::creator(grouperName);
     colleagues.grouper = grouperCreator->create(pyConfig.get<wns::pyconfig::View>("grouper"));
     assure(colleagues.grouper, "Grouper creation failed");
-    // tell the modules who their friends and colleagues are
     colleagues.grouper->setColleagues(colleagues.registry);
 
     // create the scheduling strategy (subStrategies are set there)
@@ -200,37 +230,43 @@ ResourceScheduler::onFUNCreated()
     colleagues.strategy = strategyCreator->create(pyConfig.get<wns::pyconfig::View>("strategy"));
     assure(colleagues.strategy, "Strategy module creation failed");
 
-    if (IamUplinkMaster) { // RS-RX
+    if (IamUplinkMaster) 
+    { 
         MESSAGE_SINGLE(NORMAL, logger, "ResourceScheduler::onFUNCreated(): Strategy creation finished. Now init RS-RX (UL master) specific tasks.");
         // create the queueProxy
         // The queueProxy knows the real queue if available (Tx) or the RRHandler (Rx)
         // It can also imitate a "dynamic segmentation" by sending specific commands...
         std::string queueProxyName = pyConfig.get<std::string>("queueProxy.nameInQueueFactory");
-        MESSAGE_SINGLE(NORMAL, logger, "creating queueProxy of type "<<queueProxyName);
+        MESSAGE_SINGLE(NORMAL, logger, "creating queueProxy of type " << queueProxyName);
+
         wns::pyconfig::View queueProxyView = pyConfig.get<wns::pyconfig::View>("queueProxy");
         wns::scheduler::queue::QueueCreator* queueProxyCreator = wns::scheduler::queue::QueueFactory::creator(queueProxyName);
         wns::scheduler::queue::QueueInterface* queueProxySimple = queueProxyCreator->create(NULL, queueProxyView);
-        assure(queueProxySimple!=NULL, "QueueProxySimple creation failed");
-        colleagues.queue = queueProxySimple; // satisfy interfaces
+        assure(queueProxySimple != NULL, "QueueProxySimple creation failed");
+        colleagues.queue = queueProxySimple; 
         MESSAGE_SINGLE(NORMAL, logger, "ResourceScheduler::onFUNCreated(): QueueProxy created");
+
         colleagues.queueProxy = dynamic_cast<lte::helper::QueueProxy*>(queueProxySimple);
-        assure(colleagues.queueProxy!=NULL, "QueueProxy creation failed");
-        //colleagues.queueProxy->setQueue(colleagues.queue);
+        assure(colleagues.queueProxy != NULL, "QueueProxy creation failed");
         colleagues.queueProxy->setRRHandler(friends.rrHandler);
         friends.rrHandler->setColleagues(colleagues.registry);
 
         // Create the HARQRetransmissionProxy for the uplink scheduler
         wns::scheduler::harq::HARQInterface* downlinkHARQ = NULL;
-        downlinkHARQ = fun->findFriend<lte::timing::ResourceScheduler*>(pyConfig.get<std::string>("txSchedulerFUName"))->colleagues.harq;
+        downlinkHARQ = fun->findFriend<lte::timing::ResourceScheduler*>(
+            pyConfig.get<std::string>("txSchedulerFUName"))->colleagues.harq;
+
         colleagues.harq->setDownlinkHARQ(downlinkHARQ);
 
-        colleagues.strategy->setColleagues(colleagues.queueProxy, // NEW[rs]: queueProxy instead of queue
+        colleagues.strategy->setColleagues(colleagues.queueProxy, 
                                            colleagues.grouper,
                                            colleagues.registry,
-                                           colleagues.harq
-            );
+                                           colleagues.harq);
+
         colleagues.queueProxy->setColleagues(colleagues.registry);
-    } else { // RS-TX
+    } 
+    else 
+    {
         MESSAGE_SINGLE(NORMAL, logger, "ResourceScheduler::onFUNCreated(): Strategy creation finished. Now init RS-TX specific tasks.");
         // create the queues
         std::string queueName = pyConfig.get<std::string>("queue.nameInQueueFactory");
@@ -243,13 +279,14 @@ ResourceScheduler::onFUNCreated()
         colleagues.strategy->setColleagues(colleagues.queue,
                                            colleagues.grouper,
                                            colleagues.registry,
-                                           colleagues.harq
-            );
+                                           colleagues.harq);
     }
-    assure(colleagues.queue!=NULL,"colleagues.queue==NULL");
+    assure(colleagues.queue != NULL,"colleagues.queue==NULL");
     colleagues.queue->setColleagues(colleagues.registry);
 
-    if (writeMapOutput) prepareMapOutput();
+    if (writeMapOutput) 
+        prepareMapOutput();
+
     MESSAGE_SINGLE(NORMAL, logger, "ResourceScheduler::onFUNCreated() finished");
 } // onFUNCreated
 
@@ -262,14 +299,14 @@ ResourceScheduler::onNodeCreated()
     colleagues.grouper->setFriends(ofdmaProvider);
     colleagues.strategy->setFriends(ofdmaProvider);
     colleagues.queue->setFUN(getFUN());
-    schedulerSpot = colleagues.strategy->getSchedulerSpotType(); // first known after strategy->setFriends
+    schedulerSpot = colleagues.strategy->getSchedulerSpotType(); 
 } // onNodeCreated(): setOFDMAService
 
 void
 ResourceScheduler::onFlowReleased(wns::service::dll::FlowID flowId, wns::scheduler::UserID user /*nextHop!*/)
 {
     MESSAGE_SINGLE(NORMAL, logger, "ResourceScheduler::onFlowReleased("<<flowId<<")");
-    colleagues.queue->resetQueue(flowId); // cid=flowID
+    colleagues.queue->resetQueue(flowId); 
     colleagues.registry->deregisterCID(flowId, user);
 }
 
@@ -277,7 +314,6 @@ bool
 ResourceScheduler::doIsAccepting(const wns::ldk::CompoundPtr& compound) const
 {
     return true;
-    //return colleagues.queue->isAccepting(compound);
 } // isAccepting
 
 void
@@ -316,18 +352,21 @@ ResourceScheduler::deliverSchedulingTimeSlot(
             }
 
             MESSAGE_BEGIN(NORMAL, logger, m, "onData: ");
-            if(friends.rlcReader->commandIsActivated(compoundIt->compoundPtr->getCommandPool())) {
+            if(friends.rlcReader->commandIsActivated(compoundIt->compoundPtr->getCommandPool())) 
+            {
                 lte::macg::MACgCommand* macgCommand = friends.macg->getCommand(compoundIt->compoundPtr->getCommandPool());
                 lte::rlc::RLCCommand* rlcCommand = friends.rlcReader->readCommand<lte::rlc::RLCCommand>(compoundIt->compoundPtr->getCommandPool());
                 m << "received PDU";
                 m << " from source " << A2N(rlcCommand->peer.source)
                   << " via " << A2N(macgCommand->peer.source);
-            } else {
+            } 
+            else 
+            {
                 m << " rlcReader->commandIsActivated=false !!!";
             }
             MESSAGE_END();
 
-            if (!getFUN()->getProxy()->commandIsActivated(compoundIt->compoundPtr->getCommandPool(), this))
+            if(!getFUN()->getProxy()->commandIsActivated(compoundIt->compoundPtr->getCommandPool(), this))
             {
                 this->activateCommand(compoundIt->compoundPtr->getCommandPool());
             }
@@ -348,7 +387,9 @@ ResourceScheduler::deliverReceived()
 {
     wns::scheduler::harq::HARQInterface::DecodeStatusContainer::iterator it;
 
-    MESSAGE_SINGLE(NORMAL, logger, "Delivering " << receivedNonHARQTimeslots_.size() << " NON-HARQ transmissions");
+    MESSAGE_SINGLE(NORMAL, logger, "Delivering " 
+        << receivedNonHARQTimeslots_.size() 
+        << " NON-HARQ transmissions");
 
     // First deliver all the non HARQ transmissions
     for (it = receivedNonHARQTimeslots_.begin();
@@ -380,7 +421,8 @@ ResourceScheduler::deliverReceived()
     }
 }
 
-// PDU or ResourceBlock from PHY came in ... just send up. Soneone else is responsible for the correct order (reordering).
+// PDU or ResourceBlock from PHY came in ... just send up. 
+// Someone else is responsible for the correct order (reordering).
 void
 ResourceScheduler::doOnData(const wns::ldk::CompoundPtr& compound)
 {
@@ -421,133 +463,153 @@ ResourceScheduler::postDecoding(const wns::ldk::CompoundPtr compound)
              * transmissions. For other transmissions an error model would be nice,
              * too. And it can be added here.
              */
-	    ts->harq.successfullyDecoded = true;
+	        ts->harq.successfullyDecoded = true;
             wns::scheduler::harq::HARQInterface::DecodeStatusContainerEntry entry(ts, ti);
-	    receivedNonHARQTimeslots_.push_back(entry);
+	        receivedNonHARQTimeslots_.push_back(entry);
 
-	    MESSAGE_SINGLE(NORMAL, logger, "Stored NON-HARQ " << ts.getPtr());
+	        MESSAGE_SINGLE(NORMAL, logger, "Stored NON-HARQ " << ts.getPtr());
             return;
         }
-	else
-	{
-	  if (colleagues.harq != NULL)
-	  {
-	    colleagues.harq->onTimeSlotReceived(ts, ti);
-          }
-	}
+	    else
+	    {
+	        if (colleagues.harq != NULL)
+	        {
+	            colleagues.harq->onTimeSlotReceived(ts, ti);
+            }
+	    }
     }
 } // doOnData
 
 void
 ResourceScheduler::doWakeup()
-{} // wakeup
+{
+} // wakeup
 
 // asked by MapHandler when it prepares the MAPs
 wns::scheduler::SchedulingMapPtr
 ResourceScheduler::getSchedulingMap(int frameNr) const
 {
-    //return schedulingMapOfFrame[frameNr];
     return schedulingResultOfFrame[frameNr]->schedulingMap;
 }
 
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
 // triggered by TimingScheduler Event:
 void
-ResourceScheduler::startCollection(int frameNr /* for advance scheduling */,
+ResourceScheduler::startCollection(int frameNr,
                                    simTimeType _slotDuration)
 {
-    MESSAGE_SINGLE(NORMAL, logger,"startCollection("<<wns::scheduler::SchedulerSpot::toString(schedulerSpot)
-                   <<": frameNr=" << frameNr << ", d="<< _slotDuration*1e6<<"us)");
+    MESSAGE_SINGLE(NORMAL, logger,"startCollection(" << wns::scheduler::SchedulerSpot::toString(schedulerSpot)
+        <<": frameNr=" << frameNr << ", d=" << _slotDuration*1e6<<"us)");
     assure(frameNr<framesPerSuperFrame,"invalid frameNr="<<frameNr);
-
-    // wakeup triggers the upper FU to send whatever is to be sent
-    //getReceptor()->wakeup();
 
     // this is only required for "setAllStations" and "setRelaysOnly":
     lte::timing::RegistryProxy* registryInLte =colleagues.registry; //dynamic_cast<lte::timing::RegistryProxy*>(colleagues.registry);
-    //assure(registryInLte, "RegistryProxy is not of the LTE type");
 
     // PREPARE STRATEGY INPUT NOW:
     // due to maxBeams, this is already "MIMO-ready" [rs]
     // generic call for master or slave scheduling
-    wns::scheduler::strategy::StrategyInput strategyInput(freqChannels, double(_slotDuration), numberOfTimeSlots, maxBeams, NULL /*this/*callback*/);
-    strategyInput.beamforming = beamforming; // bool
+    wns::scheduler::strategy::StrategyInput strategyInput(
+        freqChannels, double(_slotDuration), numberOfTimeSlots, maxBeams, NULL);
+    strategyInput.beamforming = beamforming;
     strategyInput.setFrameNr(frameNr);
 
     wns::scheduler::SchedulingMapPtr inputSchedulingMap;
-    if (schedulerSpot==wns::scheduler::SchedulerSpot::ULSlave())
+    if(schedulerSpot == wns::scheduler::SchedulerSpot::ULSlave())
     {
         colleagues.registry->setDL(false);
         // inputSchedulingMap should be a deep_copy of the original SchedulingMap from BS.
         // Currently it is not!
         // But it works well and this saves a lot of time.
         inputSchedulingMap = friends.mapHandler->getMasterMapForSlaveScheduling(frameNr);
-        if (inputSchedulingMap == wns::scheduler::SchedulingMapPtr()) {
+        if (inputSchedulingMap == wns::scheduler::SchedulingMapPtr()) 
+        {
             MESSAGE_SINGLE(NORMAL, logger, "SlaveScheduling with null inputSchedulingMap: nothing to do");
             return;
-        } else if (inputSchedulingMap->isEmpty()) { // isEmpty is O(C*S) operation
+        } 
+        else if(inputSchedulingMap->isEmpty()) 
+        { // isEmpty is O(C*S) operation
             MESSAGE_SINGLE(NORMAL, logger, "SlaveScheduling with empty inputSchedulingMap: nothing to do");
             return;
         }
-        MESSAGE_SINGLE(NORMAL, logger, "SlaveScheduling with inputSchedulingMap="<<inputSchedulingMap.getPtr());
-        //<<"="<<inputSchedulingMap->toString());
+        MESSAGE_SINGLE(NORMAL, logger, "SlaveScheduling with inputSchedulingMap=" << inputSchedulingMap.getPtr());
+        
+        // This SchedulingMap counts as the "master mask" that the slave scheduler must obeye to.
         assure(schedulingResultOfFrame[frameNr] == wns::scheduler::strategy::StrategyResultPtr(),"ULSlave must not have stored schedulingMaps");
-        // ^ this SchedulingMap counts as the "master mask" that the slave scheduler must obeye to.
-        _slotDuration = inputSchedulingMap->getSlotLength(); // workaround for wrong slotDuration from Python
-    } else if (schedulerSpot==wns::scheduler::SchedulerSpot::ULMaster()) {
+        
+        // workaround for wrong slotDuration from Python
+        _slotDuration = inputSchedulingMap->getSlotLength(); 
+    } 
+    else if(schedulerSpot == wns::scheduler::SchedulerSpot::ULMaster()) 
+    {
         colleagues.registry->setDL(false);
         MESSAGE_SINGLE(NORMAL, logger, "MasterScheduling for UL");
-    } else if (schedulerSpot==wns::scheduler::SchedulerSpot::DLMaster()) {
+    } 
+    else if(schedulerSpot == wns::scheduler::SchedulerSpot::DLMaster()) 
+    {
         colleagues.registry->setDL(true);
         MESSAGE_SINGLE(NORMAL, logger, "MasterScheduling for DL");
-    } // switch(schedulerSpot)
+    } 
 
     // prepare INPUT schedulingMap; take care of previous results for this frame or UL-master-maps.
     if (schedulingResultOfFrame[frameNr] != wns::scheduler::strategy::StrategyResultPtr())
-    { // there already was a result of this frame (previous round or static allocation)
+    { 
+        // there already was a result of this frame (previous round or static allocation)
         // only possible in BS-RS-RX+TX (Master Scheduler)
-        assure(schedulerSpot != wns::scheduler::SchedulerSpot::ULSlave(),"wrong schedulerSpot = "<<wns::scheduler::SchedulerSpot::toString(schedulerSpot));
+        assure(schedulerSpot != wns::scheduler::SchedulerSpot::ULSlave(), 
+            "wrong schedulerSpot = " << wns::scheduler::SchedulerSpot::toString(schedulerSpot));
+
         MESSAGE_SINGLE(NORMAL, logger,"schedulingResultOfFrame[frameNr="<<frameNr<<"] is not empty");
-        // ^ if this frame was used in a previous round, it already contains the partitioning constraints
         inputSchedulingMap = schedulingResultOfFrame[frameNr]->schedulingMap;
-    } else { // fresh new resource grid
-        MESSAGE_SINGLE(NORMAL, logger,"schedulingResultOfFrame[frameNr="<<frameNr<<"] is empty. Creating new one.");
-        if (schedulerSpot == wns::scheduler::SchedulerSpot::ULSlave()) // if I am slave (UT)
+    } 
+    else 
+    { // fresh new resource grid
+        MESSAGE_SINGLE(NORMAL, logger,"schedulingResultOfFrame[frameNr="
+            << frameNr <<"] is empty. Creating new one.");
+        if(schedulerSpot == wns::scheduler::SchedulerSpot::ULSlave()) 
         {
-            assure(schedulerSpot == wns::scheduler::SchedulerSpot::ULSlave(),"wrong schedulerSpot = "<<wns::scheduler::SchedulerSpot::toString(schedulerSpot));
-            assure(inputSchedulingMap != wns::scheduler::SchedulingMapPtr(),"inputSchedulingMap must not be empty in slave mode");
-        } else { // I am master (RAP)
+            assure(schedulerSpot == wns::scheduler::SchedulerSpot::ULSlave(),
+                "wrong schedulerSpot = " << wns::scheduler::SchedulerSpot::toString(schedulerSpot));
+            assure(inputSchedulingMap != wns::scheduler::SchedulingMapPtr(),
+                "inputSchedulingMap must not be empty in slave mode");
+        } 
+        else 
+        {
             inputSchedulingMap = strategyInput.getEmptySchedulingMap();
             int phaseNrAtFrameNr = friends.timer->phaseNumberAtFrame(frameNr);
-            std::string resourceDedication  = friends.partitioningInfo->getDedication(phaseNrAtFrameNr, partitionGroup); // string
-            MESSAGE_SINGLE(NORMAL, logger,"Get partitioning: frameNr="<<frameNr<<", phaseNr="<<phaseNrAtFrameNr<<", d=\""<<resourceDedication<<"\"");
+            std::string resourceDedication  = friends.partitioningInfo->getDedication(phaseNrAtFrameNr, partitionGroup);
+            MESSAGE_SINGLE(NORMAL, logger,"Get partitioning: frameNr="
+                << frameNr << ", phaseNr=" 
+                << phaseNrAtFrameNr << ", d=\""<<resourceDedication<<"\"");
+
             // get partitioning (may depend on DL/UL), i.e. usable subchannels
-            if (schedulerSpot==wns::scheduler::SchedulerSpot::ULMaster())
-            { // can be different for UL/DL
+            if(schedulerSpot == wns::scheduler::SchedulerSpot::ULMaster())
+            { 
                 wns::scheduler::UsableSubChannelVector usableSubChannels
                     = friends.partitioningInfo->getUsableSubChannels(phaseNrAtFrameNr, partitionGroup);
-                assure(usableSubChannels.size()>=freqChannels,"#usableSubChannels="<<usableSubChannels.size());
+                assure(usableSubChannels.size() >= freqChannels,
+                    "#usableSubChannels=" << usableSubChannels.size());
 
                 MESSAGE_BEGIN(NORMAL, logger, m, "usableSubChannels: ");
-                for (int ii=0; ii< usableSubChannels.size(); ++ii)
+                for(int ii=0; ii< usableSubChannels.size(); ++ii)
                 {
                     m << (usableSubChannels[ii] ? "1" : "0");
                 }
                 MESSAGE_END()
 
-                    inputSchedulingMap->maskOutSubChannels(usableSubChannels); // arg is just a const ref
+                inputSchedulingMap->maskOutSubChannels(usableSubChannels); // arg is just a const ref
             }
-            else if (schedulerSpot==wns::scheduler::SchedulerSpot::DLMaster())
-            { // can be different for UL/DL
+            else if(schedulerSpot==wns::scheduler::SchedulerSpot::DLMaster())
+            { 
                 const wns::scheduler::UsableSubChannelVector& usableSubChannels
                     = friends.partitioningInfo->getUsableSubChannels(phaseNrAtFrameNr, partitionGroup);
-                assure(usableSubChannels.size()>=freqChannels,"#usableSubChannels="<<usableSubChannels.size());
+                assure(usableSubChannels.size()>=freqChannels,
+                    "#usableSubChannels=" << usableSubChannels.size());
+
                 inputSchedulingMap->maskOutSubChannels(usableSubChannels);
-            } // switch(schedulerSpot)
+            }
+ 
+            // used in filterReachable(), which must be changed anyway.
             if (resourceDedication == "Feeder")
-                registryInLte->setRelaysOnly(); // used in filterReachable(), which must be changed anyway.
+                registryInLte->setRelaysOnly(); 
         } // if master/slave
     } // if empty/nonempty pre-scheduling input
     strategyInput.setInputSchedulingMap(inputSchedulingMap);
@@ -556,31 +618,43 @@ ResourceScheduler::startCollection(int frameNr /* for advance scheduling */,
     wns::scheduler::strategy::StrategyResult strategyResult = // copy small container
         colleagues.strategy->startScheduling(strategyInput);
     MESSAGE_SINGLE(VERBOSE, logger, "strategyResult.schedulingMap " << strategyResult.schedulingMap->toString());
-    // we only user strategyResult.schedulingMap and not strategyResult.bursts anymore.
 
     MESSAGE_SINGLE(NORMAL, logger, "startCollection finished");
 
     assure(_slotDuration == strategyResult.schedulingMap->getSlotLength(),
-           "mismatch in slotLength: slotDuration="<<slotDuration<<" vs getSlotLength()="<<strategyResult.schedulingMap->getSlotLength());
+           "mismatch in slotLength: slotDuration="
+            << slotDuration << " vs getSlotLength()="
+            << strategyResult.schedulingMap->getSlotLength());
 
-    if (schedulerSpot==wns::scheduler::SchedulerSpot::ULMaster())
+    if(schedulerSpot == wns::scheduler::SchedulerSpot::ULMaster())
     {
         MESSAGE_SINGLE(VERBOSE, logger, "deleteCompoundsInBursts()+deleteCompounds()");
-        strategyResult.deleteCompoundsInBursts(); // MapInfoCollection is not needed anymore
-        strategyResult.schedulingMap->deleteCompounds(); // compounds are not needed anymore
-        strategyResult.schedulingMap->grantFullResources(); // full time length on used subchannels (only for resourceUsage probe and plot)
+
+        // MapInfoCollection is not needed anymore
+        strategyResult.deleteCompoundsInBursts(); 
+        
+        // compounds are not needed anymore
+        strategyResult.schedulingMap->deleteCompounds(); 
+
+        // full time length on used subchannels (only for resourceUsage probe and plot)
+        strategyResult.schedulingMap->grantFullResources(); 
     }
 
     // save result per frame
     // perhaps more? TODO: antennaPatterns
-    schedulingResultOfFrame[frameNr] = wns::scheduler::strategy::StrategyResultPtr(new wns::scheduler::strategy::StrategyResult(strategyResult)); // make SmartPtr
+    schedulingResultOfFrame[frameNr] = wns::scheduler::strategy::StrategyResultPtr(
+        new wns::scheduler::strategy::StrategyResult(strategyResult));
 
     // adjustment for filterReachable in RegistyProxy:
     registryInLte->setAllStations(); // => relaysOnly = false;
-    if (schedulerSpot == wns::scheduler::SchedulerSpot::DLMaster()) {
-        friends.mapHandler->saveDLMap(frameNr,strategyResult.schedulingMap); // push
-    } else if (schedulerSpot == wns::scheduler::SchedulerSpot::ULMaster()) {
-        friends.mapHandler->saveULMap(frameNr,strategyResult.schedulingMap); // push
+
+    if(schedulerSpot == wns::scheduler::SchedulerSpot::DLMaster()) 
+    {
+        friends.mapHandler->saveDLMap(frameNr,strategyResult.schedulingMap); 
+    } 
+    else if(schedulerSpot == wns::scheduler::SchedulerSpot::ULMaster()) 
+    {
+        friends.mapHandler->saveULMap(frameNr,strategyResult.schedulingMap);
     }
 } // startCollection()
 
@@ -589,21 +663,27 @@ ResourceScheduler::startCollection(int frameNr /* for advance scheduling */,
 void
 ResourceScheduler::finishCollection(int frameNr, simTimeType _startTime) {
     // startTime is absolute time (==now)
-    assure(frameNr<framesPerSuperFrame,"invalid frameNr="<<frameNr);
+    assure(frameNr < framesPerSuperFrame, "invalid frameNr="<<frameNr);
     transportBlockCounter++;
-    if (transportBlockCounter == 0)
+
+    if(transportBlockCounter == 0)
     {
         transportBlockCounter++;
     }
 
-    if (schedulingResultOfFrame[frameNr] == wns::scheduler::strategy::StrategyResultPtr())
+    if(schedulingResultOfFrame[frameNr] == wns::scheduler::strategy::StrategyResultPtr())
     {
-        MESSAGE_SINGLE(NORMAL, logger,"finishCollection(frameNr="<<frameNr<<", startTime="<<_startTime<<"): empty schedulingResult. nothing to do");
+        MESSAGE_SINGLE(NORMAL, logger,"finishCollection(frameNr="
+            << frameNr << ", startTime="
+            << _startTime <<"): empty schedulingResult. nothing to do");
         return;
     }
-    assure(schedulingResultOfFrame[frameNr] != wns::scheduler::strategy::StrategyResultPtr(),"schedulingResultOfFrame[frameNr="<<frameNr<<"]==NULL");
+    assure(schedulingResultOfFrame[frameNr] != wns::scheduler::strategy::StrategyResultPtr(),
+        "schedulingResultOfFrame[frameNr="<<frameNr<<"]==NULL");
+
     wns::scheduler::SchedulingMapPtr schedulingMap = schedulingResultOfFrame[frameNr]->schedulingMap;
     double resourceUsage = schedulingMap->getResourceUsage();
+
     MESSAGE_SINGLE(NORMAL, logger,"finishCollection(frameNr="<<frameNr<<", startTime="<<_startTime<<"): "
                    <<"schedulingMap="<<resourceUsage*100.0<<"% full");
 
@@ -626,29 +706,38 @@ ResourceScheduler::finishCollection(int frameNr, simTimeType _startTime) {
                 MESSAGE_SINGLE(NORMAL, logger,"finishCollection(frameNr="<<frameNr<<"): setReceiveAntennaPattern(user="<<user.getName()<<")");
                 friends.phyUser->setReceiveAntennaPattern(user.getNode(), antennaPattern);
             } // foreach user in sdmaGrouping
-        } else {// if not sdmaGrouping used
+        } 
+        else // if not sdmaGrouping used
+        {
             MESSAGE_SINGLE(NORMAL, logger,"finishCollection(frameNr="<<frameNr<<", startTime="<<_startTime<<"): nothing to do");
         }
-    } else { // RS-TX (BS-DL or UT-UL)
+    } 
+    else // RS-TX (BS-DL or UT-UL)
+    { 
+        // process finished schedulingMap in order to store ResourceBlocks into HARQ processes...
         if (colleagues.harq != NULL)
-        { // process finished schedulingMap in order to store ResourceBlocks into HARQ processes...
-            for (wns::scheduler::SubChannelVector::iterator iterSubChannel = schedulingMap->subChannels.begin(); iterSubChannel != schedulingMap->subChannels.end(); ++iterSubChannel)
+        { 
+            for(wns::scheduler::SubChannelVector::iterator iterSubChannel = 
+                    schedulingMap->subChannels.begin(); 
+                iterSubChannel != schedulingMap->subChannels.end(); 
+                ++iterSubChannel)
             {
                 wns::scheduler::SchedulingSubChannel& subChannel = *iterSubChannel;
                 // TDMA can be easily supported...
-                for (wns::scheduler::SchedulingTimeSlotPtrVector::iterator iterTimeSlot = subChannel.temporalResources.begin();
-                     iterTimeSlot != subChannel.temporalResources.end(); ++iterTimeSlot)
+                for(wns::scheduler::SchedulingTimeSlotPtrVector::iterator iterTimeSlot = 
+                        subChannel.temporalResources.begin();
+                    iterTimeSlot != subChannel.temporalResources.end(); 
+                    ++iterTimeSlot)
                 {
                     wns::scheduler::SchedulingTimeSlotPtr timeSlotPtr = *iterTimeSlot;
-                    // for the UL slave it is not right to ask isEmpty, since all UL granted resources have isEmpty==false.
-                    //if (!timeSlotPtr->isEmpty())
-                    if (timeSlotPtr->countScheduledCompounds()>0)
+                    if (timeSlotPtr->countScheduledCompounds() > 0)
                     {
-                        if (timeSlotPtr->harq.transportBlockID == 0)
+                        if(timeSlotPtr->harq.transportBlockID == 0)
                         {
                             timeSlotPtr->harq.transportBlockID = transportBlockCounter;
                         }
-                        colleagues.harq->storeSchedulingTimeSlot(transportBlockCounter, timeSlotPtr); // store ResourceBlock
+                        // store ResourceBlock
+                        colleagues.harq->storeSchedulingTimeSlot(transportBlockCounter, timeSlotPtr);
                     }
                 }
             }
@@ -660,62 +749,76 @@ ResourceScheduler::finishCollection(int frameNr, simTimeType _startTime) {
         // but it would be more efficient to set it once, like this:
         // set SDMA antenna patterns first
         wns::scheduler::GroupingPtr sdmaGrouping = schedulingResultOfFrame[frameNr]->sdmaGrouping;
-        wns::scheduler::AntennaPatternsPerUser* antennaPatternsPerUser=NULL;
-        if (sdmaGrouping != wns::scheduler::GroupingPtr()) {
+        wns::scheduler::AntennaPatternsPerUser* antennaPatternsPerUser = NULL;
+        if (sdmaGrouping != wns::scheduler::GroupingPtr()) 
+        {
             antennaPatternsPerUser = &(sdmaGrouping->patterns);
-            if (0) { // currently not needed because there's no support for that in PhyUser and OFDMAPhy
+            // currently not needed because there's no support for that in PhyUser and OFDMAPhy            
+            if(false) 
+            {
                 // foreach user in sdmaGrouping:
-                for (wns::scheduler::AntennaPatternsPerUser::const_iterator iter = antennaPatternsPerUser->begin(); iter != antennaPatternsPerUser->end(); ++iter)
+                for(wns::scheduler::AntennaPatternsPerUser::const_iterator iter = antennaPatternsPerUser->begin(); 
+                    iter != antennaPatternsPerUser->end(); 
+                    ++iter)
                 {
                     wns::scheduler::UserID user = iter->first;
                     wns::service::phy::ofdma::PatternPtr antennaPattern = iter->second;
-                    MESSAGE_SINGLE(NORMAL, logger,"finishCollection(frameNr="<<frameNr<<"): setTransmitAntennaPattern(user="<<user.getName()<<")");
-                    //friends.phyUser->setTransmitAntennaPattern(user, antennaPattern); // There is currently no support for that in PhyUser and OFDMAPhy
+                    MESSAGE_SINGLE(NORMAL, logger,"finishCollection(frameNr=" << frameNr 
+                        << "): setTransmitAntennaPattern(user=" << user.getName() << ")");
+
+                    // There is currently no support for that in PhyUser and OFDMAPhy
+                    //friends.phyUser->setTransmitAntennaPattern(user, antennaPattern); 
                 } // foreach user in sdmaGrouping
             }
         } // if sdmaGrouping used
 
-        if (writeMapOutput)
-        { // write schedulingMap to file for visualization purposes:
+        // write schedulingMap to file for visualization purposes:
+        if(writeMapOutput)
+        { 
             evaluateMap(schedulingMap,frameNr);
         }
 
-        // now send packets=pdus=compounds ...
-
-        // iterate over all compounds in schedulingMap
-        // forall compounds in schedulingMap:
         wns::scheduler::SubChannelVector& subChannels  = schedulingMap->subChannels;
 
         double _slotDuration = schedulingMap->getSlotLength();
 
-        for ( wns::scheduler::SubChannelVector::iterator iterSubChannel = subChannels.begin();
-              iterSubChannel != subChannels.end(); ++iterSubChannel)
+        // now send compounds ...
+        // iterate over all compounds in schedulingMap
+        for(wns::scheduler::SubChannelVector::iterator iterSubChannel = subChannels.begin();
+              iterSubChannel != subChannels.end(); 
+            ++iterSubChannel)
         {
             wns::scheduler::SchedulingSubChannel& subChannel = *iterSubChannel;
-            for ( wns::scheduler::SchedulingTimeSlotPtrVector::iterator iterTimeSlot = subChannel.temporalResources.begin();
-                  iterTimeSlot != subChannel.temporalResources.end(); ++iterTimeSlot)
+            for(wns::scheduler::SchedulingTimeSlotPtrVector::iterator iterTimeSlot = 
+                    subChannel.temporalResources.begin();
+                iterTimeSlot != subChannel.temporalResources.end(); 
+                ++iterTimeSlot)
             {
                 wns::scheduler::SchedulingTimeSlotPtr timeSlotPtr = *iterTimeSlot;
 
-                if (timeSlotPtr->isEmpty())
+                // Skip empty time slots
+                if(timeSlotPtr->isEmpty())
                 {
-                    // Skip empty time slots
                     continue;
                 }
-                if (timeSlotPtr->countScheduledCompounds()==0)
+
+                // Skip if no compound inside
+                if(timeSlotPtr->countScheduledCompounds()==0)
                 {
                     MESSAGE_SINGLE(NORMAL, logger, "timeSlotPtr->countScheduledCompounds()==0");
-                    // Skip if no compound inside
                     continue;
                 }
+
                 assure(timeSlotPtr->physicalResources[0].hasScheduledCompounds()>0,"PRB[0] has zero compounds");
                 wns::scheduler::UserID TSuser = timeSlotPtr->getUserID();
                 wns::scheduler::UserID PRBuser = timeSlotPtr->physicalResources[0].getUserID();
                 assure( TSuser.isValid(), "Invalid TSuser=NULL");
                 assure( PRBuser.isValid(), "Invalid PRBuser=NULL");
-                assure(TSuser==PRBuser,"finishCollection("<<myOwnUserID.getName()<<"): PRB on subchannel="<<subChannel.subChannelIndex
-                       <<" has timeSlotPtr->getUserID()="<<TSuser.getName()
-                       <<" but physicalResources[0]->getUserID()="<<PRBuser.getName());
+                assure(TSuser==PRBuser,"finishCollection("
+                    << myOwnUserID.getName() << "): PRB on subchannel=" << subChannel.subChannelIndex
+                    << " has timeSlotPtr->getUserID()=" << TSuser.getName()
+                    << " but physicalResources[0]->getUserID()=" << PRBuser.getName());
+
                 // ^ In the UT these TSuser and PRBuser are still the UT's name (myself)
                 // That is important, because the libwns scheduler needs to know where it may put more compounds into;
                 // it shall not use PRBs tagged for other UTs. IF ther would be an "BSx" tag,
@@ -723,62 +826,69 @@ ResourceScheduler::finishCollection(int frameNr, simTimeType _startTime) {
                 // Please keep it and don't think about changing this [rs].
                 wns::scheduler::UserID user = timeSlotPtr->physicalResources[0].getUserIDOfScheduledCompounds();
                 /**
-                 * @todo dbn: The scheduling map is inconsistent in the uplink. scheduled Compounds have a different user id than the timeslots. Under bad channel conditions (400m distance) the assure Invalid user below fires.
+                 * @todo dbn: The scheduling map is inconsistent in the uplink. S
+                 * cheduled Compounds have a different user id than the timeslots. 
+                 * Under bad channel conditions (400m distance) the assure Invalid user below fires.
                  */
                 assure(user.isValid(), "Invalid !user.isValid()");
-                if ((schedulerSpot==wns::scheduler::SchedulerSpot::ULSlave()) // we are in UT
-                    //&&(user!=TSuser) // <- happens in UT
+
+                // this is not a resource I'm responsible for (other UT)
+                if((schedulerSpot == wns::scheduler::SchedulerSpot::ULSlave()) 
                     && (TSuser != myOwnUserID))
-                { // this is not a resource I'm responsible for (other UT)
-                    // Skip wrong users (SchedulingMap still has them, because it is the same for all UTs)
-                    MESSAGE_SINGLE(NORMAL, logger, "skipping PRB on subchannel="<<subChannel.subChannelIndex
-                                   <<" has timeSlotPtr->userID="<<TSuser.getName()
-                                   <<" and PRB->userID="<<PRBuser.getName()
-                                   <<" and compound->userID="<<user.getName());
+                { 
+                    MESSAGE_SINGLE(NORMAL, logger, "skipping PRB on subchannel=" << subChannel.subChannelIndex
+                                   << " has timeSlotPtr->userID=" << TSuser.getName()
+                                   << " and PRB->userID=" << PRBuser.getName()
+                                   << " and compound->userID=" << user.getName());
                     continue;
-                } else {
-                    MESSAGE_SINGLE(NORMAL, logger, "PRB on subchannel="<<subChannel.subChannelIndex
-                                   <<" has timeSlotPtr->userID="<<TSuser.getName()
-                                   <<" and PRB->userID="<<PRBuser.getName()
-                                   <<" and compound->userID="<<user.getName());
+                } 
+                else 
+                {
+                    MESSAGE_SINGLE(NORMAL, logger, "PRB on subchannel=" << subChannel.subChannelIndex
+                                   << " has timeSlotPtr->userID=" << TSuser.getName()
+                                   << " and PRB->userID=" << PRBuser.getName()
+                                   << " and compound->userID=" << user.getName());
                 }
 
                 int netDataBits = timeSlotPtr->getNetBlockSizeInBits();
+
                 // (this is one "resource block" for HARQ retransmission)
                 wns::ldk::CompoundPtr containerPdu = wns::ldk::CompoundPtr(
                     new wns::ldk::Compound(getFUN()->createCommandPool(),
-                                           wns::ldk::helper::FakePDUPtr(new wns::ldk::helper::FakePDU(netDataBits)))); // magic "2" as marker?
+                        wns::ldk::helper::FakePDUPtr(new wns::ldk::helper::FakePDU(netDataBits)))); 
+
                 // set the scheduler command (contained in myPDU)
                 SchedulerCommand* myCommand = this->activateCommand(containerPdu->getCommandPool());
+
                 if (timeSlotPtr->getTxPower() == wns::Power())
                 {
                     MESSAGE_SINGLE(NORMAL, logger, "WARNING: 0 dBm transmit power. I will not send this");
                     continue;
                 }
-                myCommand->magic.schedulingTimeSlotPtr = wns::scheduler::SchedulingTimeSlotPtr(new wns::scheduler::SchedulingTimeSlot(*timeSlotPtr));; // SmartPtr
+                myCommand->magic.schedulingTimeSlotPtr = wns::scheduler::SchedulingTimeSlotPtr(
+                    new wns::scheduler::SchedulingTimeSlot(*timeSlotPtr));;
 
-		// Check for HARQ validity
-		if (timeSlotPtr->isHARQEnabled())
-		  {
-		    if (timeSlotPtr->harq.ackCallback.empty())
-		      {
-		    std::cout << "Trying to retransmit resource block with empty ack callback in HARQUplinkSlaveRetransmission" << std::endl;
-		    exit(1);
-		  }
+		        // Check for HARQ validity
+		        if (timeSlotPtr->isHARQEnabled())
+		        {
+		            assure(!timeSlotPtr->harq.ackCallback.empty(), 
+                        "Trying to retransmit resource block with empty ack callback in HARQUplinkSlaveRetransmission");
 
-		    if (timeSlotPtr->harq.nackCallback.empty())
-		      {
-			std::cout << "Trying to retransmit resource block with empty nack callback in HARQUplinkSlaveRetransmission" << std::endl;
-			exit(1);
-		      }
-		  }
+		            assure(!timeSlotPtr->harq.nackCallback.empty(),
+                        "Trying to retransmit resource block with empty nack callback in HARQUplinkSlaveRetransmission");
+		        }
+
                 lte::macr::PhyCommand* phyCommand = dynamic_cast<lte::macr::PhyCommand*>(
                     getFUN()->getProxy()->activateCommand( containerPdu->getCommandPool(), friends.phyUser ));
-                assure(user!=myOwnUserID, "Invalid user="<<user.getName()); // don't send to myself.
+
+                // don't send to myself.
+                assure(user != myOwnUserID, "Invalid user=" << user.getName()); 
+
                 // currently assumed constant slotDuration for all timeSlots:
                 // later TODO: sum (0..timeSlotPtr->timeSlotIndex) timeSlotPtr->slotLength
                 simTimeType timeSlotOffset = (timeSlotPtr->timeSlotIndex * slotDuration);
-                phyCommand->magic.source      = myOwnUserID.getNode();
+                phyCommand->magic.source = myOwnUserID.getNode();
+
                 if (user.isBroadcast())
                 {
                     phyCommand->magic.destination = NULL;
@@ -797,48 +907,82 @@ ResourceScheduler::finishCollection(int frameNr, simTimeType _startTime) {
                     phyCommand->magic.isRetransmission = false;
                 }
 
-                phyCommand->magic.txp         = timeSlotPtr->getTxPower(); // TxPower to use for sending
-
+                // TxPower to used for sending
+                phyCommand->magic.txp         = timeSlotPtr->getTxPower(); 
                 phyCommand->local.subBand     = timeSlotPtr->subChannelIndex;
-                phyCommand->local.phyModePtr  = timeSlotPtr->physicalResources[0].getPhyMode(); // just as placeholder; the real phyModes are inside
-                phyCommand->local.start       = timeSlotOffset; // time relative to the start of the burst
-                phyCommand->local.stop        = timeSlotOffset + _slotDuration;   // time relative to the start of the burst
+
+                // just as placeholder; the real phyModes are inside
+                phyCommand->local.phyModePtr  = timeSlotPtr->physicalResources[0].getPhyMode(); 
+
+                // time relative to the start of the burst
+                phyCommand->local.start       = timeSlotOffset; 
+
+                // time relative to the start of the burst
+                phyCommand->local.stop        = timeSlotOffset + _slotDuration;   
                 phyCommand->local.start      += _startTime;
                 phyCommand->local.stop       += _startTime;
-                phyCommand->local.stop       -= wns::scheduler::slotLengthRoundingTolerance; // safety
-                phyCommand->local.beam        = 0; // beams are inside
+
+                // safety
+                phyCommand->local.stop       -= wns::scheduler::slotLengthRoundingTolerance; 
+
+                // beams are inside
+                phyCommand->local.beam        = 0; 
                 phyCommand->local.beamforming = beamforming;
-                if (beamforming) {
-                    assure(antennaPatternsPerUser!=NULL,"antennaPatternsPerUser==NULL");
+                
+                if (beamforming) 
+                {
+                    assure(antennaPatternsPerUser != NULL,"antennaPatternsPerUser == NULL");
                     wns::service::phy::ofdma::PatternPtr antennaPattern = (*antennaPatternsPerUser)[user];
                     assure(antennaPattern != wns::service::phy::ofdma::PatternPtr(),"No Beamforming antennaPattern set.");
-                    phyCommand->local.pattern = antennaPattern; // see wns::service::phy::ofdma::PatternPtr()
+                    
+                    // see wns::service::phy::ofdma::PatternPtr()
+                    phyCommand->local.pattern = antennaPattern; 
                 }
 
-                phyCommand->local.modeRxTx = lte::macr::PhyCommand::Tx; // Rx is obsolete. Maybe completely obsolete
+                // Rx is obsolete. Maybe completely obsolete
+                phyCommand->local.modeRxTx = lte::macr::PhyCommand::Tx; 
 
                 MESSAGE_BEGIN(NORMAL, logger, m, "PRB for ");
-                m << user.getName() << " scheduled on "
-                  <<"frame="<<frameNr<< ", subChannel="<<timeSlotPtr->subChannelIndex
-                  << ", T=["<<int(phyCommand->local.start*1e6+.5)<<"-"<<int(phyCommand->local.stop*1e6+.5)<<"us]";
-                //m <<", PHY="<<*phyCommand->local.phyModePtr;
-                if (beamforming || (maxBeams>1)) { m << ", beam=" << phyCommand->local.beam; }
-                //m << "\nEstimated: C=" << estimatedCandI.C << ", I=" << estimatedCandI.I;
-                //m << ", SINR="<<estimatedCandI.toSINR();
-                m << ", TxP="<<phyCommand->magic.txp << ", TBC=" << myCommand->magic.schedulingTimeSlotPtr->harq.transportBlockID;
-                m << ", netBits=" << netDataBits << "/" << containerPdu->getLengthInBits();
+                    m << user.getName() << " scheduled on ";
+                    m << "frame=" << frameNr << ", subChannel=" << timeSlotPtr->subChannelIndex;
+                    m << ", T=[" << int(phyCommand->local.start*1e6+.5) << "-"; 
+                    m << int(phyCommand->local.stop * 1e6+.5) << "us]";
+
+                    if (beamforming || (maxBeams > 1)) 
+                    { 
+                        m << ", beam=" << phyCommand->local.beam; 
+                    }
+
+                    m << ", TxP="<<phyCommand->magic.txp << ", TBC="; 
+                    m << myCommand->magic.schedulingTimeSlotPtr->harq.transportBlockID;
+                    m << ", netBits=" << netDataBits << "/" << containerPdu->getLengthInBits();
                 MESSAGE_END();
-                assure(phyCommand->local.subBand < freqChannels, "Invalid frequency channel "<<phyCommand->local.subBand);
-                assure(phyCommand->local.stop > phyCommand->local.start, "stop-start = "<<phyCommand->local.stop<<" - "<< phyCommand->local.start);
-                assure(phyCommand->local.phyModePtr->isValid(),"cannot work when !phyMode.isValid()");
-                assure(phyCommand->local.phyModePtr->dataRateIsValid(),"cannot work when !phyMode.dataRateIsValid()");
+
+                assure(phyCommand->local.subBand < freqChannels, "Invalid frequency channel " 
+                    << phyCommand->local.subBand);
+
+                assure(phyCommand->local.stop > phyCommand->local.start, 
+                    "stop-start = " << phyCommand->local.stop << " - "<< phyCommand->local.start);
+
+                assure(phyCommand->local.phyModePtr->isValid(),
+                    "cannot work when !phyMode.isValid()");
+
+                assure(phyCommand->local.phyModePtr->dataRateIsValid(),
+                    "cannot work when !phyMode.dataRateIsValid()");
+
                 assure(colleagues.strategy->isTx(),"must be TxScheduler");
-                assure(getConnector()->hasAcceptor(containerPdu),"Lower FU is not accepting compound but is supposed to do so");
+
+                assure(getConnector()->hasAcceptor(containerPdu),
+                    "Lower FU is not accepting compound but is supposed to do so");
+
                 getConnector()->getAcceptor(containerPdu)->sendData(containerPdu); // to PhyUser or HARQ
             } // forall timeSlots
         } // forall subchannels
     } // TxScheduler
-    schedulingResultOfFrame[frameNr] = wns::scheduler::strategy::StrategyResultPtr(); // clear result; not needed anymore; must be clean before next round
+    
+    // clear result; not needed anymore; must be clean before next round
+    schedulingResultOfFrame[frameNr] = 
+        wns::scheduler::strategy::StrategyResultPtr(); 
 } // finishCollection
 
 void 
@@ -887,17 +1031,22 @@ ResourceScheduler::applyPowerLimitation(wns::scheduler::SchedulingMapPtr schedul
     wns::Power sum = wns::Power::from_mW(0.0);
     wns::scheduler::UserID myOwnUserID = wns::scheduler::UserID(layer2->getNode());
 
-    for (wns::scheduler::SubChannelVector::iterator iterSubChannel = schedulingMap->subChannels.begin(); iterSubChannel != schedulingMap->subChannels.end(); ++iterSubChannel)
+    for(wns::scheduler::SubChannelVector::iterator iterSubChannel = 
+            schedulingMap->subChannels.begin(); 
+        iterSubChannel != schedulingMap->subChannels.end(); 
+        ++iterSubChannel)
     {
         wns::scheduler::SchedulingSubChannel& subChannel = *iterSubChannel;
-        for ( wns::scheduler::SchedulingTimeSlotPtrVector::iterator iterTimeSlot = subChannel.temporalResources.begin();
-              iterTimeSlot != subChannel.temporalResources.end(); ++iterTimeSlot)
+        for(wns::scheduler::SchedulingTimeSlotPtrVector::iterator iterTimeSlot = 
+                subChannel.temporalResources.begin();
+            iterTimeSlot != subChannel.temporalResources.end(); 
+            ++iterTimeSlot)
         {
             wns::scheduler::SchedulingTimeSlotPtr timeSlotPtr = *iterTimeSlot;
 
-            if (schedulerSpot==wns::scheduler::SchedulerSpot::ULSlave())
+            if(schedulerSpot==wns::scheduler::SchedulerSpot::ULSlave())
             {
-                if (timeSlotPtr->getUserID() != myOwnUserID)
+                if(timeSlotPtr->getUserID() != myOwnUserID)
                 {
                     // Not my transmission. Belongs to another user
                     continue;
@@ -916,35 +1065,31 @@ ResourceScheduler::applyPowerLimitation(wns::scheduler::SchedulingMapPtr schedul
         MESSAGE_SINGLE(NORMAL, logger, "Power limitation reached, downscaling by " << downscale);
 
         // Second pass:
-        for (wns::scheduler::SubChannelVector::iterator iterSubChannel = schedulingMap->subChannels.begin(); iterSubChannel != schedulingMap->subChannels.end(); ++iterSubChannel)
+        for(wns::scheduler::SubChannelVector::iterator iterSubChannel = 
+                schedulingMap->subChannels.begin(); 
+            iterSubChannel != schedulingMap->subChannels.end(); 
+            ++iterSubChannel)
         {
             wns::scheduler::SchedulingSubChannel& subChannel = *iterSubChannel;
-            for ( wns::scheduler::SchedulingTimeSlotPtrVector::iterator iterTimeSlot = subChannel.temporalResources.begin();
-                  iterTimeSlot != subChannel.temporalResources.end(); ++iterTimeSlot)
+            for(wns::scheduler::SchedulingTimeSlotPtrVector::iterator iterTimeSlot = 
+                    subChannel.temporalResources.begin();
+                iterTimeSlot != subChannel.temporalResources.end(); 
+                ++iterTimeSlot)
             {
                 wns::scheduler::SchedulingTimeSlotPtr timeSlotPtr = *iterTimeSlot;
 
-                if (schedulerSpot==wns::scheduler::SchedulerSpot::ULSlave())
+                if(schedulerSpot == wns::scheduler::SchedulerSpot::ULSlave())
                 {
-                    if (timeSlotPtr->getUserID() != myOwnUserID)
+                    if(timeSlotPtr->getUserID() != myOwnUserID)
                     {
                         // Not my transmission. Belongs to another user
                         continue;
                     }
                 }
 
-                timeSlotPtr->setTxPower( timeSlotPtr->getTxPower() * downscale);
+                timeSlotPtr->setTxPower(timeSlotPtr->getTxPower() * downscale);
             }
         }
-    }
-}
-
-void
-ResourceScheduler::resetHARQScheduledPeerRetransmissions()
-{
-    if(IamUplinkMaster)
-    {
-        //colleagues.harq->resetAllScheduledPeerRetransmissionCounters();
     }
 }
 
@@ -964,12 +1109,17 @@ ResourceScheduler::score(const wns::ldk::CompoundPtr& compound)
 void
 ResourceScheduler::prepareMapOutput()
 {
-    if (!writeMapOutput) return; // nothing to do
-    MESSAGE_SINGLE(NORMAL, logger, "prepareMapOutput(): opening output file "<<mapOutputFileName);
+    // nothing to do
+    if(!writeMapOutput) 
+        return; 
+
+    MESSAGE_SINGLE(NORMAL, logger, "prepareMapOutput(): opening output file " << mapOutputFileName);
+
     mapFile = new std::ofstream(mapOutputFileName.c_str());
-    assure(mapFile!=NULL,"cannot write to mapFile "<<mapOutputFileName);
+    assure(mapFile != NULL,"cannot write to mapFile " << mapOutputFileName);
     assure(mapFile->is_open(), "mapFile " << mapOutputFileName << " not open");
-    (*mapFile) << "# contents=\""<<logger.getLoggerName()<<" map\""<<std::endl;
+
+    (*mapFile) << "# contents=\"" << logger.getLoggerName() << " map\"" << std::endl;
     wns::scheduler::SchedulingMap::writeHeaderToFile(*mapFile);
 }
 
@@ -978,24 +1128,32 @@ ResourceScheduler::prepareMapOutput()
 void
 ResourceScheduler::evaluateMap(wns::scheduler::SchedulingMapPtr schedulingMap, int frameNr)
 {
-    if (!writeMapOutput) return; // nothing to do
-    MESSAGE_SINGLE(NORMAL, logger, "evaluateMap(): writing to "<<mapOutputFileName);
-    assure(mapFile!=NULL,"cannot write to mapFile "<<mapOutputFileName);
+    // nothing to do
+    if(!writeMapOutput) 
+        return; 
+
+    MESSAGE_SINGLE(NORMAL, logger, "evaluateMap(): writing to " << mapOutputFileName);
+
+    assure(mapFile != NULL,"cannot write to mapFile " << mapOutputFileName);
+
     // write table output to file for postprocessing with Matlab/Gnuplot
-    //friends.timer
     simTimeType now = wns::simulator::getEventScheduler()->getTime();
-    *mapFile << "# t="<<now<<", frameNr="<<frameNr<<std::endl;
+    *mapFile << "# t=" << now << ", frameNr=" << frameNr << std::endl;
     std::stringstream p;
     p << now << "\t";
     schedulingMap->writeToFile(*mapFile,p.str());
-    // "ResourceUsage" probe is not written here but in finishCollection()
 } // evaluateMap
 
 void
 ResourceScheduler::closeMapOutput()
 {
-    if (!writeMapOutput) return; // nothing to do
+    // nothing to do
+    if (!writeMapOutput) 
+        return; 
+
     MESSAGE_SINGLE(NORMAL, logger, "closeMapOutput(): closing "<<mapOutputFileName);
-    if (*mapFile) mapFile->close();
+
+    if(*mapFile) 
+        mapFile->close();
 }
 
