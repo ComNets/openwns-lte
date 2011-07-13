@@ -59,11 +59,8 @@ ResourceSchedulerUT::onFUNCreated()
     ResourceScheduler::onFUNCreated();
     MESSAGE_SINGLE(NORMAL, logger, "ResourceSchedulerUT::onFUNCreated()");
 
-    lte::timing::RegistryProxy* registryInLte = 
-        dynamic_cast<lte::timing::RegistryProxy*>(colleagues.registry);
-
     // Registry must know it. Caution: this is set quite late, after all onFUNCreated() actions
-    registryInLte->setDL(false);
+    colleagues.registry->setDL(false);
     
 }
 

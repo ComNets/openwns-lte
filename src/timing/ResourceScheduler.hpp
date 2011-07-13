@@ -297,7 +297,6 @@ protected:
             };
         wns::scheduler::strategy::StrategyInterface* strategy;
         lte::timing::RegistryProxy* registry;
-        //wns::scheduler::RegistryProxyInterface* registry;
         wns::scheduler::queue::QueueInterface* queue;
         lte::helper::QueueProxy* queueProxy;
         wns::scheduler::grouper::GroupingProviderInterface* grouper;

@@ -64,10 +64,8 @@ ResourceSchedulerBS::onFUNCreated()
     ResourceScheduler::onFUNCreated();
     MESSAGE_SINGLE(NORMAL, logger, "ResourceSchedulerBS::onFUNCreated()");
 
-    lte::timing::RegistryProxy* registryInLte = dynamic_cast<lte::timing::RegistryProxy*>(colleagues.registry);
-
     // Registry must know it. Caution: this is set quite late, after all onFUNCreated() actions
-    registryInLte->setDL(!IamUplinkMaster);
+    colleagues.registry->setDL(!IamUplinkMaster);
 }
 
 void
@@ -90,10 +88,8 @@ ResourceSchedulerBS::startCollection(int frameNr)
 
     ResourceScheduler::startCollection(frameNr, slotDuration);
 
-    lte::timing::RegistryProxy* registryInLte = dynamic_cast<lte::timing::RegistryProxy*>(colleagues.registry);
-
     // TODO: still needed?
-    registryInLte->setAllStations(); 
+    colleagues.registry->setAllStations(); 
 }
 
 void

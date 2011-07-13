@@ -501,9 +501,6 @@ ResourceScheduler::startCollection(int frameNr,
         <<": frameNr=" << frameNr << ", d=" << _slotDuration*1e6<<"us)");
     assure(frameNr<framesPerSuperFrame,"invalid frameNr="<<frameNr);
 
-    // this is only required for "setAllStations" and "setRelaysOnly":
-    lte::timing::RegistryProxy* registryInLte =colleagues.registry; //dynamic_cast<lte::timing::RegistryProxy*>(colleagues.registry);
-
     // PREPARE STRATEGY INPUT NOW:
     // due to maxBeams, this is already "MIMO-ready" [rs]
     // generic call for master or slave scheduling
@@ -609,7 +606,7 @@ ResourceScheduler::startCollection(int frameNr,
  
             // used in filterReachable(), which must be changed anyway.
             if (resourceDedication == "Feeder")
-                registryInLte->setRelaysOnly(); 
+                colleagues.registry->setRelaysOnly(); 
         } // if master/slave
     } // if empty/nonempty pre-scheduling input
     strategyInput.setInputSchedulingMap(inputSchedulingMap);
@@ -646,7 +643,7 @@ ResourceScheduler::startCollection(int frameNr,
         new wns::scheduler::strategy::StrategyResult(strategyResult));
 
     // adjustment for filterReachable in RegistyProxy:
-    registryInLte->setAllStations(); // => relaysOnly = false;
+    colleagues.registry->setAllStations(); // => relaysOnly = false;
 
     if(schedulerSpot == wns::scheduler::SchedulerSpot::DLMaster()) 
     {
