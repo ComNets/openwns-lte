@@ -414,15 +414,20 @@ namespace lte {
             /** @brief Only used by RNs. They get the PCCH FlowID MAGIC */
             wns::service::dll::FlowID pcchFlowID;
 
+            /** @brief If true requests are only sent if the state has 
+                changed since the last request */
+            bool updatesOnly_;
+
+            /** @brief Previous request */
+            wns::scheduler::QueueStatusContainer
+            lastState_;
+
+            /** @brief Check for update since last request */
+            bool
+            isUpdated(const wns::scheduler::QueueStatusContainer& currentState);
+
         public:
-            RRHandlerUT(wns::ldk::fun::FUN* fun, const wns::pyconfig::View& config) :
-                RRHandler(fun, config),
-                wns::Cloneable<RRHandlerUT>(),
-                resourceGrantState(false),
-                rstx(NULL),
-                allRelayedRequestedResources(),
-                pcchFlowID(0)
-            {}
+            RRHandlerUT(wns::ldk::fun::FUN* fun, const wns::pyconfig::View& config);
 
             virtual
             ~RRHandlerUT();

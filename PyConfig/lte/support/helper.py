@@ -130,6 +130,9 @@ def setupSchedulerDetail(simulator, sched, direction, modes):
     elif sched == "Random":
         Strat = openwns.Scheduler.RoundRobin
         DSA = openwns.scheduler.DSAStrategy.Random
+    elif sched == "PersistentVoIP":
+        Strat = openwns.Scheduler.DSADrivenRR
+        DSA = openwns.scheduler.DSAStrategy.PersistentVoIP
     elif sched == "ExhaustiveRR":
         Strat = openwns.Scheduler.ExhaustiveRoundRobin
         DSA = openwns.scheduler.DSAStrategy.LinearFFirst

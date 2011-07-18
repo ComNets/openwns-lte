@@ -51,6 +51,7 @@ class UT(Handler):
     def __init__(self, mode):
         Handler.__init__(self, mode)
         self.__plugin__= "lte.controlplane.RRHandler.UT"
+        self.updatesOnly = False
         self.logger = openwns.logger.Logger("LTE", "RRHandler.UT", True, mode.logger)
 
 class BS(Handler):

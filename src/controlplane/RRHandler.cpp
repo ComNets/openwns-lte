@@ -158,6 +158,17 @@ RRHandler::doIsAccepting(const wns::ldk::CompoundPtr& /* compound */) const
     return false;
 } // doIsAccepting
 
+RRHandlerUT::RRHandlerUT(wns::ldk::fun::FUN* fun, const wns::pyconfig::View& config) :
+    RRHandler(fun, config),
+    wns::Cloneable<RRHandlerUT>(),
+    resourceGrantState(false),
+    rstx(NULL),
+    allRelayedRequestedResources(),
+    pcchFlowID(0),
+    updatesOnly_(config.get<bool>("updatesOnly"))
+{
+}
+
 RRHandlerUT::~RRHandlerUT()
 {
     // cleanup:
@@ -222,6 +233,16 @@ RRHandlerUT::resourcesGranted(bool state)
          */
         this->createRRCompound();
     }
+
+    // Reset last state since it will change after we got resources
+    // Do this after createRRCompound() was calles because we
+    // cannot use the resources until the next frame
+    if(state == true && updatesOnly_)
+    {
+        MESSAGE_SINGLE(NORMAL, logger, "resourcesGranted(true), clearing previous state.");
+        lastState_.clear();
+    }
+        
 }
 
 void
@@ -230,6 +251,36 @@ RRHandlerUT::createRRCompound()
     // We can not send a Request if we don't know where to send it.
     if (! associationService->hasAssociation())
         return;
+
+    // reserve at least resources for the next UL resource request:
+    wns::scheduler::QueueStatusContainer totalQueueStatus;
+    totalQueueStatus = rstx->getQueueStatus();
+
+    // We only report changes but nothing has changed since last call
+    if(updatesOnly_ && !isUpdated(totalQueueStatus))
+    {
+        MESSAGE_SINGLE(NORMAL, logger, "createRRCompound(), state has not changed. No request created.");
+        return;
+    }
+    lastState_ = totalQueueStatus;
+
+    // Nothing to do if nothing queued
+    Bit sumBit = 0;
+    int sumCompounds = 0;
+
+    for(wns::scheduler::QueueStatusContainer::const_iterator iter = 
+            totalQueueStatus.begin();
+        iter != totalQueueStatus.end(); 
+        ++iter)
+    {
+        sumBit = sumBit + iter->second.numOfBits;
+        sumCompounds = sumCompounds + iter->second.numOfCompounds;
+    }
+    if(sumBit == 0 && sumCompounds == 0)
+    {
+        MESSAGE_SINGLE(NORMAL, logger, "createRRCompound(), no queued compounds. No request created.");
+        return;
+    }
 
     /** method to generate an UL RR compound in the UT (or RN behaving as UT)*/
 
@@ -269,8 +320,6 @@ RRHandlerUT::createRRCompound()
     outgoingCommand->peer.request.user = wns::scheduler::UserID(layer2->getNode());
     outgoingCommand->magic.source = macgCommand->peer.source;
 
-    // reserve at least resources for the next UL resource request:
-    wns::scheduler::QueueStatusContainer totalQueueStatus = rstx->getQueueStatus();// QueueStatusContainer
     // reserve UL resources for the PCCH which is generated at the end of this method, but only if we do not use the magic shortcut below:
     if (!usesShortcut)
     {
@@ -326,6 +375,23 @@ RRHandlerUT::createRRCompound()
         MESSAGE_SINGLE(NORMAL, logger, "createRRCompound(): Failed to send ResourceRequest Compound to "<< A2N(outgoingCommand->magic.source));
         assure(false, "Lower FU is not accepting scheduled ResourceRequest but is supposed to do so");
     }
+}
+
+bool
+RRHandlerUT::isUpdated(const wns::scheduler::QueueStatusContainer& currentState)
+{
+    std::list<wns::scheduler::ConnectionID> cids = currentState.keys();
+    
+    std::list<wns::scheduler::ConnectionID>::iterator it;
+
+    for(it = cids.begin(); it != cids.end(); it++)
+    {
+        /* State has changed if new CIDs apear or number of */
+        /* bits / compounds for CID changed */
+        if(!lastState_.knows(*it) || lastState_.find(*it) != currentState.find(*it))
+            return true;
+    }
+    return false;
 }
 
 int
