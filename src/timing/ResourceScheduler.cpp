@@ -390,7 +390,7 @@ ResourceScheduler::deliverReceived()
     for (it = receivedNonHARQTimeslots_.begin();
          it!= receivedNonHARQTimeslots_.end(); ++it)
     {
-      MESSAGE_SINGLE(NORMAL, logger, "Delivering NON-HARQ timeslot " << it->first.getPtr());
+      MESSAGE_SINGLE(NORMAL, logger, "Delivering NON-HARQ timeslot");
         deliverSchedulingTimeSlot(it->first->harq.successfullyDecoded,
                                   it->first,
                                   it->second.powerMeasurement_,
@@ -407,8 +407,6 @@ ResourceScheduler::deliverReceived()
 
     for (it=compounds.begin(); it!=compounds.end();++it)
     {
-      MESSAGE_SINGLE(NORMAL, logger, "Delivering HARQ timeslot " << it->first.getPtr());
-
         deliverSchedulingTimeSlot(it->first->harq.successfullyDecoded,
                                   it->first,
                                   it->second.powerMeasurement_,
@@ -426,7 +424,7 @@ ResourceScheduler::doOnData(const wns::ldk::CompoundPtr& compound)
 
     wns::scheduler::SchedulingTimeSlotPtr ts = myCommand->magic.schedulingTimeSlotPtr;
 
-    MESSAGE_SINGLE(NORMAL, logger, "Received timeslot " << ts.getPtr());
+    MESSAGE_SINGLE(NORMAL, logger, "Received timeslot");
 
     // after approx 3ms processing delay
     wns::simulator::getEventScheduler()->scheduleDelay(
@@ -462,7 +460,7 @@ ResourceScheduler::postDecoding(const wns::ldk::CompoundPtr compound)
             wns::scheduler::harq::HARQInterface::DecodeStatusContainerEntry entry(ts, ti);
 	        receivedNonHARQTimeslots_.push_back(entry);
 
-	        MESSAGE_SINGLE(NORMAL, logger, "Stored NON-HARQ " << ts.getPtr());
+	        MESSAGE_SINGLE(NORMAL, logger, "Stored NON-HARQ transmission");
             return;
         }
 	    else
@@ -522,7 +520,7 @@ ResourceScheduler::startCollection(int frameNr,
             MESSAGE_SINGLE(NORMAL, logger, "SlaveScheduling with empty inputSchedulingMap: nothing to do");
             return;
         }
-        MESSAGE_SINGLE(NORMAL, logger, "SlaveScheduling with inputSchedulingMap=" << inputSchedulingMap.getPtr());
+        MESSAGE_SINGLE(NORMAL, logger, "SlaveScheduling with inputSchedulingMap");
         
         // This SchedulingMap counts as the "master mask" that the slave scheduler must obeye to.
         assure(schedulingResultOfFrame[frameNr] == wns::scheduler::strategy::StrategyResultPtr(),"ULSlave must not have stored schedulingMaps");

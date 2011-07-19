@@ -64,7 +64,7 @@ UEUpperConvergence::onFUNCreated()
 
     rlcReader   = fun->getCommandReader("rlc");
     assure(rlcReader, "rlcReader not set");
-    MESSAGE_SINGLE(NORMAL, logger,"onFUNCreated(): FlowManager set to: "<< flowManager);
+    MESSAGE_SINGLE(NORMAL, logger,"onFUNCreated(): FlowManager set");
 }
 
 void
@@ -136,7 +136,7 @@ void
 UEUpperConvergence::registerFlowHandler(wns::service::dll::FlowHandler* flowHandler)
 {
   tlFlowHandler = flowHandler;
-  MESSAGE_SINGLE(NORMAL, logger, "TL-FlowHandler Registered: "<<flowHandler);
+  MESSAGE_SINGLE(NORMAL, logger, "TL-FlowHandler Registered");
 }
 
 void

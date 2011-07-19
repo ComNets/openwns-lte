@@ -256,14 +256,6 @@ RRHandlerUT::createRRCompound()
     wns::scheduler::QueueStatusContainer totalQueueStatus;
     totalQueueStatus = rstx->getQueueStatus();
 
-    // We only report changes but nothing has changed since last call
-    if(updatesOnly_ && !isUpdated(totalQueueStatus))
-    {
-        MESSAGE_SINGLE(NORMAL, logger, "createRRCompound(), state has not changed. No request created.");
-        return;
-    }
-    lastState_ = totalQueueStatus;
-
     // Nothing to do if nothing queued
     Bit sumBit = 0;
     int sumCompounds = 0;
@@ -281,6 +273,14 @@ RRHandlerUT::createRRCompound()
         MESSAGE_SINGLE(NORMAL, logger, "createRRCompound(), no queued compounds. No request created.");
         return;
     }
+
+    // We only report changes but nothing has changed since last call
+    if(updatesOnly_ && !isUpdated(totalQueueStatus))
+    {
+        MESSAGE_SINGLE(NORMAL, logger, "createRRCompound(), state has not changed. No request created.");
+        return;
+    }
+    lastState_ = totalQueueStatus;
 
     /** method to generate an UL RR compound in the UT (or RN behaving as UT)*/
 
