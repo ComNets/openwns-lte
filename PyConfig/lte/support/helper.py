@@ -102,6 +102,43 @@ def setupUL_APC(simulator, modes, alpha, pNull):
                     found = True    
         assert found, "Could not find uplink master scheduler in BS"
 
+def getSlaveSchedulerFU(simulator, ue, modes):
+    return getMasterSchedulerFU(simulator, ue, "DL", modes)
+
+def getMasterSchedulerFU(simulator, bs, direction, modes):
+    if direction == "UL":
+        suffix = "RX"
+    elif direction == "DL":
+        suffix = "TX"
+    else:
+        assert false, "Unknown direction"
+
+    fun = bs.dll.fun.functionalUnit
+    for mt in modes:
+        modeCreator = lte.modes.getModeCreator(mt)
+        aMode = modeCreator(default = False)
+        for fu in fun:
+            if aMode.modeBase + aMode.separator + "resourceScheduler" + suffix in fu.commandName:    
+                return fu
+
+    assert false, "Could not find scheduler in BS"
+    return None        
+
+def setHARQRetransmissionLimit(simulator, modes, limit):
+    bsNodes = simulator.simulationModel.getNodesByProperty("Type", "eNB")
+
+    for bs in bsNodes:
+        fu = getMasterSchedulerFU(simulator, bs, "DL", modes)
+        fu.harq.retransmissionLimit = limit
+        fu.harq.harqEntity.retransmissionLimit = limit
+
+    ueNodes = simulator.simulationModel.getNodesByProperty("Type", "UE")
+
+    for ue in ueNodes:
+        fu = getSlaveSchedulerFU(simulator, ue, modes)
+        fu.harq.retransmissionLimit = limit
+        fu.harq.harqEntity.retransmissionLimit = limit
+
 def setupScheduler(simulator, sched, modes):
     setupDLScheduler(simulator, sched, modes)
     setupULScheduler(simulator, sched, modes)
@@ -109,16 +146,11 @@ def setupScheduler(simulator, sched, modes):
 def setupULScheduler(simulator, sched, modes):
     setupSchedulerDetail(simulator, sched, "UL", modes)
 
-def setupDLScheduler(simulator, sched):
+def setupDLScheduler(simulator, sched, modes):
     setupSchedulerDetail(simulator, sched, "DL", modes)
 
 def setupSchedulerDetail(simulator, sched, direction, modes):
-    if direction == "UL":
-        suffix = "RX"
-    elif direction == "DL":
-        suffix == "TX"
-    else:
-        assert false, "Unknown direction"
+
 
     import lte.modes
     import openwns.scheduler.DSAStrategy
@@ -131,32 +163,23 @@ def setupSchedulerDetail(simulator, sched, direction, modes):
         Strat = openwns.Scheduler.RoundRobin
         DSA = openwns.scheduler.DSAStrategy.Random
     elif sched == "PersistentVoIP":
-        Strat = openwns.Scheduler.DSADrivenRR
-        DSA = openwns.scheduler.DSAStrategy.PersistentVoIP
+        Strat = openwns.Scheduler.PersistentVoIP
+        DSA = openwns.scheduler.DSAStrategy.LinearFFirst
     elif sched == "ExhaustiveRR":
         Strat = openwns.Scheduler.ExhaustiveRoundRobin
         DSA = openwns.scheduler.DSAStrategy.LinearFFirst
 
     bsNodes = simulator.simulationModel.getNodesByProperty("Type", "eNB")
 
-    for n in bsNodes:
-        found = False
-        fun = n.dll.fun.functionalUnit
-        for mt in modes:
-            modeCreator = lte.modes.getModeCreator(mt)
-            aMode = modeCreator(default = False)
-            for fu in fun:
-                if aMode.modeBase + aMode.separator + "resourceScheduler" + suffix in fu.commandName:
-                    fu.strategy.dsastrategy = DSA(oneUserOnOneSubChannel = True)
-                    fu.strategy.dsafbstrategy = DSA(oneUserOnOneSubChannel = True)
-                    fu.strategy.subStrategies[4] = Strat(useHARQ = True)
-                    fu.strategy.subStrategies[5] = Strat(useHARQ = True)
-                    fu.strategy.subStrategies[6] = Strat(useHARQ = True)
-                    fu.strategy.subStrategies[7] = Strat(useHARQ = True)
-                    found = True    
-        assert found, "Could not find scheduler in BS"
-
+    for bs in bsNodes:
+        fu = getMasterSchedulerFU(simulator, bs, direction, modes)
     
+        fu.strategy.dsastrategy = DSA(oneUserOnOneSubChannel = True)
+        fu.strategy.dsafbstrategy = DSA(oneUserOnOneSubChannel = True)
+        for i in xrange(3, 8):
+            strat = Strat(useHARQ = True)
+            strat.setParentLogger(fu.strategy.logger)
+            fu.strategy.subStrategies[i] = strat
     
 def setupFTFading(simulator, scenario, modes):
 
