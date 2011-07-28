@@ -203,12 +203,12 @@ QueueProxy::numBitsForCid(wns::scheduler::ConnectionID cid) const
 }
 
 wns::scheduler::QueueStatusContainer
-QueueProxy::getQueueStatus() const
+QueueProxy::getQueueStatus(bool forFuture) const
 {
     assure(queue != NULL || rrhandler != NULL, "queue==NULL && rrhandler==NULL");
     if(queue != NULL) 
     {
-        return queue->getQueueStatus();
+        return queue->getQueueStatus(forFuture);
     } 
     else 
     {

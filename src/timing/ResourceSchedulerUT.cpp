@@ -134,7 +134,7 @@ ResourceSchedulerUT::onAssociated(wns::service::dll::UnicastAddress userAdr, wns
 wns::scheduler::QueueStatusContainer
 ResourceSchedulerUT::getQueueStatus() const
 {
-    wns::scheduler::QueueStatusContainer result = colleagues.queue->getQueueStatus();
+    wns::scheduler::QueueStatusContainer result = colleagues.queue->getQueueStatus(true);
     return result;
 }
 

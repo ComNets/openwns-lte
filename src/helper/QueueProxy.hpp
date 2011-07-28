@@ -83,7 +83,7 @@ namespace lte { namespace helper {
             numBitsForCid(wns::scheduler::ConnectionID cid) const;
 
             virtual wns::scheduler::QueueStatusContainer
-            getQueueStatus() const;
+            getQueueStatus(bool forFuture) const;
 
             virtual wns::ldk::CompoundPtr
             getHeadOfLinePDU(wns::scheduler::ConnectionID cid);
