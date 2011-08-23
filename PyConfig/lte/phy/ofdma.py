@@ -70,12 +70,12 @@ class UETransmitter(ofdmaTRM.OFDMATransmitter):
 class BSOFDMAComponent(ofdmaSTA.OFDMAComponent):
 
     def __init__(self, node, mode):
-        bsReceiver = BSReceiver(prop = rise.scenario.Propagation.Propagation(),
-                                propch = "AP",
+        bsReceiver = BSReceiver(prop = rise.scenario.Propagation.PropagationSingleton.getInstance(),
+                                propch = mode.plm.phy.eNBTransceiverType,
                                 parentLogger = node.logger)
         
-        bsTransmitter = BSTransmitter(prop = rise.scenario.Propagation.Propagation(),
-                                      propch = "AP",
+        bsTransmitter = BSTransmitter(prop = rise.scenario.Propagation.PropagationSingleton.getInstance(),
+                                      propch = mode.plm.phy.eNBTransceiverType,
                                       parentLogger = node.logger,)
 
         phyStation = ofdmaSTA.OFDMAStation([bsReceiver], [bsTransmitter], node.logger, eirpLimited = True)
@@ -94,12 +94,12 @@ class BSOFDMAComponent(ofdmaSTA.OFDMAComponent):
 class UEOFDMAComponent(ofdmaSTA.OFDMAComponent):
 
     def __init__(self, node, mode):
-        ueReceiver = UEReceiver(prop = rise.scenario.Propagation.Propagation(),
-                                propch = "UT",
+        ueReceiver = UEReceiver(prop = rise.scenario.Propagation.PropagationSingleton.getInstance(),
+                                propch = mode.plm.phy.utTransceiverType,
                                 parentLogger = node.logger)
         
-        ueTransmitter = UETransmitter(prop = rise.scenario.Propagation.Propagation(),
-                                      propch = "UT",
+        ueTransmitter = UETransmitter(prop = rise.scenario.Propagation.PropagationSingleton.getInstance(),
+                                      propch = mode.plm.phy.utTransceiverType,
                                       parentLogger = node.logger)
 
         phyStation = ofdmaSTA.OFDMAStation([ueReceiver], [ueTransmitter], node.logger, eirpLimited = True)

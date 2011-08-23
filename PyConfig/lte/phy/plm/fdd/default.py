@@ -124,6 +124,10 @@ class PHYLTEFDD:
         self.dlCenterFreq        = 2620E6 
         self.subcarrierSpacing   = 15000 # Hz
 
+        self.utTransceiverType = "UT"
+        self.eNBTransceiverType = "AP"
+        self.relayTransceiverType = "FRS"
+
         # UL == DL: UE receives other UE's BCH compounds, wrong SINR calculations!
         assert self.ulCenterFreq != self.dlCenterFreq, 'UL frequency == DL frequency!'
 
