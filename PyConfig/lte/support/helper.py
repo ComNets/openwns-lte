@@ -80,6 +80,21 @@ def setupPhyDetail(simulator, freq, pathloss, bsTxPower, utTxPower, plmName, rxN
     #    ut.dll.ulscheduler.config.txScheduler.registry.powerCapabilitiesUT = utPower
     #    ut.phy.ofdmaStation.txPower = bsTxPower
 
+
+def getMaxNumberOfSubchannels(modes):
+    import lte.modes
+
+    nMax = 0
+    
+    for mt in modes:
+        modeCreator = lte.modes.getModeCreator(mt)
+        aMode = modeCreator(default = False)
+        n = aMode.plm.numSubchannels
+        if n > nMax:
+            nMax = n
+
+    return nMax
+
 def setupUL_APC(simulator, modes, alpha, pNull):
     import lte.modes
     import openwns.scheduler.APCStrategy
