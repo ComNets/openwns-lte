@@ -57,6 +57,8 @@ PhyMeasurementProbe::PhyMeasurementProbe(wns::ldk::fun::FUN* fun, const wns::pyc
     sinrProbe(NULL),
     sinrEstProbe(NULL),
     sinrEstErrProbe(NULL),
+    iEstErrProbe(NULL),
+    sEstErrProbe(NULL),
     rxPwrProbe(NULL),
     interfProbe(NULL),
     modulationProbe(NULL),
@@ -83,6 +85,8 @@ PhyMeasurementProbe::PhyMeasurementProbe(wns::ldk::fun::FUN* fun, const wns::pyc
     interferenceProbe        = new wns::probe::bus::ContextCollector(localIDs, "lte.Interference");
     sinrEstProbe = new wns::probe::bus::ContextCollector(localIDs, "lte.SINRest");
     sinrEstErrProbe = new wns::probe::bus::ContextCollector(localIDs, "lte.SINRestError");
+    iEstErrProbe = new wns::probe::bus::ContextCollector(localIDs, "lte.SestError");
+    sEstErrProbe = new wns::probe::bus::ContextCollector(localIDs, "lte.IestError");
     rxPwrProbe      = new wns::probe::bus::ContextCollector(localIDs, "lte.RxPower");
     txPwrProbe      = new wns::probe::bus::ContextCollector(localIDs, "lte.TxPower");
     interfProbe     = new wns::probe::bus::ContextCollector(localIDs, "lte.Interference");
@@ -127,26 +131,35 @@ PhyMeasurementProbe::processIncoming(const wns::ldk::CompoundPtr& compound)
 	return;
     }
 
-    // TODO: why should the default be 0dB?
-    // It may be misinterpreted if written to the probes.
-    wns::Ratio sinrEstimation = wns::Ratio::from_dB(0.0);
-    if (phyCommand->magic.estimatedSINR.I.get_mW() != 0.0) {
-	sinrEstimation = phyCommand->magic.estimatedSINR.C / phyCommand->magic.estimatedSINR.I;
+    double sinr = phyCommand->local.rxPowerMeasurementPtr->getSINR().get_dB();
+    double i = phyCommand->local.rxPowerMeasurementPtr->getInterferencePower().get_dBm();
+    double s = phyCommand->local.rxPowerMeasurementPtr->getRxPower().get_dBm();
+
+
+    if (phyCommand->magic.estimatedSINR.interference.get_mW() != 0.0) 
+    {
+	    wns::Ratio sinrEstimation = 
+            phyCommand->magic.estimatedSINR.carrier / phyCommand->magic.estimatedSINR.interference;
+
+        double estimationError = sinrEstimation.get_dB() - sinr;
+        double sEstimationError = phyCommand->magic.estimatedSINR.carrier.get_dBm() - s;
+        double iEstimationError = phyCommand->magic.estimatedSINR.interference.get_dBm() - i;
+
+        sinrEstProbe->put(compound, sinrEstimation.get_dB());
+        sinrEstErrProbe->put(compound, estimationError);
+        iEstErrProbe->put(compound, iEstimationError);
+        sEstErrProbe->put(compound, sEstimationError);
     }
 
-    double sinr = phyCommand->local.rxPowerMeasurementPtr->getSINR().get_dB();
-    double estimationError = sinrEstimation.get_dB() - sinr;
     double carrier = phyCommand->local.rxPowerMeasurementPtr->getRxPower().get_dBm();
     double interference = phyCommand->local.rxPowerMeasurementPtr->getInterferencePower().get_dBm();
 
     sinrProbe->put(compound, sinr, boost::make_tuple("Peer.NodeID", phyCommand->magic.source->getNodeID()));
     interferenceProbe->put(compound, interference, boost::make_tuple("Peer.NodeID", phyCommand->magic.source->getNodeID()));
     carrierProbe->put(compound, carrier, boost::make_tuple("Peer.NodeID", phyCommand->magic.source->getNodeID()));
-    sinrEstProbe->put(compound, sinrEstimation.get_dB());
-    sinrEstErrProbe->put(compound, estimationError);
-    rxPwrProbe->put(compound, phyCommand->local.rxPowerMeasurementPtr->getRxPower().get_dBm());
+    rxPwrProbe->put(compound, s);
     txPwrProbe->put(compound, phyCommand->magic.txp.get_dBm());
-    interfProbe->put(compound, phyCommand->local.rxPowerMeasurementPtr->getInterferencePower().get_dBm());
+    interfProbe->put(compound, i);
     iotProbe->put(compound, phyCommand->local.rxPowerMeasurementPtr->getIoT().get_dB());
     pathlossProbe->put(compound, phyCommand->magic.txp.get_dBm() - phyCommand->local.rxPowerMeasurementPtr->getRxPower().get_dBm());
     wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr = phyCommand->local.phyModePtr;

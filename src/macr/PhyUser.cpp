@@ -200,11 +200,11 @@ PhyUser::traceIncoming(wns::ldk::CompoundPtr compound, wns::service::phy::power:
     objdoc["Transmission"]["RxPower"] = wns::probe::bus::json::Number(rxPowerMeasurement->getRxPower().get_dBm());
     objdoc["Transmission"]["InterferencePower"] = wns::probe::bus::json::Number(rxPowerMeasurement->getInterferencePower().get_dBm());
 
-    if (myCommand->magic.estimatedSINR.C != wns::Power() &&
-        myCommand->magic.estimatedSINR.I != wns::Power())
+    if (myCommand->magic.estimatedSINR.carrier != wns::Power() &&
+        myCommand->magic.estimatedSINR.interference != wns::Power())
     {
-        objdoc["SINREst"]["C"] = wns::probe::bus::json::Number(myCommand->magic.estimatedSINR.C.get_dBm());
-        objdoc["SINREst"]["I"] = wns::probe::bus::json::Number(myCommand->magic.estimatedSINR.I.get_dBm());
+        objdoc["SINREst"]["C"] = wns::probe::bus::json::Number(myCommand->magic.estimatedSINR.carrier.get_dBm());
+        objdoc["SINREst"]["I"] = wns::probe::bus::json::Number(myCommand->magic.estimatedSINR.interference.get_dBm());
     }
 
     if (schedulerCommandReader_->commandIsActivated(compound->getCommandPool()))
@@ -308,11 +308,11 @@ PhyUser::onData(wns::osi::PDUPtr pdu, wns::service::phy::power::PowerMeasurement
 
 
         wns::Ratio sinrEstimation = wns::Ratio::from_dB(0.0);
-        if (myCommand->magic.estimatedSINR.I.get_mW() != 0.0){
-            sinrEstimation = myCommand->magic.estimatedSINR.C / myCommand->magic.estimatedSINR.I;
+        if (myCommand->magic.estimatedSINR.interference.get_mW() != 0.0){
+            sinrEstimation = myCommand->magic.estimatedSINR.carrier / myCommand->magic.estimatedSINR.interference;
             MESSAGE_BEGIN(NORMAL, logger, m, "DataInd: ");
-            m << "SINR Estimation was: (S=" << myCommand->magic.estimatedSINR.C
-              << ", I+N=" << myCommand->magic.estimatedSINR.I
+            m << "SINR Estimation was: (S=" << myCommand->magic.estimatedSINR.carrier
+              << ", I+N=" << myCommand->magic.estimatedSINR.interference
               << ", Error=" << sinrEstimation-rxPowerMeasurement->getSINR() << ")\n";
             MESSAGE_END();
         }

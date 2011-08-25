@@ -35,7 +35,7 @@
 #include <WNS/node/Node.hpp>
 #include <WNS/service/phy/ofdma/Pattern.hpp>
 #include <WNS/ldk/Command.hpp>
-#include <WNS/CandI.hpp>
+#include <WNS/scheduler/SchedulerTypes.hpp>
 
 #include <boost/function.hpp>
 
@@ -82,7 +82,7 @@ namespace lte {
 				magic.destination = NULL;
 				magic.remoteCache = NULL;
 				magic.txp = wns::Power();
-				magic.estimatedSINR = wns::CandI();
+				magic.estimatedSINR = wns::scheduler::ChannelQualityOnOneSubChannel();
                 magic.isRetransmission = false;
 			};
 			/** @brief completion of the wns::ldk::ErrorRateProvider Interface */
@@ -144,7 +144,7 @@ namespace lte {
 				wns::Power txp;
 				/** @brief For debugging purposes: Original SINR Estimation
 				 * (from grouper) */
-				wns::CandI estimatedSINR;
+				wns::scheduler::ChannelQualityOnOneSubChannel estimatedSINR;
                 bool isRetransmission;
 			} magic;
 

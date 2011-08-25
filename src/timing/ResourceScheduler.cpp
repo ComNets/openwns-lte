@@ -900,6 +900,17 @@ ResourceScheduler::finishCollection(int frameNr, simTimeType _startTime) {
                 // TxPower to used for sending
                 phyCommand->magic.txp         = timeSlotPtr->getTxPower(); 
                 phyCommand->local.subBand     = timeSlotPtr->subChannelIndex;
+                
+                if(timeSlotPtr->hasResourcesForUser(myOwnUserID))
+                    phyCommand->magic.estimatedSINR = timeSlotPtr->getEstimatedCQI(myOwnUserID);
+                
+                if(timeSlotPtr->hasResourcesForUser(user))
+                {
+                    assure(!timeSlotPtr->hasResourcesForUser(myOwnUserID), 
+                        "Can't have resources for Tx and Rx");
+
+                    phyCommand->magic.estimatedSINR = timeSlotPtr->getEstimatedCQI(user);
+                }
 
                 // just as placeholder; the real phyModes are inside
                 phyCommand->local.phyModePtr  = timeSlotPtr->physicalResources[0].getPhyMode(); 

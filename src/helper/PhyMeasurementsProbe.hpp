@@ -65,6 +65,8 @@ namespace lte { namespace helper {
 	    wns::probe::bus::ContextCollector* interferenceProbe;
 	    wns::probe::bus::ContextCollector* sinrEstProbe;
 	    wns::probe::bus::ContextCollector* sinrEstErrProbe;
+	    wns::probe::bus::ContextCollector* iEstErrProbe;
+	    wns::probe::bus::ContextCollector* sEstErrProbe;
 	    wns::probe::bus::ContextCollector* rxPwrProbe;
 	    wns::probe::bus::ContextCollector* txPwrProbe;
 	    wns::probe::bus::ContextCollector* interfProbe;

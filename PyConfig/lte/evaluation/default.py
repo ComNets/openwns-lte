@@ -167,6 +167,42 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
     downlink.appendChildren(PDF(name = sourceName, minXValue = 0.0, maxXValue=70.0, resolution=100, description = 'Interference over Thermal (IoT) [dB]'))
     uplink.appendChildren(PDF(name = sourceName, minXValue = 0.0, maxXValue=70.0, resolution=100, description = 'Interference over Thermal (IoT) [dB]'))
 
+    sourceName = probeNamePrefix + 'SINRestError'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    s = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
+    downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="DL_CenterCell"))
+    uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="UL_CenterCell"))
+    downlink.appendChildren(PDF(name = sourceName, minXValue = -30.0, maxXValue=30.0, resolution=600, description = 'SINR Estimation Error [dB]'))
+    uplink.appendChildren(PDF(name = sourceName, minXValue = -30.0, maxXValue=30.0, resolution=600, description = 'SINR Estimation Error [dB]'))
+
+    sourceName = probeNamePrefix + 'IestError'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    s = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
+    downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="DL_CenterCell"))
+    uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="UL_CenterCell"))
+    downlink.appendChildren(PDF(name = sourceName, minXValue = -30.0, maxXValue=30.0, resolution=600, description = 'Interference Estimation Error [dBm]'))
+    uplink.appendChildren(PDF(name = sourceName, minXValue = -30.0, maxXValue=30.0, resolution=600, description = 'Interference Estimation Error [dBm]'))
+
+    sourceName = probeNamePrefix + 'SestError'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    s = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
+    downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="DL_CenterCell"))
+    uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="UL_CenterCell"))
+    downlink.appendChildren(PDF(name = sourceName, minXValue = -30.0, maxXValue=30.0, resolution=600, description = 'Carrier Estimation Error [dBm]'))
+    uplink.appendChildren(PDF(name = sourceName, minXValue = -30.0, maxXValue=30.0, resolution=600, description = 'Carrier Estimation Error [dBm]'))
+
+    sourceName = probeNamePrefix + 'SINRest'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    s = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
+    downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="DL_CenterCell"))
+    uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="UL_CenterCell"))
+    downlink.appendChildren(PDF(name = sourceName, minXValue = -20.0, maxXValue=80.0, resolution=1000, description = 'SINR Estimation [dB]'))
+    uplink.appendChildren(PDF(name = sourceName, minXValue = -20.0, maxXValue=80.0, resolution=1000, description = 'SINR Estimation Error [dB]'))
+
     sourceName = probeNamePrefix + 'PhyMode'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
     node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
