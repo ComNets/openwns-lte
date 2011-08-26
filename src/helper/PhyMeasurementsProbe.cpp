@@ -85,8 +85,8 @@ PhyMeasurementProbe::PhyMeasurementProbe(wns::ldk::fun::FUN* fun, const wns::pyc
     interferenceProbe        = new wns::probe::bus::ContextCollector(localIDs, "lte.Interference");
     sinrEstProbe = new wns::probe::bus::ContextCollector(localIDs, "lte.SINRest");
     sinrEstErrProbe = new wns::probe::bus::ContextCollector(localIDs, "lte.SINRestError");
-    iEstErrProbe = new wns::probe::bus::ContextCollector(localIDs, "lte.SestError");
-    sEstErrProbe = new wns::probe::bus::ContextCollector(localIDs, "lte.IestError");
+    sEstErrProbe = new wns::probe::bus::ContextCollector(localIDs, "lte.SestError");
+    iEstErrProbe = new wns::probe::bus::ContextCollector(localIDs, "lte.IestError");
     rxPwrProbe      = new wns::probe::bus::ContextCollector(localIDs, "lte.RxPower");
     txPwrProbe      = new wns::probe::bus::ContextCollector(localIDs, "lte.TxPower");
     interfProbe     = new wns::probe::bus::ContextCollector(localIDs, "lte.Interference");
