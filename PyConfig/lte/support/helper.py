@@ -195,65 +195,112 @@ def setupSchedulerDetail(simulator, sched, direction, modes):
             strat = Strat(useHARQ = True)
             strat.setParentLogger(fu.strategy.logger)
             fu.strategy.subStrategies[i] = strat
-    
-def setupFTFading(simulator, scenario, modes):
 
+def setupFastFading(scenario, modes, rxAntennas):
+    setupULFastFading(scenario, modes, rxAntennas)
+    setupDLFastFading(scenario, modes, rxAntennas)
+
+def setupULFastFading(scenario, modes, rxAntennas):
+    setupFastFadingDetails(scenario, modes, rxAntennas, "UL")
+
+def setupDLFastFading(scenario, modes, rxAntennas):
+    setupFastFadingDetails(scenario, modes, rxAntennas, "DL")
+    
+def setupFastFadingDetails(scenario, modes, rxAntennas, direction):
+
+    
     if scenario == "InH":
-        setupFTFadingDetails(simulator, modes, 3.0, 3.4E9)
+        speed = 3.0
+        freq = 3.4E9
     elif scenario == "UMa":
-        setupFTFadingDetails(simulator, modes, 30.0, 2.0E9)
+        speed = 30.0
+        freq = 2.0E9
     elif scenario == "UMi":
-        setupFTFadingDetails(simulator, modes, 3.0, 2.5E9)
+        speed = 3.0
+        freq = 2.5E9
     elif scenario == "RMa":
-        setupFTFadingDetails(simulator, modes, 120.0, 0.8E9)
+        speed = 120.0
+        freq = 0.8E9
     elif scenario == "SMa":
-        setupFTFadingDetails(simulator, modes, 90.0, 2.0E9)
+        speed = 90.0
+        freq = 2.0E9
     else:
         raise "Unknown scenario %s" % scenario      
 
+    try:
+        import imtaphy
+        setupIMTAPhyFastFadingDetails(modes, scenario, speed, freq, rxAntennas, direction)
+    except ImportError:
+        print "IMTAPhy modul not available, using Jakes FastFading"
+        setupJakesFastFadingDetails(modes, speed, freq, direction)
+    
+def setupIMTAPhyFastFadingDetails(modes, scenario, speed, freq, rxAntennas, direction):
+    import rise.scenario.FastFading
+    import rise.scenario.Propagation
+    import lte.modes
+    from imtaphy.SCM import SISORiseWrapper, SIMORiseWrapper, NoRiseWrapper
 
-def setupFTFadingDetails(simulator, modes, speed, freq):
-    for mode in modes:
-        modeCreator = lte.modes.getModeCreator(mode)
-        aMode = modeCreator(default = False)
+    modeCreator = lte.modes.getModeCreator(modes[0])
+    aMode = modeCreator(default = False)
 
-        dlFrequency = freq
-        if aMode.modeName.find("tdd") >= 0:
-            ulFrequency = dlFrequency
-        else:
-            ulFrequency = dlFrequency - 0.1E9
-      
-        speed = (speed * 1000.0) / 3600.0
-        ulDoppler = speed / 3E8 * (ulFrequency)
-        dlDoppler = speed / 3E8 * (dlFrequency)
-        
-        import rise.scenario.FTFading
-        
-        bsNodes = simulator.simulationModel.getNodesByProperty("Type", "eNB")
-        utNodes = simulator.simulationModel.getNodesByProperty("Type", "UE")
+    bsType = aMode.plm.phy.eNBTransceiverType
+    utType = aMode.plm.phy.utTransceiverType
 
-        assert len(bsNodes) > 0, "No BS in scenario. First setup your scenario!"
-        
-        for node in bsNodes:
-            node.phys[aMode.modeName].ofdmaStation.receiver[0].FTFadingStrategy = rise.scenario.FTFading.FTFadingFneighbourCorrelation(
+    nsc = lte.support.helper.getMaxNumberOfSubchannels(modes)
+    prop = rise.scenario.Propagation.PropagationSingleton.getInstance()
+
+    if rxAntennas == 1:
+        RiseWrapper = SISORiseWrapper
+    elif rxAntennas == 2:
+        RiseWrapper = SIMORiseWrapper
+    else:
+        assert false, "Only 1 or 2 antennas supported"
+
+    if direction == "UL":
+        prop.setPair(utType, bsType).fastFading = RiseWrapper(scenario, speed, freq, nsc, direction)
+    if direction == "DL":
+        prop.setPair(bsType, utType).fastFading = RiseWrapper(scenario, speed, freq, nsc, direction)
+
+def setupJakesFastFadingDetails(modes, speed, freq, direction):
+    import rise.scenario.FastFading
+    import rise.scenario.Propagation
+    import lte.modes
+
+    numSC = getMaxNumberOfSubchannels(modes)
+
+    modeCreator = lte.modes.getModeCreator(modes[0])
+    aMode = modeCreator(default = False)
+
+    dlFrequency = freq
+    if aMode.modeName.find("tdd") >= 0:
+        ulFrequency = dlFrequency
+    else:
+        ulFrequency = dlFrequency - 0.1E9
+
+    if direction == "DL":
+        frequency = dlFrequency
+    if direction == "UL":
+        frequency = ulFrequency
+  
+    speed = (speed * 1000.0) / 3600.0
+    doppler = speed / 3E8 * (frequency)
+            
+    ftf = rise.scenario.FastFading.FTFadingFneighbourCorrelation(
                     samplingTime = 0.001,
                     neighbourCorrelationFactor = 0.8,
-                    dopFreq = ulDoppler,
-                    numWaves = 100,
-                    numSubCarriers =
-                    node.phys[mode].ofdmaStation.numberOfSubCarrier)
-            node.phys[aMode.modeName].ofdmaStation.receiver[0].doMeasurementUpdates = True
-            node.phys[aMode.modeName].ofdmaStation.receiver[0].measurementUpdateInterval = 0.001
+                    dopFreq = doppler,
+                    numWaves = numSC,
+                    numSubCarriers = numSC)
 
-        for node in utNodes:
-            node.phys[aMode.modeName].ofdmaStation.receiver[0].FTFadingStrategy = rise.scenario.FTFading.FTFadingFneighbourCorrelation(
-                    samplingTime = 0.001,
-                    neighbourCorrelationFactor = 0.8,
-                    dopFreq = dlDoppler,
-                    numWaves = 100,
-                    numSubCarriers = node.phys[mode].ofdmaStation.numberOfSubCarrier)
-            node.phys[aMode.modeName].ofdmaStation.receiver[0].doMeasurementUpdates = True
-            node.phys[aMode.modeName].ofdmaStation.receiver[0].measurementUpdateInterval = 0.001
+    bsType = aMode.plm.phy.eNBTransceiverType
+    utType = aMode.plm.phy.utTransceiverType
+
+    prop = rise.scenario.Propagation.PropagationSingleton.getInstance()
+    if direction == "UL":
+        prop.setPair(utType, bsType).fastFading = rise.scenario.FastFading.Jakes(ftf)
+    if direction == "DL":
+        prop.setPair(bsType, utType).fastFading = rise.scenario.FastFading.Jakes(ftf)
+
 
 try:
     import applications.clientSessions
