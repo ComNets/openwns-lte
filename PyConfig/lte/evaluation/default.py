@@ -173,8 +173,8 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
     s = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
     downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="DL_CenterCell"))
     uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="UL_CenterCell"))
-    downlink.appendChildren(PDF(name = sourceName, minXValue = -30.0, maxXValue=30.0, resolution=600, description = 'SINR Estimation Error [dB]'))
-    uplink.appendChildren(PDF(name = sourceName, minXValue = -30.0, maxXValue=30.0, resolution=600, description = 'SINR Estimation Error [dB]'))
+    downlink.appendChildren(PDF(name = sourceName, minXValue = -100.0, maxXValue=100.0, resolution=2000, description = 'SINR Estimation Error [dB]'))
+    uplink.appendChildren(PDF(name = sourceName, minXValue = -100.0, maxXValue=100.0, resolution=2000, description = 'SINR Estimation Error [dB]'))
 
     sourceName = probeNamePrefix + 'IestError'
     node = openwns.evaluation.createSourceNode(sim, sourceName)

@@ -191,10 +191,23 @@ def setupSchedulerDetail(simulator, sched, direction, modes):
     
         fu.strategy.dsastrategy = DSA(oneUserOnOneSubChannel = True)
         fu.strategy.dsafbstrategy = DSA(oneUserOnOneSubChannel = True)
-        for i in xrange(3, 8):
+        for i in xrange(4, 8):
             strat = Strat(useHARQ = True)
             strat.setParentLogger(fu.strategy.logger)
             fu.strategy.subStrategies[i] = strat
+
+        # HARQ needs lower priority with Persistent VoIP
+        if sched == "PersistentVoIP":
+            fu. strategy.subStrategies[1] = openwns.Scheduler.Disabled()
+            if direction == "DL":
+                HARQStrat = openwns.Scheduler.HARQRetransmission
+            else:
+                HARQStrat = openwns.Scheduler.HARQUplinkRetransmission
+
+            strat = HARQStrat()
+            strat.setParentLogger(fu.strategy.logger)
+            fu.strategy.subStrategies[7] = strat
+        
 
 def setupFastFading(scenario, modes, rxAntennas):
     setupULFastFading(scenario, modes, rxAntennas)

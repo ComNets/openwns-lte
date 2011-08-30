@@ -90,12 +90,8 @@ class UT:
         flowHandler.taskID = self.taskID
         fun.add(flowHandler)
 
-        flowHandlerFlowSep = self._setupUnacknowledgedModePerFlow(fun, mode,
-                                                                  validFlowNeeded = False,
-                                                                  name="FlowHandler.um",
-                                                                  commandName = "um",
-                                                                  separatorName="flowHandlerFlowSeparator")
-        fun.add(flowHandlerFlowSep)
+        flowHandlerShortcut = lte.dll.controlplane.flowmanager.ShortcutUT(mode)
+        fun.add(flowHandlerShortcut)
 
         controlPlaneDispatcher = openwns.ldk.Multiplexer.Dispatcher(
             opcodeSize = 0,
@@ -157,8 +153,7 @@ class UT:
 
                 (bch, controlPlaneDispatcher),
 
-                (flowHandler, flowHandlerFlowSep),
-                (flowHandlerFlowSep, controlPlaneDispatcher),
+                (flowHandler, flowHandlerShortcut),
 
                 (rrHandler, rrHandlerShortcut),
                 (rrHandler, rachDispatcher),

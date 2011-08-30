@@ -89,3 +89,39 @@ class FlowHandlerBS(FlowHandler):
     def __init__(self, modeName, functionalUnitName, commandName, parentLogger):
         super(FlowHandlerBS,self).__init__(modeName, functionalUnitName, commandName, parentLogger)
 
+class ShortcutUT(openwns.FUN.FunctionalUnit, lte.modes.hasModeName.HasModeName):
+
+    __plugin__ = None
+    delay = None
+    offset = None
+    logger = None
+
+    def __init__(self, mode):
+        openwns.FUN.FunctionalUnit.__init__(self, 
+            functionalUnitName=mode.modeName+mode.separator+"flowhandlershortcut", 
+            commandName = mode.modeBase+mode.separator+"flowhandlershortcut")
+        self.setMode(mode)
+        self.__plugin__ = "lte.controlplane.FlowHandler.ShortcutUT"
+
+        self.delay = openwns.distribution.Fixed(0.001)
+        self.offset = 0.0
+        self.logger = openwns.logger.Logger("LTE", "FlowHandlerShortcut.UT", True, mode.logger)
+
+class ShortcutBS(openwns.FUN.FunctionalUnit, lte.modes.hasModeName.HasModeName):
+
+    __plugin__ = None
+    delay = None
+    offset = None
+    logger = None
+
+    def __init__(self, mode):
+        openwns.FUN.FunctionalUnit.__init__(self, 
+            functionalUnitName = mode.modeName+mode.separator+"flowhandlershortcut", 
+            commandName = mode.modeBase+mode.separator+"flowhandlershortcut")
+        self.setMode(mode)
+        self.__plugin__ = "lte.controlplane.FlowHandler.ShortcutBS"
+
+        self.delay = openwns.distribution.Fixed(0.001)
+        self.offset = 0.0
+        self.logger = openwns.logger.Logger("LTE", "FlowHandlerShortcut.BS", True, mode.logger)
+
