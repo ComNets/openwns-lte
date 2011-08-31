@@ -51,6 +51,11 @@ class BS(openwns.node.Node, scenarios.interfaces.INode):
 
         self.dll = lte.dll.component.eNBLayer2(node = self, name = "eNB", modetypes = config.modes, parentLogger = self.logger)
 
+        # Enable header compression
+        if config.useApp:
+            self.dll.headerCompression.reduction = 246
+            self.dll.headerCompression.byteAlign = True
+
         self.mobility = rise.Mobility.Component(node = self, 
                                                 name = "eNBMobility",
                                                 mobility = mobility)

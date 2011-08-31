@@ -42,6 +42,7 @@ import dll.Services
 import openwns.FUN
 import openwns.Tools
 import openwns.FlowSeparator
+from openwns.Tools import Compressor
 
 class eNBLayer2( dll.Layer2.Layer2 ):
 
@@ -69,6 +70,11 @@ class eNBLayer2( dll.Layer2.Layer2 ):
                                               windowSize = 1.0,
                                               commandName = 'throughput')
         self.fun.add(throughput)
+
+        # Set values in nodes to enable. Done automatically if Application modul
+        # is used (-246 bit for RTP/UDP/IP header)
+        self.headerCompression = Compressor(0, byteAlign = False)
+        self.fun.add(self.headerCompression)
 
         upperSynchronizer = openwns.Tools.Synchronizer(commandName='upperSynchronizer')
         self.fun.add(upperSynchronizer)
@@ -117,7 +123,8 @@ class eNBLayer2( dll.Layer2.Layer2 ):
 
         connectFUs([
                 (upperConvergence, throughput),
-                (throughput, rlc),
+                (throughput, self.headerCompression),
+                (self.headerCompression, rlc),
                 (rlc, upperSynchronizer),
                 (upperSynchronizer, upperFlowGate),
                 (upperFlowGate, arqFlowGate),
@@ -191,6 +198,11 @@ class ueLayer2( dll.Layer2.Layer2 ):
                                               commandName = 'throughput')
         self.fun.add(throughput)
 
+        # Set values in nodes to enable. Done automatically if Application modul
+        # is used (-246 bit for RTP/UDP/IP header)
+        self.headerCompression = Compressor(0, byteAlign = False)
+        self.fun.add(self.headerCompression)
+
         upperSynchronizer = openwns.Tools.Synchronizer(commandName='upperSynchronizer')
         self.fun.add(upperSynchronizer)
 
@@ -238,7 +250,8 @@ class ueLayer2( dll.Layer2.Layer2 ):
 
         connectFUs([
                 (upperConvergence, throughput),
-                (throughput, rlc),
+                (throughput, self.headerCompression),
+                (self.headerCompression, rlc),
                 (rlc, upperSynchronizer),
                 (upperSynchronizer, upperFlowGate),
                 (upperFlowGate, arqFlowGate),

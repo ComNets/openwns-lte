@@ -131,6 +131,10 @@ class AppUE(UE):
 
         domainName = "UT" + str(self.nodeID) + ".lte.wns.org"
         
+        # Enable header compression
+        self.dll.headerCompression.reduction = 246
+        self.dll.headerCompression.byteAlign = True
+
         import applications
         import applications.component
         self.load = applications.component.Client(self, domainName + ".applications", self.logger)

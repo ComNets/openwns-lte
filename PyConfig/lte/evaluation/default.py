@@ -234,5 +234,42 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
                                      minXValue = 0.0,
                                      maxXValue = 1.0,
                                      resolution = 100))
+
+    sourceName = 'scheduler.harq.effSINR'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
+
+    node = node.appendChildren(Accept(by='nodeID', ifIn = loggingStations, suffix='CenterCell'))
+    dl = node.appendChildren(Accept(by='nodeID', ifIn = ueIdList, suffix='DL_CenterCell'))
+    ul = node.appendChildren(Accept(by='nodeID', ifIn = eNBIdList, suffix='UL_CenterCell'))
+    node.getLeafs().appendChildren(PDF(name = sourceName,
+                                     description = 'Effective SINR',
+                                     minXValue = -50,
+                                     maxXValue = 100,
+                                     resolution = 1500))
     
+    dl.appendChildren(Accept(by = 'decoded', ifIn = [1], suffix='Decoded'))
+    dl.appendChildren(Accept(by = 'decoded', ifIn = [0], suffix='Undecoded'))
+    ul.appendChildren(Accept(by = 'decoded', ifIn = [1], suffix='Decoded'))
+    ul.appendChildren(Accept(by = 'decoded', ifIn = [0], suffix='Undecoded'))
+
+    node.getLeafs().appendChildren(PDF(name = sourceName,
+                                 description = 'Effective SINR',
+                                 minXValue = -50,
+                                 maxXValue = 100,
+                                 resolution = 1500))
+
+    sourceName = 'scheduler.harq.retransmissions'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
+
+    node = node.appendChildren(Accept(by='nodeID', ifIn = loggingStations, suffix='CenterCell'))
+    dl = node.appendChildren(Accept(by='nodeID', ifIn = ueIdList, suffix='UL_CenterCell'))
+    ul = node.appendChildren(Accept(by='nodeID', ifIn = eNBIdList, suffix='DL_CenterCell'))
+    node.getLeafs().appendChildren(PDF(name = sourceName,
+                                     description = 'HARQ Retransmissions',
+                                     minXValue = 0,
+                                     maxXValue = 10,
+                                     resolution = 10))
+
 
