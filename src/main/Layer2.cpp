@@ -212,6 +212,3 @@ Layer2::onWorldCreated()
 
 }
 
-
-void Layer2::onShutdown()
-{}

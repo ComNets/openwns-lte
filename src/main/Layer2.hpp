@@ -60,10 +60,6 @@ namespace lte {
        * destinations */
       virtual void onWorldCreated();
 
-      /** @brief Called before EventScheduler is really stopped */
-      virtual void onShutdown();
-      //@}
-
     private:
       Layer2(const Layer2&);	//!< disallow copy constructor
       Layer2& operator=(const Layer2&); //!< disallow assignment
