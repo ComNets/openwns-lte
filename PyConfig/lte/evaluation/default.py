@@ -51,9 +51,7 @@ def installModeIndependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueI
             bs.getLeafs().appendChildren(SeparateOnlyBSs())
             uts=ut.getLeafs().appendChildren(SeparateOnlyUTs())
             bs.getLeafs().appendChildren(Separate(by = 'MAC.Id', forAll = eNBIdList, format='BS_MAC.Id%d'))
-            ut.getLeafs().appendChildren(Separate(by = 'MAC.Id', forAll = ueIdList, format='UT_MAC.Id%d'))
             bs.getLeafs().appendChildren(Moments(name = sourceName, description = 'Top %s %s throughput [Bit/s]' % (direction, what)))
-            ut.getLeafs().appendChildren(Moments(name = sourceName, description = 'Top %s %s throughput [Bit/s]' % (direction, what)))
 
             if what == "bit":
                 uts.appendChildren(PDF(name = sourceName, minXValue = 0.0, maxXValue=maxThroughputPerUE, resolution=1000) )

@@ -1017,7 +1017,7 @@ ResourceScheduler::probeResourceUsage(wns::scheduler::SchedulingMapPtr schedulin
                 numResources++;
             }
             
-            if(!timeSlotPtr->isEmpty() && timeSlotPtr->countScheduledCompounds() > 0)
+            if(!timeSlotPtr->isEmpty())
                usedResources++;
         }
     }
