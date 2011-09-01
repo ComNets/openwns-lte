@@ -111,9 +111,6 @@ namespace lte { namespace timing {
             wns::scheduler::ChannelQualityOnOneSubChannel
             estimateRxSINROf(const wns::scheduler::UserID user, int slot = 0);
 
-            wns::Power
-            estimateInterferenceStdDeviation(const wns::scheduler::UserID user);
-
             wns::scheduler::Bits
             getQueueSizeLimitPerConnection();
 

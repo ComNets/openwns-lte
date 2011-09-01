@@ -454,11 +454,6 @@ RegistryProxy::estimateRxSINROf(const UserID user, int) {
     return wns::scheduler::ChannelQualityOnOneSubChannel(pathloss, interference, rxPower);
 }
 
-wns::Power
-RegistryProxy::estimateInterferenceStdDeviation(const UserID /* user */) {
-    return wns::Power::from_mW(0.0);
-}
-
 Bits
 RegistryProxy::getQueueSizeLimitPerConnection() {
     return queueSize;
