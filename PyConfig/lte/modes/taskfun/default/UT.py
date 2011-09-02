@@ -177,7 +177,7 @@ class UT:
 
         group = 1
 
-        phyModeMapping = lte.llmapping.default.LTEMapper(mode)
+        phyModeMapping = lte.llmapping.default.LTEMapper.getInstance(mode)
 
         powerLimit = mode.plm.phy.txPwrUT.maxOverall
 
@@ -237,7 +237,7 @@ class UT:
 
     def _setupPhyMeasurements(self, fun, mode):
 
-        phyModeMapping = lte.llmapping.default.LTEMapper(mode)
+        phyModeMapping = lte.llmapping.default.LTEMapper.getInstance(mode)
         phyMeasurement = lte.dll.measurements.PhyMeasurement(mode, phyModeMapping)
         return phyMeasurement
 

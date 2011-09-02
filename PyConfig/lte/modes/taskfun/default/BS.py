@@ -178,7 +178,7 @@ class BS:
 
         group = 1
 
-        phyModeMapping = lte.llmapping.default.LTEMapper(mode)
+        phyModeMapping = lte.llmapping.default.LTEMapper.getInstance(mode)
 
         powerLimit = mode.plm.phy.txPwrBS.maxOverall
     
@@ -195,7 +195,7 @@ class BS:
 
         group = 1
 
-        phyModeMapping = lte.llmapping.default.LTEMapper(mode)
+        phyModeMapping = lte.llmapping.default.LTEMapper.getInstance(mode)
 
         resourceSchedulerRX = lte.dll.resourceScheduler.BS(mode,
                                                            rxFUName, rxTaskName,
@@ -249,7 +249,7 @@ class BS:
 
     def _setupPhyMeasurements(self, fun, mode):
 
-        phyModeMapping = lte.llmapping.default.LTEMapper(mode)
+        phyModeMapping = lte.llmapping.default.LTEMapper.getInstance(mode)
         phyMeasurement = lte.dll.measurements.PhyMeasurement(mode, phyModeMapping)
         return phyMeasurement
 

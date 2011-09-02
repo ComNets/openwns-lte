@@ -30,7 +30,22 @@ from openwns.interval import Interval
 
 LTELowestPhyMode = PhyMode("QPSK-lte_m_2_tbs_1384") # this is the PhyMode for MAP/BCH/RACH etc
 class LTEMapper(PhyModeMapper):
+    ltemapper = None
+    count = 0
+
+    @staticmethod
+    def getInstance(mode, tolerablePER=0.1):
+        if(LTEMapper.ltemapper == None):
+            LTEMapper.ltemapper = LTEMapper(mode, tolerablePER)
+        assert LTEMapper.ltemapper.subCarriersPerSubChannel == mode.plm.phy.phyResourceSize, "Mode mismatch"
+        assert LTEMapper.ltemapper.tolerablePER == tolerablePER, "Tolerable PER mismatch"
+        return LTEMapper.ltemapper
+
     def __init__(self, mode, tolerablePER=0.1):
+        LTEMapper.count = LTEMapper.count + 1
+        if(LTEMapper.count > 1):
+            print "More than one PhyModeMapper instance, is this intended?"
+        self.tolerablePER = tolerablePER
         symbolDuration = mode.plm.mac.symbolLength + mode.plm.mac.cpLength
         subCarriersPerSubChannel = mode.plm.phy.phyResourceSize
         PhyModeMapper.__init__(self, symbolDuration, subCarriersPerSubChannel)

@@ -149,9 +149,14 @@ class eNBLayer2( dll.Layer2.Layer2 ):
         self.controlServices.append(p)
 
     def _setupManagementServicesPerMode(self, mode):
+
+        pmm = lte.llmapping.default.LTEMapper.getInstance(mode)
+        tolerablePER = pmm.tolerablePER;
+        esm = dll.Services.MIESM(pmm, tolerablePER)
         i = dll.Services.InterferenceCache("INTERFERENCECACHE"+mode.modeName,
                                            alphaLocal = 1.0,
                                            alphaRemote= 1.0,
+                                           esm = esm,
                                            parent = mode.logger)
         # If we have no value, we assume that we are located at the cell edge
         # and have an SINR of 1dB with interference set to background noise
@@ -280,9 +285,13 @@ class ueLayer2( dll.Layer2.Layer2 ):
         self.controlServices.append(self.bchService)
 
     def _setupManagementServicesPerMode(self, mode):
+        pmm = lte.llmapping.default.LTEMapper.getInstance(mode)
+        tolerablePER = pmm.tolerablePER;
+        esm = dll.Services.MIESM(pmm, tolerablePER)
         i = dll.Services.InterferenceCache("INTERFERENCECACHE"+mode.modeName,
                                            alphaLocal = 1.0,
                                            alphaRemote= 1.0,
+                                           esm = esm,
                                            parent = mode.logger)
         # If we have no value, we assume that we are located at the cell edge
         # and have an SINR of 1dB with interference set to background noise

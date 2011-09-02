@@ -454,6 +454,22 @@ RegistryProxy::estimateRxSINROf(const UserID user, int) {
     return wns::scheduler::ChannelQualityOnOneSubChannel(pathloss, interference, rxPower);
 }
 
+wns::Ratio
+RegistryProxy::getEffectiveUplinkSINR(const wns::scheduler::UserID sender, 
+    const std::set<unsigned int>& scs, 
+    const wns::Power& txPower)
+{
+
+}
+
+wns::Ratio
+RegistryProxy::getEffectiveDownlinkSINR(const wns::scheduler::UserID receiver, 
+    const std::set<unsigned int>& scs, 
+    const wns::Power& txPower)
+{
+
+}
+
 Bits
 RegistryProxy::getQueueSizeLimitPerConnection() {
     return queueSize;

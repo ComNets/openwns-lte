@@ -111,6 +111,16 @@ namespace lte { namespace timing {
             wns::scheduler::ChannelQualityOnOneSubChannel
             estimateRxSINROf(const wns::scheduler::UserID user, int slot = 0);
 
+            wns::Ratio
+            getEffectiveUplinkSINR(const wns::scheduler::UserID sender, 
+                const std::set<unsigned int>& scs, 
+                const wns::Power& txPower);
+
+            wns::Ratio
+            getEffectiveDownlinkSINR(const wns::scheduler::UserID receiver, 
+                const std::set<unsigned int>& scs, 
+                const wns::Power& txPower);
+
             wns::scheduler::Bits
             getQueueSizeLimitPerConnection();
 
