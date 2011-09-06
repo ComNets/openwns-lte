@@ -251,8 +251,8 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
     node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
 
     node = node.appendChildren(Accept(by='nodeID', ifIn = loggingStations, suffix='CenterCell'))
-    dl = node.appendChildren(Accept(by='nodeID', ifIn = ueIdList, suffix='DL_CenterCell'))
-    ul = node.appendChildren(Accept(by='nodeID', ifIn = eNBIdList, suffix='UL_CenterCell'))
+    dl = node.appendChildren(Accept(by='nodeID', ifIn = ueIdList, suffix='UL_CenterCell'))
+    ul = node.appendChildren(Accept(by='nodeID', ifIn = eNBIdList, suffix='DL_CenterCell'))
     node.getLeafs().appendChildren(PDF(name = sourceName,
                                      description = 'Effective SINR',
                                      minXValue = -50,
