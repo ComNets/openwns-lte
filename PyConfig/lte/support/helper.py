@@ -314,6 +314,32 @@ def setupJakesFastFadingDetails(modes, speed, freq, direction):
     if direction == "DL":
         prop.setPair(bsType, utType).fastFading = rise.scenario.FastFading.Jakes(ftf)
 
+def disablePhyUnicastTransmission(simulator, modes):
+    disablePhyUnicastULTransmission(simulator, modes)
+    disablePhyUnicastDLTransmission(simulator, modes)
+
+def disablePhyUnicastULTransmission(simulator, modes):
+    disablePhyUnicastTransmissionDetail(simulator, modes, "UL")
+
+def disablePhyUnicastDLTransmission(simulator, modes):
+    disablePhyUnicastTransmissionDetail(simulator, modes, "DL")
+
+def disablePhyUnicastTransmissionDetail(simulator, modes, direction):
+    if direction == "DL":
+        nodes = simulator.simulationModel.getNodesByProperty("Type", "eNB")
+    elif direction == "UL":
+        nodes = simulator.simulationModel.getNodesByProperty("Type", "UE")
+    else:
+        assert false, "Unknown direction"
+
+    for node in nodes:
+        fun = node.dll.fun.functionalUnit
+        for mt in modes:
+            modeCreator = lte.modes.getModeCreator(mt)
+            aMode = modeCreator(default = False)
+            for fu in fun:
+                if aMode.modeBase + aMode.separator + "phyUser" in fu.commandName:    
+                    fu.sendAllBroadcast = True
 
 try:
     import applications.clientSessions

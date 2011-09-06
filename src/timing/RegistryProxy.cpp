@@ -455,19 +455,36 @@ RegistryProxy::estimateRxSINROf(const UserID user, int) {
 }
 
 wns::Ratio
-RegistryProxy::getEffectiveUplinkSINR(const wns::scheduler::UserID sender, 
+RegistryProxy::getEffectiveUplinkSINR(const wns::scheduler::UserID user, 
     const std::set<unsigned int>& scs, 
     const wns::Power& txPower)
 {
+    std::set<unsigned int>::iterator iter;
 
+    std::map<unsigned int, wns::Power> interferences;
+
+    std::set<unsigned int>::const_iterator it;
+    for(it = scs.begin(); it != scs.end(); it++)
+    {
+        interferences[*it] = iCache->getAveragedInterference(getMyUserID().getNode(), *it);
+    }
+    dll::services::management::InterferenceCache* remoteCache =
+        layer2->
+        getStationManager()->
+        getStationByNode(user.getNode())->
+        getManagementService<dll::services::management::InterferenceCache>(
+            "INTERFERENCECACHE"+modeBase);
+
+    return remoteCache->getEffectiveSINR(getMyUserID().getNode(), scs, txPower, interferences);
 }
 
 wns::Ratio
-RegistryProxy::getEffectiveDownlinkSINR(const wns::scheduler::UserID receiver, 
+RegistryProxy::getEffectiveDownlinkSINR(const wns::scheduler::UserID user, 
     const std::set<unsigned int>& scs, 
     const wns::Power& txPower)
 {
-
+    /* TODO: Need better interference estimation in DL. E.g. use MAPS and BCH */
+    return iCache->getEffectiveSINR(user.getNode(), scs, txPower);
 }
 
 Bits

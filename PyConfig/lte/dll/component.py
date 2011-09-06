@@ -151,8 +151,7 @@ class eNBLayer2( dll.Layer2.Layer2 ):
     def _setupManagementServicesPerMode(self, mode):
 
         pmm = lte.llmapping.default.LTEMapper.getInstance(mode)
-        tolerablePER = pmm.tolerablePER;
-        esm = dll.Services.MIESM(pmm, tolerablePER)
+        esm = dll.Services.MIESM(pmm)
         i = dll.Services.InterferenceCache("INTERFERENCECACHE"+mode.modeName,
                                            alphaLocal = 1.0,
                                            alphaRemote= 1.0,
@@ -286,8 +285,7 @@ class ueLayer2( dll.Layer2.Layer2 ):
 
     def _setupManagementServicesPerMode(self, mode):
         pmm = lte.llmapping.default.LTEMapper.getInstance(mode)
-        tolerablePER = pmm.tolerablePER;
-        esm = dll.Services.MIESM(pmm, tolerablePER)
+        esm = dll.Services.MIESM(pmm)
         i = dll.Services.InterferenceCache("INTERFERENCECACHE"+mode.modeName,
                                            alphaLocal = 1.0,
                                            alphaRemote= 1.0,
