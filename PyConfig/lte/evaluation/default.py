@@ -233,6 +233,19 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
                                      maxXValue = 1.0,
                                      resolution = 100))
 
+
+    sourceName = probeNamePrefix + 'uplinkTBSize'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
+
+    node = node.appendChildren(Accept(by='MAC.Id', ifIn = loggingStations, suffix='CenterCell'))
+    node.getLeafs().appendChildren(PDF(name = sourceName,
+                                     description = 'Uplink TB Size',
+                                     minXValue = 0.0,
+                                     maxXValue = 100.0,
+                                     resolution = 100))
+
+
     sourceName = 'scheduler.harq.effSINR'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
     node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))

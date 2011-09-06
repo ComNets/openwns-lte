@@ -366,6 +366,8 @@ protected:
      */
     wns::probe::bus::ContextCollectorPtr resUsageProbe_;
 
+    wns::probe::bus::ContextCollectorPtr ulTBSizeProbe_;
+
     /**
      * @brief there are three positions for the scheduler...
      */

@@ -91,6 +91,7 @@ ResourceScheduler::ResourceScheduler(wns::ldk::fun::FUN* fun, const wns::pyconfi
 	wns::probe::bus::ContextProviderCollection* cpcParent = &fun->getLayer()->getContextProviderCollection();
     wns::probe::bus::ContextProviderCollection cpc(cpcParent);
     resUsageProbe_ = wns::probe::bus::collector(cpc, config, "resUsageProbeName");
+    ulTBSizeProbe_ = wns::probe::bus::collector(cpc, config, "ulTBSizeProbeName");
 
 } // ResourceScheduler
 
@@ -1021,6 +1022,9 @@ ResourceScheduler::probeResourceUsage(wns::scheduler::SchedulingMapPtr schedulin
                usedResources++;
         }
     }
+    if(schedulerSpot == wns::scheduler::SchedulerSpot::ULSlave())
+        ulTBSizeProbe_->put(numResources);
+
     resUsageProbe_->put(double(usedResources)/double(numResources), 
         boost::make_tuple("SchedulerSpot", schedulerSpot));
 }

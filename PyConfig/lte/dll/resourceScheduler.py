@@ -134,6 +134,7 @@ class ResourceScheduler(openwns.FUN.FunctionalUnit, lte.modes.hasModeName.HasMod
         self.symbolDuration = PLM.mac.symbolLength + PLM.mac.cpLength
         self.maxTxPower = maxTxPower
         self.resUsageProbeName = "lte.resourceUsage"
+        self.ulTBSizeProbeName = "lte.uplinkTBSize"
 
         if (self.uplinkMaster):
             self.slotDuration = PLM.mac.ulSymbols * PLM.mac.fullSymbolDur
@@ -149,6 +150,7 @@ class ResourceScheduler(openwns.FUN.FunctionalUnit, lte.modes.hasModeName.HasMod
             # ^ this slotDuration is wrong for UL slave scheduler
             self.logger = openwns.logger.Logger("LTE", "RS-TX", True, parentLogger)
             self.resourceUsageProbeName = "lte.ResourceUsageTX"
+
             self.probeNameQueue = "lte.schedulerTXQueueSize"
             self.probeNameQueueOverhead = "lte.schedulerTXSegmentOverhead"
             # "um" == "unacknowledged mode"
