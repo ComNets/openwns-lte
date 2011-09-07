@@ -348,12 +348,15 @@ try:
     import applications.component
 
     ### Application VoIP
-    def createDLVoIPTraffic(simulator, codecType = applications.codec.AMR_12_2(), comfortNoiseChoice = True, settlingTime = 0.0):
+    def createDLVoIPTraffic(simulator, codecType = applications.codec.AMR_12_2(), 
+            comfortNoiseChoice = True, settlingTime = 0.0, trafficStartDelay = 0.0):
         rangs = simulator.simulationModel.getNodesByProperty("Type", "RANG")
         rang = rangs[0]
 
         voipDL = applications.serverSessions.VoIP(codecType = codecType,
-                                                comfortNoiseChoice = comfortNoiseChoice, settlingTime = settlingTime)
+                                                comfortNoiseChoice = comfortNoiseChoice, 
+                                                settlingTime = settlingTime, 
+                                                trafficStartDelay = trafficStartDelay)
 
         tlListenerBinding = applications.component.TLListenerBinding(rang.nl.domainName, "127.0.0.1", 1028,
                                                                     lte.dll.qos.conversationalQosClass, 1028, voipDL,
