@@ -484,7 +484,10 @@ RegistryProxy::getEffectiveDownlinkSINR(const wns::scheduler::UserID user,
     const wns::Power& txPower)
 {
     /* TODO: Need better interference estimation in DL. E.g. use MAPS and BCH */
-    return iCache->getEffectiveSINR(user.getNode(), scs, txPower);
+
+    /* Empty set; iChache will take care of it */
+    std::map<unsigned int, wns::Power> interferences;
+    return iCache->getEffectiveSINR(user.getNode(), scs, txPower, interferences);
 }
 
 Bits
