@@ -154,6 +154,21 @@ def setHARQRetransmissionLimit(simulator, modes, limit):
         fu.harq.retransmissionLimit = limit
         fu.harq.harqEntity.retransmissionLimit = limit
 
+def setQueueSize(simulator, modes, size):
+
+    bsNodes = simulator.simulationModel.getNodesByProperty("Type", "eNB")
+
+    for bs in bsNodes:
+        fu = getMasterSchedulerFU(simulator, bs, "DL", modes)
+        fu.registry.queueSize = size
+
+    utNodes = simulator.simulationModel.getNodesByProperty("Type", "UE")
+
+    for ut in utNodes:
+        fu = getSlaveSchedulerFU(simulator, ut, modes)
+        fu.registry.queueSize = size
+
+
 def setupScheduler(simulator, sched, modes):
     setupDLScheduler(simulator, sched, modes)
     setupULScheduler(simulator, sched, modes)
@@ -349,14 +364,17 @@ try:
 
     ### Application VoIP
     def createDLVoIPTraffic(simulator, codecType = applications.codec.AMR_12_2(), 
-            comfortNoiseChoice = True, settlingTime = 0.0, trafficStartDelay = 0.0):
+            comfortNoiseChoice = True, settlingTime = 0.0, trafficStartDelay = 0.0,
+            probeEndTime = 1E12):
         rangs = simulator.simulationModel.getNodesByProperty("Type", "RANG")
         rang = rangs[0]
 
         voipDL = applications.serverSessions.VoIP(codecType = codecType,
                                                 comfortNoiseChoice = comfortNoiseChoice, 
                                                 settlingTime = settlingTime, 
-                                                trafficStartDelay = trafficStartDelay)
+                                                trafficStartDelay = trafficStartDelay,
+                                                probeEndTime = probeEndTime,
+                                                parentLogger = rang.logger)
 
         tlListenerBinding = applications.component.TLListenerBinding(rang.nl.domainName, "127.0.0.1", 1028,
                                                                     lte.dll.qos.conversationalQosClass, 1028, voipDL,
@@ -364,7 +382,7 @@ try:
         rang.load.addListenerBinding(tlListenerBinding)
     
     def createULVoIPTraffic(simulator, codecType = applications.codec.AMR_12_2(), comfortNoiseChoice = True,
-                            settlingTime = 0.0, minStartDelay = 0.1, maxStartDelay = 1.0):
+                            settlingTime = 0.0, minStartDelay = 0.1, maxStartDelay = 1.0, probeEndTime = 1E12):
         rangs = simulator.simulationModel.getNodesByProperty("Type", "RANG")
         rang = rangs[0]
         utNodes = simulator.simulationModel.getNodesByProperty("Type", "UE")
@@ -372,7 +390,9 @@ try:
         for ut in utNodes:
             voipUL = applications.clientSessions.VoIP(codecType = codecType,
                                                     comfortNoiseChoice = comfortNoiseChoice, settlingTime = settlingTime,
-                                                    minStartDelay = minStartDelay, maxStartDelay = maxStartDelay)
+                                                    minStartDelay = minStartDelay, maxStartDelay = maxStartDelay,
+                                                    probeEndTime = probeEndTime,
+                                                    parentLogger = ut.logger)
     
             tlBinding = applications.component.TLBinding(ut.nl.domainName, rang.nl.domainName,
                                                         1028, lte.dll.qos.conversationalQosClass,
