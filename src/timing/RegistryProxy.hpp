@@ -106,19 +106,23 @@ namespace lte { namespace timing {
             getMyUserID();
 
             wns::scheduler::ChannelQualityOnOneSubChannel
-            estimateTxSINRAt(const wns::scheduler::UserID user, int slot = 0);
+            estimateTxSINRAt(const wns::scheduler::UserID user, 
+                int slot = WIDEBAND, int timeSlot = ANYTIME);
 
             wns::scheduler::ChannelQualityOnOneSubChannel
-            estimateRxSINROf(const wns::scheduler::UserID user, int slot = 0);
+            estimateRxSINROf(const wns::scheduler::UserID user, int slot = WIDEBAND, 
+                int timeSlot = ANYTIME);
 
             wns::Ratio
             getEffectiveUplinkSINR(const wns::scheduler::UserID sender, 
-                const std::set<unsigned int>& scs, 
+                const std::set<unsigned int>& scs,
+                const int timeSlot, 
                 const wns::Power& txPower);
 
             wns::Ratio
             getEffectiveDownlinkSINR(const wns::scheduler::UserID receiver, 
-                const std::set<unsigned int>& scs, 
+                const std::set<unsigned int>& scs,
+                const int timeSlot,
                 const wns::Power& txPower);
 
             wns::scheduler::Bits

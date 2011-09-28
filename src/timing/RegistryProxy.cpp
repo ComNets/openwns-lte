@@ -400,42 +400,34 @@ RegistryProxy::getMyUserID() {
 
 // rather old method. CQI should be preferred.
 wns::scheduler::ChannelQualityOnOneSubChannel
-RegistryProxy::estimateTxSINRAt(const UserID user, int)
+RegistryProxy::estimateTxSINRAt(const UserID user, int subchannel, int timeSlot)
 {
     wns::Power rxPower;
     wns::Power interference;
     wns::Ratio pathloss;
 
     if (user.isBroadcast())
+    	return wns::scheduler::ChannelQualityOnOneSubChannel();
+
+    if(subchannel == WIDEBAND)
     {
-        // Allow at least a transmission with lowest PhyMode
-        rxPower = wns::Power::from_dBm(-200.0);
-        if (interference.get_mW() < 1e-18)
-            rxPower += wns::Ratio::from_dB(getPhyModeMapper()->getMinimumSINR()+1.0);
-        interference = wns::Power::from_dBm(-200.0);
-
-	return wns::scheduler::ChannelQualityOnOneSubChannel(wns::Ratio::from_dB(0.0), interference, rxPower);
+        rxPower = iCache->getPerSCAveragedCarrier(user.getNode());
+        interference = iCache->getPerSCAveragedInterference(user.getNode());
+        pathloss = iCache->getPerSCAveragedPathloss(user.getNode());
     }
-    // lookup the results reported by the user in the local cache
-    rxPower = iCache->getPerSCAveragedCarrier(user.getNode());
-    interference = iCache->getPerSCAveragedInterference(user.getNode());
-    pathloss = iCache->getPerSCAveragedPathloss(user.getNode());
-
-    //MESSAGE_SINGLE(NORMAL, logger, "estimateTxSINROf("<<user->getName()<<"): C="<<rxPower.get_mW()<<"mW, I="<<interference.get_mW()<<"mW");
-    if (rxPower.get_mW() < 1e-18)
-    { // allow at least a transmission with lowest PhyMode
-        rxPower = wns::Power::from_dBm(-200.0);
-        if (interference.get_mW() < 1e-18)
-            rxPower += wns::Ratio::from_dB(getPhyModeMapper()->getMinimumSINR()+1.0);
+    else
+    {
+        rxPower = iCache->getAveragedCarrier(user.getNode(), subchannel);
+        interference = iCache->getAveragedInterference(user.getNode(), subchannel, timeSlot);
+        pathloss = iCache->getAveragedPathloss(user.getNode(), subchannel);
     }
-    if (interference.get_mW() < 1e-18)
-        interference = wns::Power::from_dBm(-200.0);
-    //MESSAGE_SINGLE(NORMAL, logger, "estimateTxSINROf("<<user->getName()<<"): C="<<rxPower<<", I="<<interference);
+
     return wns::scheduler::ChannelQualityOnOneSubChannel(pathloss, interference, rxPower);
 }
 
 wns::scheduler::ChannelQualityOnOneSubChannel
-RegistryProxy::estimateRxSINROf(const UserID user, int) {
+RegistryProxy::estimateRxSINROf(const UserID user, int subchannel, int timeSlot) 
+{
 
     // lookup the results previously reported by us to the remote side
     dll::services::management::InterferenceCache* remoteCache =
@@ -444,9 +436,23 @@ RegistryProxy::estimateRxSINROf(const UserID user, int) {
         getStationByNode(user.getNode())->
         getManagementService<dll::services::management::InterferenceCache>("INTERFERENCECACHE"+modeBase);
 
-    wns::Power rxPower = remoteCache->getPerSCAveragedCarrier(getMyUserID().getNode());
-    wns::Power interference = remoteCache->getPerSCAveragedInterference(getMyUserID().getNode());
-    wns::Ratio pathloss = remoteCache->getPerSCAveragedPathloss(getMyUserID().getNode());
+    wns::Power rxPower;
+    wns::Power interference;
+    wns::Ratio pathloss;
+
+    if(subchannel == WIDEBAND)
+    {
+        rxPower = remoteCache->getPerSCAveragedCarrier(getMyUserID().getNode());
+        interference = remoteCache->getPerSCAveragedInterference(getMyUserID().getNode());
+        pathloss = remoteCache->getPerSCAveragedPathloss(getMyUserID().getNode());
+    }
+    else
+    {
+        rxPower = remoteCache->getAveragedCarrier(getMyUserID().getNode(), subchannel);
+        interference = remoteCache->getAveragedInterference(getMyUserID().getNode(), subchannel, timeSlot);
+        pathloss = remoteCache->getAveragedPathloss(getMyUserID().getNode(), subchannel);
+    }
+    
 
     /* Ask our cache about the UL interference caused by this node */
     wns::Ratio interferencePathloss = iCache->getAverageEmittedInterferencePathloss(user.getNode());
@@ -456,7 +462,8 @@ RegistryProxy::estimateRxSINROf(const UserID user, int) {
 
 wns::Ratio
 RegistryProxy::getEffectiveUplinkSINR(const wns::scheduler::UserID user, 
-    const std::set<unsigned int>& scs, 
+    const std::set<unsigned int>& scs,
+    const int timeSlot, 
     const wns::Power& txPower)
 {
     std::set<unsigned int>::iterator iter;
@@ -466,7 +473,7 @@ RegistryProxy::getEffectiveUplinkSINR(const wns::scheduler::UserID user,
     std::set<unsigned int>::const_iterator it;
     for(it = scs.begin(); it != scs.end(); it++)
     {
-        interferences[*it] = iCache->getAveragedInterference(getMyUserID().getNode(), *it);
+        interferences[*it] = iCache->getAveragedInterference(getMyUserID().getNode(), *it, timeSlot);
     }
     dll::services::management::InterferenceCache* remoteCache =
         layer2->
@@ -480,7 +487,8 @@ RegistryProxy::getEffectiveUplinkSINR(const wns::scheduler::UserID user,
 
 wns::Ratio
 RegistryProxy::getEffectiveDownlinkSINR(const wns::scheduler::UserID user, 
-    const std::set<unsigned int>& scs, 
+    const std::set<unsigned int>& scs,
+    const int timeSlot, 
     const wns::Power& txPower)
 {
     /* TODO: Need better interference estimation in DL. E.g. use MAPS and BCH */

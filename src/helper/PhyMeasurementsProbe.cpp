@@ -135,7 +135,6 @@ PhyMeasurementProbe::processIncoming(const wns::ldk::CompoundPtr& compound)
     double i = phyCommand->local.rxPowerMeasurementPtr->getInterferencePower().get_dBm();
     double s = phyCommand->local.rxPowerMeasurementPtr->getRxPower().get_dBm();
 
-
     if (phyCommand->magic.estimatedSINR.interference.get_mW() != 0.0) 
     {
 	    wns::Ratio sinrEstimation = 

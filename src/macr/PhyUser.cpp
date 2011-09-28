@@ -305,7 +305,15 @@ PhyUser::onData(wns::osi::PDUPtr pdu, wns::service::phy::power::PowerMeasurement
             dll::services::management::InterferenceCache::Remote,
             myCommand->local.subBand), measurementDelay_);
 
-
+        /* Store local per SubChannel and TimeSlot interference */
+        if(layer2->getStationType() == wns::service::dll::StationTypes::eNB())
+        {
+            iCache->storeInterference(layer2->getNode(),
+                                      rxPowerMeasurement->getInterferencePower(),
+                                      dll::services::management::InterferenceCache::Local,
+                                      myCommand->local.subBand,
+                                      myCommand->magic.estimatedSINR.timeSlot);
+        }
 
         wns::Ratio sinrEstimation = wns::Ratio::from_dB(0.0);
         if (myCommand->magic.estimatedSINR.interference.get_mW() != 0.0){
@@ -572,7 +580,8 @@ PhyUser::isFddCapable() const
 void
 PhyUser::measureInterference(PhyCommand* myCommand, wns::Power rxPower)
 {
-    int sc = myCommand->local.subBand; 
+    int sc = myCommand->local.subBand;
+    int timeSlot = myCommand->magic.estimatedSINR.timeSlot; 
     if(es->getTime() > lastMeasureTime)
     {
         for(std::map<int, wns::Power>::iterator it = interf.begin(); 
@@ -581,11 +590,11 @@ PhyUser::measureInterference(PhyCommand* myCommand, wns::Power rxPower)
         {
             MESSAGE_SINGLE(NORMAL,logger, "Storing interference for slot: " 
                             << it->first << " " <<  it->second);
-
             iCache->storeInterference(layer2->getNode(),
                                       it->second,
                                       dll::services::management::InterferenceCache::Local,
-                                      it->first);
+                                      it->first,
+                                      timeSlot);
         }
         lastMeasureTime = es->getTime();
         interf.clear();
