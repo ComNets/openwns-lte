@@ -45,6 +45,7 @@
 #include <WNS/ldk/FunctionalUnit.hpp>
 #include <WNS/service/dll/FlowID.hpp>
 #include <WNS/probe/bus/ContextCollector.hpp>
+#include <WNS/scheduler/metascheduler/IMetaScheduler.hpp>
 
 #include <map>
 #include <list>
@@ -254,6 +255,10 @@ protected:
     void 
     probeResourceUsage(wns::scheduler::SchedulingMapPtr schedulingMap);
 
+    //MetaScheduler
+    wns::scheduler::metascheduler::IMetaScheduler* 
+    metaScheduler;
+    
     /** @brief Python Config View */
     wns::pyconfig::View pyConfig;
 

@@ -1,3 +1,4 @@
+# -*- coding: iso-8859-1 -*-
 import lte.phy.plm
 
 from openwns import dBm, dB, fromdB, fromdBm
@@ -175,6 +176,7 @@ def setupScheduler(simulator, sched, modes):
 
 def setupULScheduler(simulator, sched, modes):
     setupSchedulerDetail(simulator, sched, "UL", modes)
+ 
 
 def setupDLScheduler(simulator, sched, modes):
     setupSchedulerDetail(simulator, sched, "DL", modes)
@@ -222,8 +224,36 @@ def setupSchedulerDetail(simulator, sched, direction, modes):
             strat = HARQStrat()
             strat.setParentLogger(fu.strategy.logger)
             fu.strategy.subStrategies[7] = strat
-        
+   
 
+# TODO: Separate MetaScheduler for up- and downlink. ATM only one metascheduler and thereby only one strategy may be applied
+def setupMetaScheduler(simulator, direction, modes, metaSched="NoMetaScheduler"):
+
+    import lte.modes
+    import openwns.Scheduler
+   
+
+    if metaSched == "NoMetaScheduler":
+        return
+    elif metaSched == "GreedyMetaScheduler":
+        Strat = openwns.Scheduler.DSADrivenRR
+        DSA = openwns.scheduler.DSAStrategy.DSAMeta
+        Meta = openwns.scheduler.metascheduler.GreedyMetaScheduler
+        
+    bsNodes = simulator.simulationModel.getNodesByProperty("Type", "eNB")
+    for bs in bsNodes:
+        fu = getMasterSchedulerFU(simulator, bs, direction, modes)
+    
+        fu.strategy.dsastrategy = DSA(oneUserOnOneSubChannel = True)
+        fu.strategy.dsafbstrategy = DSA(oneUserOnOneSubChannel = True)
+        fu.metaScheduler = Meta
+        
+        for i in xrange(4, 8):
+            strat = Strat(useHARQ = True)
+            strat.setParentLogger(fu.strategy.logger)
+            fu.strategy.subStrategies[i] = strat
+  
+  
 def setupFastFading(scenario, modes, rxAntennas):
     setupULFastFading(scenario, modes, rxAntennas)
     setupDLFastFading(scenario, modes, rxAntennas)

@@ -32,6 +32,7 @@ import lte.dll.qos
 import openwns.FUN
 import openwns.Scheduler
 import openwns.scheduler
+import openwns.scheduler.metascheduler
 
 import copy
 
@@ -108,6 +109,7 @@ class ResourceScheduler(openwns.FUN.FunctionalUnit, lte.modes.hasModeName.HasMod
     mapOutputFileName = None
 
     maxTxPower = None
+    metaScheduler = None
 
     def setPhyModeMapper(self, phyModeMapper):
         self.registry.setPhyModeMapper(phyModeMapper)
@@ -135,6 +137,7 @@ class ResourceScheduler(openwns.FUN.FunctionalUnit, lte.modes.hasModeName.HasMod
         self.maxTxPower = maxTxPower
         self.resUsageProbeName = "lte.resourceUsage"
         self.ulTBSizeProbeName = "lte.uplinkTBSize"
+
 
         if (self.uplinkMaster):
             self.slotDuration = PLM.mac.ulSymbols * PLM.mac.fullSymbolDur
@@ -172,6 +175,7 @@ class ResourceScheduler(openwns.FUN.FunctionalUnit, lte.modes.hasModeName.HasMod
 
         self.setStrategy(strategy, PLM)
         self.registry = RegistryProxy(mode,parentLogger = self.logger)
+        self.metaScheduler = openwns.scheduler.metascheduler.NoMetaScheduler
         self.grouper = openwns.Scheduler.NoGrouper
 
 class BS(ResourceScheduler):
@@ -224,3 +228,4 @@ class No(openwns.FUN.FunctionalUnit):
 
     def setPhyModeMapper(self, dummy):
         pass
+

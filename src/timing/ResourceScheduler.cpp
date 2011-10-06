@@ -72,7 +72,9 @@ ResourceScheduler::ResourceScheduler(wns::ldk::fun::FUN* fun, const wns::pyconfi
     IamUplinkMaster(config.get<bool>("uplinkMaster")), // uplink==true only for RS-RX
     writeMapOutput(config.get<bool>("writeMapOutput")),
     mapFile(NULL),
-    transportBlockCounter(0),
+    transportBlockCounter(0), 
+    metaScheduler(wns::scheduler::metascheduler::IMetaScheduler::getMetaScheduler(config.getView("metaScheduler"))),
+    
     maxTxPower(config.get<wns::Power>("maxTxPower"))
 {
     MESSAGE_SINGLE(NORMAL, logger,"Constructor: Strategy="<<config.get<std::string>("strategy.nameInStrategyFactory"));
@@ -145,9 +147,11 @@ ResourceScheduler::onFUNCreated()
     assure(fun, "Could not get my FUN");
 
     layer2 = fun->getLayer<dll::ILayer2*>();
+    
     assure(layer2, "could not get ILayer2 from FUN");
 
     std::string flowmanagername = "FlowManager";
+    
     if(layer2->getStationType() == wns::service::dll::StationTypes::UE()) 
     {
         flowmanagername += "UT";
@@ -156,7 +160,7 @@ ResourceScheduler::onFUNCreated()
     {
         flowmanagername += "RN";
     } 
-    else 
+    else if(layer2->getStationType() == wns::service::dll::StationTypes::eNB())
     { // BS
         flowmanagername += "BS";
     }
@@ -214,7 +218,17 @@ ResourceScheduler::onFUNCreated()
     colleagues.registry->setFUN(fun); 
     colleagues.registry->setHARQ(colleagues.harq);
     colleagues.registry->setAssociationHandler(fun->findFriend<lte::controlplane::associationHandler::AssociationHandler*>(mode+separator+ "associationHandler"));
-
+    
+    // attach scheduler to metascheduler
+    if(layer2->getStationType() == wns::service::dll::StationTypes::UE()) 
+    { //UT
+        metaScheduler->attachUT(& pyConfig,colleagues.registry); 
+    } 
+    else if(layer2->getStationType() == wns::service::dll::StationTypes::eNB())
+    { // BS
+        metaScheduler->attachBS(& pyConfig,colleagues.registry,IamUplinkMaster);
+    } 
+    
     // create the grouper
     wns::scheduler::grouper::SpatialGrouperCreator* grouperCreator = wns::scheduler::grouper::SpatialGrouperFactory::creator(grouperName);
     colleagues.grouper = grouperCreator->create(pyConfig.get<wns::pyconfig::View>("grouper"));
@@ -498,10 +512,21 @@ ResourceScheduler::startCollection(int frameNr,
     // PREPARE STRATEGY INPUT NOW:
     // due to maxBeams, this is already "MIMO-ready" [rs]
     // generic call for master or slave scheduling
-    wns::scheduler::strategy::StrategyInput strategyInput(
-        freqChannels, double(_slotDuration), numberOfTimeSlots, maxBeams, NULL);
-    strategyInput.beamforming = beamforming;
-    strategyInput.setFrameNr(frameNr);
+    
+    wns::scheduler::strategy::StrategyInput* strategyInput = NULL;
+    
+    if(layer2->getStationType() == wns::service::dll::StationTypes::UE()) 
+    { //UT
+        strategyInput = metaScheduler->returnStrategyInputUT(colleagues.registry); 
+    } 
+    else if(layer2->getStationType() == wns::service::dll::StationTypes::eNB())
+    { // BS
+        strategyInput = metaScheduler->returnStrategyInputBS(colleagues.registry, IamUplinkMaster);
+    } 
+    
+  
+    strategyInput->beamforming = beamforming;
+    strategyInput->setFrameNr(frameNr);
 
     wns::scheduler::SchedulingMapPtr inputSchedulingMap;
     if(schedulerSpot == wns::scheduler::SchedulerSpot::ULSlave())
@@ -564,7 +589,7 @@ ResourceScheduler::startCollection(int frameNr,
         } 
         else 
         {
-            inputSchedulingMap = strategyInput.getEmptySchedulingMap();
+            inputSchedulingMap = strategyInput->getPreDefinedSchedulingMap();
             int phaseNrAtFrameNr = friends.timer->phaseNumberAtFrame(frameNr);
             std::string resourceDedication  = friends.partitioningInfo->getDedication(phaseNrAtFrameNr, partitionGroup);
             MESSAGE_SINGLE(NORMAL, logger,"Get partitioning: frameNr="
@@ -603,11 +628,11 @@ ResourceScheduler::startCollection(int frameNr,
                 colleagues.registry->setRelaysOnly(); 
         } // if master/slave
     } // if empty/nonempty pre-scheduling input
-    strategyInput.setInputSchedulingMap(inputSchedulingMap);
+    strategyInput->setInputSchedulingMap(inputSchedulingMap);
 
     // DO THE SCHEDULING (CALL STRATEGY):
     wns::scheduler::strategy::StrategyResult strategyResult = // copy small container
-        colleagues.strategy->startScheduling(strategyInput);
+        colleagues.strategy->startScheduling(*strategyInput);
     MESSAGE_SINGLE(VERBOSE, logger, "strategyResult.schedulingMap " << strategyResult.schedulingMap->toString());
 
     MESSAGE_SINGLE(NORMAL, logger, "startCollection finished");
