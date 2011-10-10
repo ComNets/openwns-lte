@@ -224,7 +224,18 @@ def setupSchedulerDetail(simulator, sched, direction, modes):
             strat = HARQStrat()
             strat.setParentLogger(fu.strategy.logger)
             fu.strategy.subStrategies[7] = strat
-   
+
+def setupPersistentVoIPScheduler(simulator, la, tbc, modes):
+    import openwns.Scheduler
+    bsNodes = simulator.simulationModel.getNodesByProperty("Type", "eNB")
+    for direction in ["UL", "DL"]:
+        for bs in bsNodes:
+            fu = getMasterSchedulerFU(simulator, bs, direction, modes)
+    
+            for i in xrange(4, 8):
+                if isinstance(fu.strategy.subStrategies[i], openwns.Scheduler.PersistentVoIP):
+                    fu.strategy.subStrategies[i].resourceGrid.tbChoser = tbc    
+                    fu.strategy.subStrategies[i].resourceGrid.linkAdaptation = la    
 
 # TODO: Separate MetaScheduler for up- and downlink. ATM only one metascheduler and thereby only one strategy may be applied
 def setupMetaScheduler(simulator, direction, modes, metaSched="NoMetaScheduler"):
