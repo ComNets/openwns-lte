@@ -265,10 +265,19 @@ PhyUser::onData(wns::osi::PDUPtr pdu, wns::service::phy::power::PowerMeasurement
     }
     else if(myCommand->magic.destination != layer2->getNode())
     {
-         // Measure the UL interference from other nodes in eNB
         if(layer2->getStationType() == wns::service::dll::StationTypes::eNB())
         {
+            // Measure the UL interference from other nodes in eNB
             measureInterference(myCommand, rxPowerMeasurement->getRxPower());
+  
+            // Measure nodes served by other eNBs
+            wns::simulator::getEventScheduler()->scheduleDelay(boost::bind(
+              &dll::services::management::InterferenceCache::storeMeasurements,
+              myCommand->magic.remoteCache,
+              getFUN()->getLayer<dll::ILayer2*>()->getNode(),
+              rxPowerMeasurement,
+              dll::services::management::InterferenceCache::Remote,
+              myCommand->local.subBand), measurementDelay_);
         }
         return;
     }
