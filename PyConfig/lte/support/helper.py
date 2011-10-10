@@ -238,19 +238,26 @@ def setupPersistentVoIPScheduler(simulator, la, tbc, modes):
                     fu.strategy.subStrategies[i].resourceGrid.linkAdaptation = la    
 
 def getInititalICacheValues(simulator):
-    import dll.Service
+    import dll.Services
     bsNodes = simulator.simulationModel.getNodesByProperty("Type", "eNB")
     icache = None
     for s in bsNodes[0].dll.managementServices:
-        if isinstance(s, dll.Service.InterferenceCache):
+        if isinstance(s, dll.Services.InterferenceCache):
             icache = s
 
     assert icache != None, "Could not find ICache"
-    assert isinstance(s.notFoundStrategy, dll.Service.ConstantValue), "NotFoundStrategy must be ConstantValue"
+    assert isinstance(icache.notFoundStrategy, dll.Services.ConstantValue), \
+      "NotFoundStrategy must be ConstantValue"
 
-    initVal.pl = s.notFoundStrategy.averagePathloss
-    initVal.c = s.notFoundStrategy.averageCarrier
-    initVal.i = s.notFoundStrategy.averageInterference
+    class InitVals(object):
+        pl = None
+        c = None
+        i = None
+
+    initVal = InitVals()
+    initVal.pl = icache.notFoundStrategy.averagePathloss
+    initVal.c = icache.notFoundStrategy.averageCarrier
+    initVal.i = icache.notFoundStrategy.averageInterference
 
     return initVal
 
@@ -268,14 +275,16 @@ def setupMetaScheduler(simulator, direction, modes, metaSched="NoMetaScheduler")
         Strat = openwns.Scheduler.DSADrivenRR
         DSA = openwns.scheduler.DSAStrategy.DSAMeta
         Meta = openwns.scheduler.metascheduler.GreedyMetaScheduler
-        
+    
+    disablePhyUnicastTransmissionDetail(simulator, modes, direction)  
     bsNodes = simulator.simulationModel.getNodesByProperty("Type", "eNB")
+
     for bs in bsNodes:
         fu = getMasterSchedulerFU(simulator, bs, direction, modes)
     
         fu.strategy.dsastrategy = DSA(oneUserOnOneSubChannel = True)
         fu.strategy.dsafbstrategy = DSA(oneUserOnOneSubChannel = True)
-        fu.metaScheduler = Meta(getInitialICacheValues(simulator))
+        fu.metaScheduler = Meta(getInititalICacheValues(simulator))
         
         for i in xrange(4, 8):
             strat = Strat(useHARQ = True)
