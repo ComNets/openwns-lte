@@ -237,6 +237,24 @@ def setupPersistentVoIPScheduler(simulator, la, tbc, modes):
                     fu.strategy.subStrategies[i].resourceGrid.tbChoser = tbc    
                     fu.strategy.subStrategies[i].resourceGrid.linkAdaptation = la    
 
+def getInititalICacheValues(simulator):
+    import dll.Service
+    bsNodes = simulator.simulationModel.getNodesByProperty("Type", "eNB")
+    icache = None
+    for s in bsNodes[0].dll.managementServices:
+        if isinstance(s, dll.Service.InterferenceCache):
+            icache = s
+
+    assert icache != None, "Could not find ICache"
+    assert isinstance(s.notFoundStrategy, dll.Service.ConstantValue), "NotFoundStrategy must be ConstantValue"
+
+    initVal.pl = s.notFoundStrategy.averagePathloss
+    initVal.c = s.notFoundStrategy.averageCarrier
+    initVal.i = s.notFoundStrategy.averageInterference
+
+    return initVal
+
+
 # TODO: Separate MetaScheduler for up- and downlink. ATM only one metascheduler and thereby only one strategy may be applied
 def setupMetaScheduler(simulator, direction, modes, metaSched="NoMetaScheduler"):
 
@@ -257,7 +275,7 @@ def setupMetaScheduler(simulator, direction, modes, metaSched="NoMetaScheduler")
     
         fu.strategy.dsastrategy = DSA(oneUserOnOneSubChannel = True)
         fu.strategy.dsafbstrategy = DSA(oneUserOnOneSubChannel = True)
-        fu.metaScheduler = Meta
+        fu.metaScheduler = Meta(getInitialICacheValues(simulator))
         
         for i in xrange(4, 8):
             strat = Strat(useHARQ = True)
