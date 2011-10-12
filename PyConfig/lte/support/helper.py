@@ -96,6 +96,15 @@ def getMaxNumberOfSubchannels(modes):
 
     return nMax
 
+
+def associateByGeometry(simulator):
+  eNBNodes = simulator.simulationModel.getNodesByProperty("Type", "eNB")
+  for bs in eNBNodes:
+    for ut in simulator.simulationModel.getNodesByProperty("BS", bs):
+        ut.dll.associateTo(bs.dll.address)
+
+
+
 def setupUL_APC(simulator, modes, alpha, pNull):
     import lte.modes
     import openwns.scheduler.APCStrategy
@@ -239,6 +248,8 @@ def setupPersistentVoIPScheduler(simulator, la, tbc, modes):
 
 def getInititalICacheValues(simulator):
     import dll.Services
+    import openwns.scheduler.metascheduler
+    
     bsNodes = simulator.simulationModel.getNodesByProperty("Type", "eNB")
     icache = None
     for s in bsNodes[0].dll.managementServices:
@@ -249,12 +260,7 @@ def getInititalICacheValues(simulator):
     assert isinstance(icache.notFoundStrategy, dll.Services.ConstantValue), \
       "NotFoundStrategy must be ConstantValue"
 
-    class InitVals(object):
-        pl = None
-        c = None
-        i = None
-
-    initVal = InitVals()
+    initVal = openwns.scheduler.metascheduler.InitVals()
     initVal.pl = icache.notFoundStrategy.averagePathloss
     initVal.c = icache.notFoundStrategy.averageCarrier
     initVal.i = icache.notFoundStrategy.averageInterference
@@ -271,6 +277,7 @@ def setupMetaScheduler(simulator, direction, modes, metaSched="NoMetaScheduler")
 
     if metaSched == "NoMetaScheduler":
         return
+        
     elif metaSched == "GreedyMetaScheduler":
         Strat = openwns.Scheduler.DSADrivenRR
         DSA = openwns.scheduler.DSAStrategy.DSAMeta
@@ -278,7 +285,6 @@ def setupMetaScheduler(simulator, direction, modes, metaSched="NoMetaScheduler")
     
     disablePhyUnicastTransmissionDetail(simulator, modes, direction)  
     bsNodes = simulator.simulationModel.getNodesByProperty("Type", "eNB")
-
     for bs in bsNodes:
         fu = getMasterSchedulerFU(simulator, bs, direction, modes)
     
