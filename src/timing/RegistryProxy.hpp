@@ -113,6 +113,9 @@ namespace lte { namespace timing {
             estimateRxSINROf(const wns::scheduler::UserID user, int slot = WIDEBAND, 
                 int timeSlot = ANYTIME);
 
+            void 
+            updateUserSubchannels (const wns::scheduler::UserID user, std::set<int>& channels);
+        
             wns::Ratio
             getEffectiveUplinkSINR(const wns::scheduler::UserID sender, 
                 const std::set<unsigned int>& scs,

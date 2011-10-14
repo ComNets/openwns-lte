@@ -498,6 +498,19 @@ RegistryProxy::getEffectiveDownlinkSINR(const wns::scheduler::UserID user,
     return iCache->getEffectiveSINR(user.getNode(), scs, txPower, interferences);
 }
 
+void 
+RegistryProxy::updateUserSubchannels (const wns::scheduler::UserID user, std::set<int>& channels)
+{  
+  dll::services::management::InterferenceCache* remoteCache =
+    layer2->
+    getStationManager()->
+    getStationByNode(user.getNode())->
+    getManagementService<dll::services::management::InterferenceCache>("INTERFERENCECACHE"+modeBase);
+    
+    remoteCache->updateUserSubchannels (getMyUserID().getNode(), channels);
+}
+
+
 Bits
 RegistryProxy::getQueueSizeLimitPerConnection() {
     return queueSize;
