@@ -513,21 +513,11 @@ ResourceScheduler::startCollection(int frameNr,
     // due to maxBeams, this is already "MIMO-ready" [rs]
     // generic call for master or slave scheduling
     
-    wns::scheduler::strategy::StrategyInput* strategyInput = NULL;
+    wns::scheduler::strategy::StrategyInput strategyInput(
+        freqChannels, double(_slotDuration), numberOfTimeSlots, maxBeams,metaScheduler, NULL);
+    strategyInput.beamforming = beamforming;
+    strategyInput.setFrameNr(frameNr);
     
-    if(layer2->getStationType() == wns::service::dll::StationTypes::UE()) 
-    { //UT
-        strategyInput = metaScheduler->returnStrategyInputUT(colleagues.registry); 
-    } 
-    else if(layer2->getStationType() == wns::service::dll::StationTypes::eNB())
-    { // BS
-        strategyInput = metaScheduler->returnStrategyInputBS(colleagues.registry, IamUplinkMaster);
-    } 
-    
-  
-    strategyInput->beamforming = beamforming;
-    strategyInput->setFrameNr(frameNr);
-
     wns::scheduler::SchedulingMapPtr inputSchedulingMap;
     if(schedulerSpot == wns::scheduler::SchedulerSpot::ULSlave())
     {
@@ -589,7 +579,7 @@ ResourceScheduler::startCollection(int frameNr,
         } 
         else 
         {
-            inputSchedulingMap = strategyInput->getPreDefinedSchedulingMap();
+            inputSchedulingMap = strategyInput.getPreDefinedSchedulingMap();
             int phaseNrAtFrameNr = friends.timer->phaseNumberAtFrame(frameNr);
             std::string resourceDedication  = friends.partitioningInfo->getDedication(phaseNrAtFrameNr, partitionGroup);
             MESSAGE_SINGLE(NORMAL, logger,"Get partitioning: frameNr="
@@ -628,11 +618,11 @@ ResourceScheduler::startCollection(int frameNr,
                 colleagues.registry->setRelaysOnly(); 
         } // if master/slave
     } // if empty/nonempty pre-scheduling input
-    strategyInput->setInputSchedulingMap(inputSchedulingMap);
+    strategyInput.setInputSchedulingMap(inputSchedulingMap);
 
     // DO THE SCHEDULING (CALL STRATEGY):
     wns::scheduler::strategy::StrategyResult strategyResult = // copy small container
-        colleagues.strategy->startScheduling(*strategyInput);
+        colleagues.strategy->startScheduling(strategyInput);
     MESSAGE_SINGLE(VERBOSE, logger, "strategyResult.schedulingMap " << strategyResult.schedulingMap->toString());
 
     MESSAGE_SINGLE(NORMAL, logger, "startCollection finished");
