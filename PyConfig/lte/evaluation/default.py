@@ -45,6 +45,7 @@ def installModeIndependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueI
         for what in ['compound', 'bit']:
             sourceName = probeNamePrefix + 'total.window.' + direction + '.' + what + 'Throughput'
             node = openwns.evaluation.createSourceNode(sim, sourceName)
+            node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
             s = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
             bs = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList))
             ut = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList))
@@ -76,6 +77,7 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
 
     sourceName = probeNamePrefix + 'SINR'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
     node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
     # center cell DL
     dl = node.appendChildren(Accept(by='MAC.Id', ifIn = ueIdList, suffix='DL_CenterCell'))
@@ -98,6 +100,7 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
 
     sourceName = probeNamePrefix + 'Carrier'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
     node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
     # center cell DL
     dl = node.appendChildren(Accept(by='MAC.Id', ifIn = ueIdList, suffix='DL_CenterCell'))
@@ -120,6 +123,7 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
 
     sourceName = probeNamePrefix + 'Interference'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
     node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
     # center cell DL
     dl = node.appendChildren(Accept(by='MAC.Id', ifIn = ueIdList, suffix='DL_CenterCell'))
@@ -142,6 +146,7 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
 
     sourceName = probeNamePrefix + 'TxPower'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
     s=node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
     downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="DL_CenterCell"))
     uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="UL_CenterCell"))
@@ -221,9 +226,9 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
 
     sourceName = probeNamePrefix + 'resourceUsage'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node = node.appendChildren(Accept(by='MAC.Id', ifIn = loggingStations, suffix="CenterCell"))
     node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
 
-    node = node.appendChildren(Accept(by='MAC.Id', ifIn = loggingStations, suffix='CenterCell'))
     dl = node.appendChildren(Accept(by = 'SchedulerSpot', ifIn = [1], suffix='DL'))
     ulm = node.appendChildren(Accept(by = 'SchedulerSpot', ifIn = [2], suffix='ULMaster'))
     uls = node.appendChildren(Accept(by = 'SchedulerSpot', ifIn = [3], suffix='ULSlave'))
@@ -236,9 +241,9 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
 
     sourceName = probeNamePrefix + 'uplinkTBSize'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node = node.appendChildren(Accept(by='MAC.Id', ifIn = loggingStations, suffix="CenterCell"))
     node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
 
-    node = node.appendChildren(Accept(by='MAC.Id', ifIn = loggingStations, suffix='CenterCell'))
     node.getLeafs().appendChildren(PDF(name = sourceName,
                                      description = 'Uplink TB Size',
                                      minXValue = 0.0,
@@ -248,9 +253,9 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
 
     sourceName = 'scheduler.harq.effSINR'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node = node.appendChildren(Accept(by='nodeID', ifIn = loggingStations, suffix="CenterCell"))
     node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
 
-    node = node.appendChildren(Accept(by='nodeID', ifIn = loggingStations, suffix='CenterCell'))
     dl = node.appendChildren(Accept(by='nodeID', ifIn = ueIdList, suffix='UL_CenterCell'))
     ul = node.appendChildren(Accept(by='nodeID', ifIn = eNBIdList, suffix='DL_CenterCell'))
     node.getLeafs().appendChildren(PDF(name = sourceName,
@@ -272,9 +277,9 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
 
     sourceName = 'scheduler.harq.retransmissions'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node = node.appendChildren(Accept(by='nodeID', ifIn = loggingStations, suffix="CenterCell"))
     node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
 
-    node = node.appendChildren(Accept(by='nodeID', ifIn = loggingStations, suffix='CenterCell'))
     dl = node.appendChildren(Accept(by='nodeID', ifIn = ueIdList, suffix='UL_CenterCell'))
     ul = node.appendChildren(Accept(by='nodeID', ifIn = eNBIdList, suffix='DL_CenterCell'))
     node.getLeafs().appendChildren(PDF(name = sourceName,
