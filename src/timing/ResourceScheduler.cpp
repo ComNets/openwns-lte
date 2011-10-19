@@ -578,8 +578,8 @@ ResourceScheduler::startCollection(int frameNr,
                 "inputSchedulingMap must not be empty in slave mode");
         } 
         else 
-        {
-            inputSchedulingMap = strategyInput.getPreDefinedSchedulingMap();
+        {  
+            inputSchedulingMap = strategyInput.getPreDefinedSchedulingMap(wns::scheduler::UserID(layer2->getNode()), IamUplinkMaster);
             int phaseNrAtFrameNr = friends.timer->phaseNumberAtFrame(frameNr);
             std::string resourceDedication  = friends.partitioningInfo->getDedication(phaseNrAtFrameNr, partitionGroup);
             MESSAGE_SINGLE(NORMAL, logger,"Get partitioning: frameNr="
