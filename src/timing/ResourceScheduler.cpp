@@ -579,7 +579,7 @@ ResourceScheduler::startCollection(int frameNr,
         } 
         else 
         {  
-            inputSchedulingMap = strategyInput.getPreDefinedSchedulingMap(wns::scheduler::UserID(layer2->getNode()), IamUplinkMaster);
+            inputSchedulingMap = strategyInput.getPreDefinedSchedulingMap(colleagues.registry->getMyUserID(), IamUplinkMaster);
             int phaseNrAtFrameNr = friends.timer->phaseNumberAtFrame(frameNr);
             std::string resourceDedication  = friends.partitioningInfo->getDedication(phaseNrAtFrameNr, partitionGroup);
             MESSAGE_SINGLE(NORMAL, logger,"Get partitioning: frameNr="
