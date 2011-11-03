@@ -234,7 +234,7 @@ def setupSchedulerDetail(simulator, sched, direction, modes):
             strat.setParentLogger(fu.strategy.logger)
             fu.strategy.subStrategies[7] = strat
 
-def setupPersistentVoIPScheduler(simulator, la, tbc, modes):
+def setupPersistentVoIPScheduler(simulator, la, tbc, reduceMCS, modes):
     import openwns.Scheduler
     bsNodes = simulator.simulationModel.getNodesByProperty("Type", "eNB")
     for direction in ["UL", "DL"]:
@@ -244,7 +244,8 @@ def setupPersistentVoIPScheduler(simulator, la, tbc, modes):
             for i in xrange(4, 8):
                 if isinstance(fu.strategy.subStrategies[i], openwns.Scheduler.PersistentVoIP):
                     fu.strategy.subStrategies[i].resourceGrid.tbChoser = tbc    
-                    fu.strategy.subStrategies[i].resourceGrid.linkAdaptation = la    
+                    fu.strategy.subStrategies[i].resourceGrid.linkAdaptation.__plugin__ = la    
+                    fu.strategy.subStrategies[i].resourceGrid.linkAdaptation.reduceMCS = reduceMCS    
 
 def getInititalICacheValues(simulator):
     import dll.Services
