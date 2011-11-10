@@ -289,6 +289,11 @@ def setupMetaScheduler(simulator, direction, modes, metaSched="NoMetaScheduler")
         DSA = openwns.scheduler.DSAStrategy.DSAMeta
         Meta = openwns.scheduler.metascheduler.MaxRegretMetaScheduler
         
+    elif metaSched == "HighCwithHighIMetaScheduler":
+        Strat = openwns.Scheduler.DSADrivenRR
+        DSA = openwns.scheduler.DSAStrategy.DSAMeta
+        Meta = openwns.scheduler.metascheduler.HighCwithHighIMetaScheduler
+        
     disablePhyUnicastTransmissionDetail(simulator, modes, direction)  
     bsNodes = simulator.simulationModel.getNodesByProperty("Type", "eNB")
     for bs in bsNodes:
