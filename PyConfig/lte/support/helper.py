@@ -234,7 +234,7 @@ def setupSchedulerDetail(simulator, sched, direction, modes):
             strat.setParentLogger(fu.strategy.logger)
             fu.strategy.subStrategies[7] = strat
 
-def setupPersistentVoIPScheduler(simulator, la, tbc, reduceMCS, modes):
+def setupPersistentVoIPScheduler(simulator, la, tbc, reduceMCS, modes, fallback = None):
     import openwns.Scheduler
     bsNodes = simulator.simulationModel.getNodesByProperty("Type", "eNB")
     for direction in ["UL", "DL"]:
@@ -243,7 +243,13 @@ def setupPersistentVoIPScheduler(simulator, la, tbc, reduceMCS, modes):
     
             for i in xrange(4, 8):
                 if isinstance(fu.strategy.subStrategies[i], openwns.Scheduler.PersistentVoIP):
-                    fu.strategy.subStrategies[i].resourceGrid.tbChoser = tbc    
+                    if(tbc == "Previous"):
+                        assert fallback != None, "Need fallback strategy"
+                        fu.strategy.subStrategies[i].resourceGrid.tbChoser = \
+                            openwns.Scheduler.PersistentVoIP.ResourceGrid.PreviousTBC(fallback)
+                    else:
+                        fu.strategy.subStrategies[i].resourceGrid.tbChoser.__plugin__ = tbc
+
                     fu.strategy.subStrategies[i].resourceGrid.linkAdaptation.__plugin__ = la    
                     fu.strategy.subStrategies[i].resourceGrid.linkAdaptation.reduceMCS = reduceMCS    
 
