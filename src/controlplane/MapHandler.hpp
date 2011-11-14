@@ -46,6 +46,7 @@
 #include <WNS/scheduler/SchedulerTypes.hpp>
 #include <WNS/Subject.hpp>
 #include <WNS/service/phy/phymode/PhyModeInterface.hpp>
+#include <WNS/probe/bus/ContextCollector.hpp>
 #include <WNS/pyconfig/View.hpp>
 
 namespace wns { namespace node { class Node; }}
@@ -211,6 +212,8 @@ namespace lte {
             std::ofstream *mapFileUL;
             uint32_t currentPhase;
             wns::logger::Logger logger;
+
+            wns::probe::bus::ContextCollector* sinrProbe;
         };
     }} // namespace lte::controlplane
 

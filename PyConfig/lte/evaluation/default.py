@@ -98,6 +98,18 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
                                      maxXValue = 100.0,
                                      resolution = 1500))
 
+    sourceName = probeNamePrefix + 'MAP_SINR'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
+    # center cell DL
+    dl = node.appendChildren(Accept(by='MAC.Id', ifIn = ueIdList, suffix='DL_CenterCell'))
+    dl.getLeafs().appendChildren(PDF(name = sourceName,
+                                     description = 'Center Cell DL SINR distribution [dB]',
+                                     minXValue = -50.0,
+                                     maxXValue = 100.0,
+                                     resolution = 1500))
+
     sourceName = probeNamePrefix + 'Carrier'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
     node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
@@ -198,6 +210,15 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
     uplink.appendChildren(PDF(name = sourceName, minXValue = -100.0, maxXValue=100.0, resolution=2000, description = 'Carrier Estimation Error [dBm]'))
 
     sourceName = probeNamePrefix + 'SINRest'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    s = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
+    downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="DL_CenterCell"))
+    uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="UL_CenterCell"))
+    downlink.appendChildren(PDF(name = sourceName, minXValue = -50.0, maxXValue=100.0, resolution=1500, description = 'SINR Estimation [dB]'))
+    uplink.appendChildren(PDF(name = sourceName, minXValue = -50.0, maxXValue=100.0, resolution=1500, description = 'SINR Estimation Error [dB]'))
+
+    sourceName = probeNamePrefix + 'effSINRest'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
     node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
     s = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))

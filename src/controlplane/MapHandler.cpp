@@ -66,6 +66,7 @@ MapHandler::MapHandler(wns::ldk::fun::FUN* fun, const pyconfig::View& config) :
     scheduledULResources(framesPerSuperFrame),
     phyModePtr(wns::service::phy::phymode::createPhyMode(config.getView("phyMode"))),
     txPower(config.get<wns::Power>("txPower")),
+    sinrProbe(NULL),
     writeMapOutput(config.get<bool>("writeMapOutput")),
     currentPhase(0),
     logger(config.get("logger"))
@@ -74,6 +75,11 @@ MapHandler::MapHandler(wns::ldk::fun::FUN* fun, const pyconfig::View& config) :
         mapOutputFileNameDL = config.get<std::string>("mapOutputFileNameDL");
         mapOutputFileNameUL = config.get<std::string>("mapOutputFileNameUL");
     } // else they are None
+
+    dll::ILayer2* layer2 = fun->getLayer<dll::ILayer2*>();
+    wns::node::Interface* node = layer2->getNode();
+    wns::probe::bus::ContextProviderCollection localIDs(&node->getContextProviderCollection());
+    sinrProbe = new wns::probe::bus::ContextCollector(localIDs, "lte.MAP_SINR");
 }
 
 MapHandler::~MapHandler()
@@ -83,6 +89,7 @@ MapHandler::~MapHandler()
     // cleanup:
     scheduledDLResources.clear();
     scheduledULResources.clear();
+    delete sinrProbe; sinrProbe = NULL;
 }
 
 void
@@ -191,6 +198,9 @@ MapHandler::doOnData(const CompoundPtr& compound)
     {
         MESSAGE_SINGLE(NORMAL, logger,"doOnData(): pdu from "<<A2N(comingFrom)<<" contains MAP");
         using namespace wns::scheduler;
+
+        lte::macr::PhyCommand* phyCommand = friends.phyUser->getCommand(compound->getCommandPool());
+        sinrProbe->put(compound, phyCommand->local.rxPowerMeasurementPtr->getSINR().get_dB());
 
         // get latest received UL+DL-MAP:
         SchedulingMapCollectionVector scheduledULResourceMAP = myCommand->peer.ulSchedulingMapVector;

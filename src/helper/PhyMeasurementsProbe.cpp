@@ -55,6 +55,7 @@ PhyMeasurementProbe::PhyMeasurementProbe(wns::ldk::fun::FUN* fun, const wns::pyc
     phyCommandReader(NULL),
     phyModeMapper(wns::service::phy::phymode::PhyModeMapperInterface::getPhyModeMapper(config.getView("phyModeMapper"))),
     sinrProbe(NULL),
+    effSinrEstProbe(NULL),
     sinrEstProbe(NULL),
     sinrEstErrProbe(NULL),
     iEstErrProbe(NULL),
@@ -83,6 +84,7 @@ PhyMeasurementProbe::PhyMeasurementProbe(wns::ldk::fun::FUN* fun, const wns::pyc
     sinrProbe        = new wns::probe::bus::ContextCollector(localIDs, "lte.SINR");
     carrierProbe        = new wns::probe::bus::ContextCollector(localIDs, "lte.Carrier");
     interferenceProbe        = new wns::probe::bus::ContextCollector(localIDs, "lte.Interference");
+    effSinrEstProbe = new wns::probe::bus::ContextCollector(localIDs, "lte.effSINRest");
     sinrEstProbe = new wns::probe::bus::ContextCollector(localIDs, "lte.SINRest");
     sinrEstErrProbe = new wns::probe::bus::ContextCollector(localIDs, "lte.SINRestError");
     sEstErrProbe = new wns::probe::bus::ContextCollector(localIDs, "lte.SestError");
@@ -102,13 +104,16 @@ PhyMeasurementProbe::~PhyMeasurementProbe()
     delete sinrProbe; sinrProbe = NULL;
     delete carrierProbe; sinrProbe = NULL;
     delete interferenceProbe; sinrProbe = NULL;
+    delete effSinrEstProbe; effSinrEstProbe = NULL;
     delete sinrEstProbe; sinrEstProbe = NULL;
     delete sinrEstErrProbe; sinrEstErrProbe = NULL;
     delete rxPwrProbe; rxPwrProbe = NULL;
+    delete txPwrProbe; txPwrProbe = NULL;
     delete interfProbe; interfProbe = NULL;
     delete iotProbe; iotProbe = NULL;
     delete modulationProbe; modulationProbe = NULL;
     delete phyModeProbe; phyModeProbe = NULL;
+    delete pathlossProbe; pathlossProbe = NULL;
     phyCommandReader = NULL;
 }
 
@@ -146,6 +151,7 @@ PhyMeasurementProbe::processIncoming(const wns::ldk::CompoundPtr& compound)
 
         sinrEstProbe->put(compound, sinrEstimation.get_dB());
         sinrEstErrProbe->put(compound, estimationError);
+        effSinrEstProbe->put(compound, phyCommand->magic.estimatedSINR.effectiveSINR.get_dB());
         iEstErrProbe->put(compound, iEstimationError);
         sEstErrProbe->put(compound, sEstimationError);
     }
