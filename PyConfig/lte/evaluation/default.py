@@ -24,7 +24,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ###############################################################################
-
 from openwns.evaluation import *
 from lte.evaluation.generators import *
 
@@ -72,6 +71,24 @@ def installModeIndependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueI
                       minXValue = 0,
                       maxXValue = 20,
                       resolution = 20))                      
+
+
+    sourceName = probeNamePrefix + 'schedulerQueue.delay'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    s=node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
+    downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="DL_CenterCell"))
+    uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="UL_CenterCell"))
+    downlink.appendChildren(PDF(name = sourceName,
+                                description = 'Downlink Queue Delay',
+                                minXValue = 0.0,
+                                maxXValue = 0.1,
+                                resolution = 200))
+    uplink.appendChildren(PDF(name = sourceName,
+                              description = 'Uplink Queue Delay',
+                              minXValue = 0.0,
+                              maxXValue = 0.1,
+                              resolution = 200))
 
 def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdList, settlingTime):
 
@@ -296,17 +313,16 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
                                  maxXValue = 100,
                                  resolution = 150))
 
-    sourceName = 'scheduler.harq.retransmissions'
+    sourceName = probeNamePrefix + "numRetransmissions"
     node = openwns.evaluation.createSourceNode(sim, sourceName)
-    node = node.appendChildren(Accept(by='nodeID', ifIn = loggingStations, suffix="CenterCell"))
     node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
 
-    dl = node.appendChildren(Accept(by='nodeID', ifIn = ueIdList, suffix='UL_CenterCell'))
-    ul = node.appendChildren(Accept(by='nodeID', ifIn = eNBIdList, suffix='DL_CenterCell'))
+    dl = node.appendChildren(Accept(by='MAC.Id', ifIn = ueIdList, suffix='UL_CenterCell'))
+    ul = node.appendChildren(Accept(by='MAC.Id', ifIn = eNBIdList, suffix='DL_CenterCell'))
     node.getLeafs().appendChildren(PDF(name = sourceName,
                                      description = 'HARQ Retransmissions',
                                      minXValue = 0,
-                                     maxXValue = 10,
-                                     resolution = 10))
+                                     maxXValue = 20,
+                                     resolution = 20))
 
 

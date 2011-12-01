@@ -373,6 +373,8 @@ protected:
 
     wns::probe::bus::ContextCollectorPtr ulTBSizeProbe_;
 
+    wns::probe::bus::ContextCollectorPtr numRetransmissionsProbe_;
+
     /**
      * @brief there are three positions for the scheduler...
      */

@@ -43,6 +43,7 @@ import openwns.logger
 import openwns.FUN
 import openwns.Group
 import openwns.FlowSeparator
+import openwns.Probe
 
 class UT:
 
@@ -100,6 +101,9 @@ class UT:
 
         fun.add(controlPlaneDispatcher)
 
+        queueProbe = openwns.Probe.Tick('lte.schedulerQueue')
+        fun.add(queueProbe)
+
         lowerFlowSep = self._setupUnacknowledgedModePerFlow(fun, mode,
                                                             validFlowNeeded = True,
                                                             name="um",
@@ -145,7 +149,8 @@ class UT:
         connectFUs([
                 (lowerFlowSep, lowerFlowGate),
                 (lowerFlowGate, controlPlaneDispatcher),
-                (controlPlaneDispatcher, schedulerTX),
+                (controlPlaneDispatcher, queueProbe),
+                (queueProbe, schedulerTX),
 
                 (associationHandler, controlPlaneDispatcher),
                 (associationHandler, bch),

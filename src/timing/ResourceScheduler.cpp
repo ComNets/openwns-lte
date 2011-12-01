@@ -94,6 +94,7 @@ ResourceScheduler::ResourceScheduler(wns::ldk::fun::FUN* fun, const wns::pyconfi
     wns::probe::bus::ContextProviderCollection cpc(cpcParent);
     resUsageProbe_ = wns::probe::bus::collector(cpc, config, "resUsageProbeName");
     ulTBSizeProbe_ = wns::probe::bus::collector(cpc, config, "ulTBSizeProbeName");
+    numRetransmissionsProbe_ = wns::probe::bus::collector(cpc, config, "numRetransmissionsProbeName");
 
 } // ResourceScheduler
 
@@ -383,6 +384,12 @@ ResourceScheduler::deliverSchedulingTimeSlot(
             SchedulerCommand* myCommand = this->getCommand(compoundIt->compoundPtr->getCommandPool());
             myCommand->local.phyMeasurementPtr = phyMeasurement;
             myCommand->local.subBand = subband;
+
+            if(compoundIt->harqEnabled)
+            {
+                numRetransmissionsProbe_->put(compoundIt->compoundPtr, 
+                    schedulingTimeSlot->harq.retryCounter);
+            }
 
             getDeliverer()->getAcceptor(compoundIt->compoundPtr)->onData(compoundIt->compoundPtr);
         }
