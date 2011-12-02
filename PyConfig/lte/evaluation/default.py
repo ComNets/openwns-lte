@@ -90,6 +90,23 @@ def installModeIndependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueI
                               maxXValue = 0.1,
                               resolution = 200))
 
+    sourceName = probeNamePrefix + 'totalTxDelay'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    s=node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
+    downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="DL_CenterCell"))
+    uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="UL_CenterCell"))
+    downlink.appendChildren(PDF(name = sourceName,
+                                description = 'Downlink Tx Delay',
+                                minXValue = 0.0,
+                                maxXValue = 0.1,
+                                resolution = 200))
+    uplink.appendChildren(PDF(name = sourceName,
+                              description = 'Uplink Tx Delay',
+                              minXValue = 0.0,
+                              maxXValue = 0.1,
+                              resolution = 200))
+
 def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdList, settlingTime):
 
     sourceName = probeNamePrefix + 'SINR'

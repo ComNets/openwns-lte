@@ -95,6 +95,7 @@ ResourceScheduler::ResourceScheduler(wns::ldk::fun::FUN* fun, const wns::pyconfi
     resUsageProbe_ = wns::probe::bus::collector(cpc, config, "resUsageProbeName");
     ulTBSizeProbe_ = wns::probe::bus::collector(cpc, config, "ulTBSizeProbeName");
     numRetransmissionsProbe_ = wns::probe::bus::collector(cpc, config, "numRetransmissionsProbeName");
+    totalTxDelayProbe_ = wns::probe::bus::collector(cpc, config, "totalTxDelayProbeName");
 
 } // ResourceScheduler
 
@@ -389,6 +390,9 @@ ResourceScheduler::deliverSchedulingTimeSlot(
             {
                 numRetransmissionsProbe_->put(compoundIt->compoundPtr, 
                     schedulingTimeSlot->harq.retryCounter);
+
+                totalTxDelayProbe_->put(wns::simulator::getEventScheduler()->getTime() - 
+                    schedulingTimeSlot->harq.firstTxTime);
             }
 
             getDeliverer()->getAcceptor(compoundIt->compoundPtr)->onData(compoundIt->compoundPtr);

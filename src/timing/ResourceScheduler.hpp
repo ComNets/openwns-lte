@@ -375,6 +375,8 @@ protected:
 
     wns::probe::bus::ContextCollectorPtr numRetransmissionsProbe_;
 
+    wns::probe::bus::ContextCollectorPtr totalTxDelayProbe_;
+
     /**
      * @brief there are three positions for the scheduler...
      */

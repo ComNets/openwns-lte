@@ -138,6 +138,7 @@ class ResourceScheduler(openwns.FUN.FunctionalUnit, lte.modes.hasModeName.HasMod
         self.resUsageProbeName = "lte.resourceUsage"
         self.ulTBSizeProbeName = "lte.uplinkTBSize"
         self.numRetransmissionsProbeName = "lte.numRetransmissions"
+        self.totalTxDelayProbeName = "lte.totalTxDelay"
 
 
         if (self.uplinkMaster):
