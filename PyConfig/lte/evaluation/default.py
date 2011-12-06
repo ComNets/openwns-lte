@@ -304,6 +304,11 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
                                      minXValue = 0.0,
                                      maxXValue = 100.0,
                                      resolution = 100))
+    node.getLeafs().appendChildren(Plot2D(xDataKey = 'MAC.Id',
+                                            minX = 0,
+                                            maxX = max(loggingStations) + 1,
+                                            resolution = max(loggingStations) + 1,
+                                            statEvals = ['mean','deviation','max']))
 
 
     sourceName = 'scheduler.harq.effSINR'
