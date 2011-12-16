@@ -89,6 +89,11 @@ def installModeIndependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueI
                               minXValue = 0.0,
                               maxXValue = 0.1,
                               resolution = 200))
+    node.getLeafs().appendChildren(Plot2D(xDataKey = 'MAC.Id',
+                                            minX = 0,
+                                            maxX = max(loggingStations) + 1,
+                                            resolution = max(loggingStations) + 1,
+                                            statEvals = ['mean','deviation','max']))
 
     sourceName = probeNamePrefix + 'totalTxDelay'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
@@ -106,6 +111,11 @@ def installModeIndependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueI
                               minXValue = 0.0,
                               maxXValue = 0.1,
                               resolution = 200))
+    node.getLeafs().appendChildren(Plot2D(xDataKey = 'MAC.PeerId',
+                                            minX = 0,
+                                            maxX = max(loggingStations) + 1,
+                                            resolution = max(loggingStations) + 1,
+                                            statEvals = ['mean','deviation','max']))
 
 def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdList, settlingTime):
 
@@ -339,12 +349,17 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
     node = openwns.evaluation.createSourceNode(sim, sourceName)
     node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
 
-    dl = node.appendChildren(Accept(by='MAC.Id', ifIn = ueIdList, suffix='UL_CenterCell'))
-    ul = node.appendChildren(Accept(by='MAC.Id', ifIn = eNBIdList, suffix='DL_CenterCell'))
+    dl = node.appendChildren(Accept(by='MAC.Id', ifIn = ueIdList, suffix='DL_CenterCell'))
+    ul = node.appendChildren(Accept(by='MAC.Id', ifIn = eNBIdList, suffix='UL_CenterCell'))
     node.getLeafs().appendChildren(PDF(name = sourceName,
                                      description = 'HARQ Retransmissions',
                                      minXValue = 0,
                                      maxXValue = 20,
                                      resolution = 20))
+    node.getLeafs().appendChildren(Plot2D(xDataKey = 'MAC.PeerId',
+                                            minX = 0,
+                                            maxX = max(loggingStations) + 1,
+                                            resolution = max(loggingStations) + 1,
+                                            statEvals = ['mean','deviation','max']))
 
 

@@ -222,7 +222,7 @@ def setupSchedulerDetail(simulator, sched, direction, modes):
             strat.setParentLogger(fu.strategy.logger)
             fu.strategy.subStrategies[i] = strat
 
-        # HARQ needs lower priority with Persistent VoIP
+        # HARQ is involved fro within PersistentVoIP
         if sched == "PersistentVoIP":
             fu. strategy.subStrategies[1] = openwns.Scheduler.Disabled()
             if direction == "DL":
@@ -232,7 +232,8 @@ def setupSchedulerDetail(simulator, sched, direction, modes):
 
             strat = HARQStrat()
             strat.setParentLogger(fu.strategy.logger)
-            fu.strategy.subStrategies[7] = strat
+            for i in xrange(4, 8):
+                fu.strategy.subStrategies[i].harq = strat
 
 def setupPersistentVoIPScheduler(simulator, la, tbc, reduceMCS, modes, fallback = None):
     import openwns.Scheduler

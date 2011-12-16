@@ -391,8 +391,9 @@ ResourceScheduler::deliverSchedulingTimeSlot(
                 numRetransmissionsProbe_->put(compoundIt->compoundPtr, 
                     schedulingTimeSlot->harq.retryCounter);
 
-                totalTxDelayProbe_->put(wns::simulator::getEventScheduler()->getTime() - 
-                    schedulingTimeSlot->harq.firstTxTime);
+                totalTxDelayProbe_->put(compoundIt->compoundPtr, 
+                    wns::simulator::getEventScheduler()->getTime() - 
+                        schedulingTimeSlot->harq.firstTxTime);
             }
 
             getDeliverer()->getAcceptor(compoundIt->compoundPtr)->onData(compoundIt->compoundPtr);
