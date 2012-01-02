@@ -124,6 +124,10 @@ def setupUL_APC(simulator, modes, alpha, pNull):
                         openwns.scheduler.APCStrategy.LTE_UL), "Uplink APC strategy is not of type LTE_UL"
                     fu.strategy.apcstrategy.alpha = alpha
                     fu.strategy.apcstrategy.pNull = pNull
+                    for sstrat in fu.strategy.subStrategies:
+                        if isinstance(sstrat, openwns.Scheduler.PersistentVoIP):
+                            sstrat.resourceGrid.linkAdaptation.alpha = alpha
+                            sstrat.resourceGrid.linkAdaptation.pNull = pNull
                     found = True    
         assert found, "Could not find uplink master scheduler in BS"
 
@@ -224,7 +228,7 @@ def setupSchedulerDetail(simulator, sched, direction, modes):
 
         # HARQ is involved fro within PersistentVoIP
         if sched == "PersistentVoIP":
-            fu. strategy.subStrategies[1] = openwns.Scheduler.Disabled()
+            fu.strategy.subStrategies[1] = openwns.Scheduler.Disabled()
             if direction == "DL":
                 HARQStrat = openwns.Scheduler.HARQRetransmission
             else:
