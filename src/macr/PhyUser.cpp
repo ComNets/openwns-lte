@@ -600,7 +600,7 @@ PhyUser::measureInterference(PhyCommand* myCommand, wns::Power rxPower)
             MESSAGE_SINGLE(NORMAL,logger, "Storing interference for slot: " 
                             << it->first << " " <<  it->second);
             iCache->storeInterference(layer2->getNode(),
-                                      it->second,
+                                      it->second + wns::Power::from_dBm(-116.4),
                                       dll::services::management::InterferenceCache::Local,
                                       it->first,
                                       timeSlot);
