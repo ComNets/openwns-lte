@@ -34,17 +34,26 @@ def installEvaluation(sim,
                       eNBIdList = [],
                       ueIdList = [],
                       settlingTime = 0.0,
-                      maxThroughputPerUE = 20.0e6):
+                      maxThroughputPerUE = 20.0e6,
+                      byCellId = False):
 
-    installModeIndependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdList, settlingTime, maxThroughputPerUE)
-    installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdList, settlingTime)
+    installModeIndependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdList, settlingTime, maxThroughputPerUE, byCellId)
+    installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdList, settlingTime, byCellId)
 
-def installModeIndependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdList, settlingTime, maxThroughputPerUE):
+def installModeIndependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdList, settlingTime, maxThroughputPerUE, byCellId):
+
+    if(byCellId):
+        filterString = "MAC.CellId"
+        filterNodes = eNBIdList
+    else:
+        filterString = "MAC.Id"
+        filterNodes = loggingStations        
+
     for direction in [ 'incoming', 'outgoing', 'aggregated' ]:
         for what in ['compound', 'bit']:
             sourceName = probeNamePrefix + 'total.window.' + direction + '.' + what + 'Throughput'
             node = openwns.evaluation.createSourceNode(sim, sourceName)
-            node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+            node.appendChildren(Accept(by = filterString, ifIn = filterNodes))
             s = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
             bs = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList))
             ut = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList))
@@ -58,24 +67,25 @@ def installModeIndependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueI
 
     sourceName = probeNamePrefix + 'numUsers'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.appendChildren(Accept(by = filterString, ifIn = filterNodes))
 
     node = node.appendChildren(PDF(name = sourceName,
                       description = 'Associated UTs',
                       minXValue = 0,
-                      maxXValue = 20,
-                      resolution = 20))
+                      maxXValue = len(ueIdList),
+                      resolution = len(ueIdList)))
 
     node = node.appendChildren(Separate(by = 'MAC.Id', forAll = eNBIdList, format='BS_MAC.Id%d'))                      
     node.getLeafs().appendChildren(PDF(name = sourceName,
                       description = 'Associated UTs',
                       minXValue = 0,
-                      maxXValue = 20,
-                      resolution = 20))                      
+                      maxXValue = len(ueIdList),
+                      resolution = len(ueIdList)))                      
 
 
     sourceName = probeNamePrefix + 'schedulerQueue.delay'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
-    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    node.appendChildren(Accept(by = filterString, ifIn = filterNodes))
     s=node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
     downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="DL_CenterCell"))
     uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="UL_CenterCell"))
@@ -97,7 +107,7 @@ def installModeIndependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueI
 
     sourceName = probeNamePrefix + 'totalTxDelay'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
-    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    node.appendChildren(Accept(by = filterString, ifIn = filterNodes))
     s=node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
     downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="DL_CenterCell"))
     uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="UL_CenterCell"))
@@ -117,11 +127,18 @@ def installModeIndependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueI
                                             resolution = max(loggingStations) + 1,
                                             statEvals = ['mean','deviation','max']))
 
-def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdList, settlingTime):
+def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdList, settlingTime, byCellId):
+
+    if(byCellId):
+        filterString = "MAC.CellId"
+        filterNodes = eNBIdList
+    else:
+        filterString = "MAC.Id"
+        filterNodes = loggingStations
 
     sourceName = probeNamePrefix + 'SINR'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
-    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    node.appendChildren(Accept(by = filterString, ifIn = filterNodes))
     node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
     # center cell DL
     dl = node.appendChildren(Accept(by='MAC.Id', ifIn = ueIdList, suffix='DL_CenterCell'))
@@ -144,7 +161,7 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
 
     sourceName = probeNamePrefix + 'MAP_SINR'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
-    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    node.appendChildren(Accept(by = filterString, ifIn = filterNodes))
     node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
     # center cell DL
     dl = node.appendChildren(Accept(by='MAC.Id', ifIn = ueIdList, suffix='DL_CenterCell'))
@@ -156,7 +173,7 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
 
     sourceName = probeNamePrefix + 'Carrier'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
-    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    node.appendChildren(Accept(by = filterString, ifIn = filterNodes))
     node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
     # center cell DL
     dl = node.appendChildren(Accept(by='MAC.Id', ifIn = ueIdList, suffix='DL_CenterCell'))
@@ -179,7 +196,7 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
 
     sourceName = probeNamePrefix + 'Interference'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
-    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    node.appendChildren(Accept(by = filterString, ifIn = filterNodes))
     node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
     # center cell DL
     dl = node.appendChildren(Accept(by='MAC.Id', ifIn = ueIdList, suffix='DL_CenterCell'))
@@ -202,7 +219,7 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
 
     sourceName = probeNamePrefix + 'TxPower'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
-    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    node.appendChildren(Accept(by = filterString, ifIn = filterNodes))
     s=node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
     downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="DL_CenterCell"))
     uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="UL_CenterCell"))
@@ -219,7 +236,7 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
 
     sourceName = probeNamePrefix + 'IoT'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
-    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    node.appendChildren(Accept(by = filterString, ifIn = filterNodes))
     s = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
     downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="DL_CenterCell"))
     uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="UL_CenterCell"))
@@ -228,7 +245,7 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
 
     sourceName = probeNamePrefix + 'SINRestError'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
-    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    node.appendChildren(Accept(by = filterString, ifIn = filterNodes))
     s = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
     downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="DL_CenterCell"))
     uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="UL_CenterCell"))
@@ -237,7 +254,7 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
 
     sourceName = probeNamePrefix + 'IestError'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
-    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    node.appendChildren(Accept(by = filterString, ifIn = filterNodes))
     s = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
     downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="DL_CenterCell"))
     uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="UL_CenterCell"))
@@ -246,7 +263,7 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
 
     sourceName = probeNamePrefix + 'SestError'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
-    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    node.appendChildren(Accept(by = filterString, ifIn = filterNodes))
     s = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
     downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="DL_CenterCell"))
     uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="UL_CenterCell"))
@@ -255,7 +272,7 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
 
     sourceName = probeNamePrefix + 'SINRest'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
-    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    node.appendChildren(Accept(by = filterString, ifIn = filterNodes))
     s = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
     downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="DL_CenterCell"))
     uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="UL_CenterCell"))
@@ -264,7 +281,7 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
 
     sourceName = probeNamePrefix + 'effSINRest'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
-    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    node.appendChildren(Accept(by = filterString, ifIn = filterNodes))
     s = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
     downlink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = ueIdList, suffix="DL_CenterCell"))
     uplink = s.appendChildren(Accept(by = 'MAC.Id', ifIn = eNBIdList, suffix="UL_CenterCell"))
@@ -273,7 +290,7 @@ def installModeDependentDefaultEvaluation(sim, loggingStations, eNBIdList, ueIdL
 
     sourceName = probeNamePrefix + 'PhyMode'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
-    node.appendChildren(Accept(by = 'MAC.Id', ifIn = loggingStations))
+    node.appendChildren(Accept(by = filterString, ifIn = filterNodes))
     node = node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime=settlingTime))
     dl = node.appendChildren(Accept(by='MAC.Id', ifIn = ueIdList, suffix='DL_CenterCell'))
     ul = node.appendChildren(Accept(by='MAC.Id', ifIn = eNBIdList, suffix='UL_CenterCell'))

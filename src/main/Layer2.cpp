@@ -33,6 +33,7 @@
 #include <LTE/helper/idprovider/Distance.hpp>
 #include <LTE/helper/idprovider/QoSClass.hpp>
 #include <LTE/helper/idprovider/PeerId.hpp>
+#include <LTE/helper/idprovider/CellId.hpp>
 #include <LTE/macr/PhyUser.hpp>
 #include <LTE/timing/ResourceSchedulerInterface.hpp>
 
@@ -118,6 +119,7 @@ Layer2::onNodeCreated()
 
   assure(numModes == numModes2, "unequal size of phyDataTransmission and phyNotification service dicts");
 
+  bool doOnce = true;
   for(int i=0; i<numModes; i++) // forall modes
     {
       // obtain mode name from keys() list in the dict
@@ -126,6 +128,13 @@ Layer2::onNodeCreated()
       // Safety check: make sure that the ordering [i] is the same for both Dicts
       assure( modeName == phyNotifyView.get<std::string>("keys()", i),
 	      "mode name mismatch between phyDataTransmission and phyNotification service dicts" );
+
+      if(doOnce)
+      {
+        getNode()->getContextProviderCollection().
+            addProvider(lte::helper::idprovider::CellId(this, modeName));
+        doOnce = false;
+      }    
 
       // obtain PHY service names from values() list in the dicts
       std::string transServiceName       = phyDataTransView.get<std::string>("values()", i);
