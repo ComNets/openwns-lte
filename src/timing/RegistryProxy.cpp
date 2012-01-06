@@ -489,13 +489,37 @@ wns::Ratio
 RegistryProxy::getEffectiveDownlinkSINR(const wns::scheduler::UserID user, 
     const std::set<unsigned int>& scs,
     const int timeSlot, 
-    const wns::Power& txPower)
+    const wns::Power& txPower,
+    const bool worstCase)
 {
-    /* TODO: Need better interference estimation in DL. E.g. use MAPS and BCH */
+    dll::services::management::InterferenceCache* remoteCache =
+        layer2->
+        getStationManager()->
+        getStationByNode(user.getNode())->
+        getManagementService<dll::services::management::InterferenceCache>(
+            "INTERFERENCECACHE"+modeBase);
 
-    /* Empty set; iChache will take care of it */
-    std::map<unsigned int, wns::Power> interferences;
-    return iCache->getEffectiveSINR(user.getNode(), scs, txPower, interferences);
+    if(!worstCase)
+    {
+        std::set<unsigned int>::iterator iter;
+
+        std::map<unsigned int, wns::Power> interferences;
+
+        std::set<unsigned int>::const_iterator it;
+        for(it = scs.begin(); it != scs.end(); it++)
+        {
+            interferences[*it] = remoteCache->getAveragedInterference(user.getNode(), *it, timeSlot);
+        }
+
+        return iCache->getEffectiveSINR(user.getNode(), scs, txPower, interferences);
+    }
+    else
+    {
+        wns::Power carrier = remoteCache->getAveragedCarrier(user.getNode(), WIDEBAND, ANYTIME);
+        wns::Power interf = remoteCache->getAveragedInterference(user.getNode(), WIDEBAND, ANYTIME);
+
+        return carrier / interf;
+    }
 }
 
 void 

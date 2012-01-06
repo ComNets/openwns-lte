@@ -126,7 +126,8 @@ namespace lte { namespace timing {
             getEffectiveDownlinkSINR(const wns::scheduler::UserID receiver, 
                 const std::set<unsigned int>& scs,
                 const int timeSlot,
-                const wns::Power& txPower);
+                const wns::Power& txPower,
+                const bool worstCase);
 
             wns::scheduler::Bits
             getQueueSizeLimitPerConnection();
