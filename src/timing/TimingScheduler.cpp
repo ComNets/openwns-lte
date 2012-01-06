@@ -417,7 +417,7 @@ TimingScheduler::superFrameTrigger()
 	bch = this->fun->findFriend<lte::controlplane::bch::IBCHTimingTx*>(mode+separator+"bch");
         if (bch != NULL)
         {
-            bch->sendBCH(0.0005);
+            bch->sendBCH(0.0001);
         }
 
     }

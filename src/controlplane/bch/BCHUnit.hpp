@@ -129,9 +129,11 @@ namespace lte {
     struct {
       lte::timing::ResourceScheduler* scheduler;
       lte::macg::MACg* macg;
+      lte::macr::PhyUser* phyUser;
     } friends;
 
 	wns::ldk::CommandReaderInterface* rlcReader;
+    std::string phyUserName;
 
       private:
     int commandSize;
@@ -164,9 +166,10 @@ namespace lte {
     // For external Triggering
     //
     /** @brief called by event StartBCH */
+    virtual
     void sendBCH(simTimeType duration);
 
-      private:
+      protected:
     virtual bool
     doIsAccepting(const wns::ldk::CompoundPtr& /* compound */) const;
 
@@ -241,6 +244,25 @@ namespace lte {
       wns::Cloneable<NoBCH>()
     {};
       };
+
+    class LTEBCHUnitRAPNoSched :
+        virtual public LTEBCHUnitRAP
+    {
+    public:
+        LTEBCHUnitRAPNoSched(wns::ldk::fun::FUN* fun, const wns::pyconfig::View& config);
+
+        virtual
+        ~LTEBCHUnitRAPNoSched();
+
+        virtual
+        void sendBCH(simTimeType duration);
+
+    private:
+        /** @brief Modulation & Coding used to transmit BCH */
+        wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr;
+        /** @brief Power used to transmit BCH */
+        wns::Power txPower;
+    }; 
 
 
     }}}

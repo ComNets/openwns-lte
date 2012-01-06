@@ -62,7 +62,8 @@ class BS:
                                                commandName = mode.modeBase + mode.separator + "bchBuffer")
         fun.add(bchBuffer)
 
-        bch = lte.dll.bch.RAP(mode, parentLogger = self.logger)
+#        bch = lte.dll.bch.RAP(mode, parentLogger = self.logger)
+        bch = lte.dll.bch.RAPNoSched(mode, parentLogger = self.logger)
         fun.add(bch)
 
         rach = lte.dll.rach.ShortcutBS(mode)
@@ -157,7 +158,8 @@ class BS:
                 (associationHandler, rachDispatcher),
 
                 (bchBuffer, bch),
-                (bch, controlPlaneDispatcher),
+#                (bch, controlPlaneDispatcher),
+                (bch, dispatcher),
 
                 (flowHandler, flowHandlerShortcut),
 

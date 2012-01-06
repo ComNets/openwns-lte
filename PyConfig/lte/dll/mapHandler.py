@@ -51,8 +51,8 @@ class MapHandler(openwns.FUN.FunctionalUnit, HasModeName):
         self.setMode(mode)
         self.phyMode = mode.plm.mac.mapHandlerPhyMode
         self.freqChannels = mode.plm.mac.usedSubChannels
-        self.lowestMapChannel = 0
-        self.highestMapChannel = 0
+        self.lowestMapChannel = 1
+        self.highestMapChannel = 1
         # calculate the pduSize from the duration of the Phase and the other PHY parameters,
         # taking into account modulation&coding with BPSK 1/2 => factor 1/2
         self.pduSize = int(mode.plm.mac.mapLength/(mode.plm.mac.symbolLength + mode.plm.mac.cpLength) * mode.plm.phy.phyResourceSize * (1.0/2.0))

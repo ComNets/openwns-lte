@@ -38,6 +38,7 @@
 #include <WNS/service/phy/ofdma/Pattern.hpp>
 
 #include <fstream>
+#include <boost/bind.hpp>
 
 using namespace lte;
 using namespace lte::controlplane;
@@ -101,6 +102,7 @@ MapHandler::onFUNCreated()
     friends.timer = layer2->getManagementService<lte::timing::TimingScheduler>(mode+separator+"Timer");
     friends.dlrs = getFUN()->findFriend<lte::timing::SchedulerIncoming*>(mode+separator+rsNameSuffix+"TX");
     friends.phyUser = getFUN()->findFriend<lte::macr::PhyUser*>(modeBase+separator+"phyUser");
+    iCache = layer2->getManagementService<dll::services::management::InterferenceCache>("INTERFERENCECACHE"+modeBase);
     // obtain pointers to the schedulers that have prepared DL and UL Maps
     // (only needed in RAPs that perform master scheduling)
     try {
@@ -201,6 +203,15 @@ MapHandler::doOnData(const CompoundPtr& compound)
 
         lte::macr::PhyCommand* phyCommand = friends.phyUser->getCommand(compound->getCommandPool());
         sinrProbe->put(compound, phyCommand->local.rxPowerMeasurementPtr->getSINR().get_dB());
+
+        // Store SINR value in interference cache 
+        wns::simulator::getEventScheduler()->scheduleDelay(boost::bind(
+            &dll::services::management::InterferenceCache::storeMeasurements,
+            iCache,
+            myUser,
+            phyCommand->local.rxPowerMeasurementPtr,
+            dll::services::management::InterferenceCache::Remote,
+            WIDEBAND), 0.004);
 
         // get latest received UL+DL-MAP:
         SchedulingMapCollectionVector scheduledULResourceMAP = myCommand->peer.ulSchedulingMapVector;

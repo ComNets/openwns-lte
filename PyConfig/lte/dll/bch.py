@@ -73,6 +73,7 @@ class BCHUnit(openwns.FUN.FunctionalUnit, HasModeName):
         self.logger = openwns.logger.Logger("LTE","BCHUnit", True, parentLogger)
         """The BCH command may piggyback an additional AssociationHandler Signal"""
         self.commandSize = 1
+        self.phyUserName = "phyUser"
 
 class RAP(BCHUnit):
     __plugin__ = 'lte.controlplane.BCHUnit.RAP'
@@ -92,12 +93,19 @@ class RAP(BCHUnit):
 
 class UT(BCHUnit):
     __plugin__ = 'lte.controlplane.BCHUnit.UT'
-    schedulerName = None
 
     def __init__(self, mode, parentLogger = None):
         BCHUnit.__init__(self, mode, parentLogger)
         self.schedulerName = mode.modeName + mode.separator + "resourceSchedulerTX"
 
+class RAPNoSched(RAP):
+    __plugin__ = 'lte.controlplane.BCHUnit.RAPNoSched'
+
+    def __init__(self, mode, parentLogger = None):
+        RAP.__init__(self, mode, parentLogger)
+        self.phyMode = mode.plm.mac.bchUnitPhyMode
+        self.txPower = "1 mW"
+    
 class No(openwns.FUN.FunctionalUnit):
     __plugin__ = 'lte.controlplane.BCHUnit.No'
     def __init__(self, mode):

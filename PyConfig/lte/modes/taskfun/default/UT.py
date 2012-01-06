@@ -156,7 +156,8 @@ class UT:
                 (associationHandler, bch),
                 (associationHandler, rachDispatcher),
 
-                (bch, controlPlaneDispatcher),
+#                (bch, controlPlaneDispatcher),
+                (bch, dispatcher),
 
                 (flowHandler, flowHandlerShortcut),
 

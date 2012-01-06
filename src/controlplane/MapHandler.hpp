@@ -33,6 +33,7 @@
 #include <LTE/helper/HasModeName.hpp>
 
 #include <DLL/services/control/Association.hpp>
+#include <DLL/services/management/InterferenceCache.hpp>
 
 #include <WNS/ldk/CommandTypeSpecifier.hpp>
 #include <WNS/ldk/HasReceptor.hpp>
@@ -131,28 +132,12 @@ namespace lte {
             void evaluateMaps();
             void closeMapOutput();
 
-            /** @brief To provide the received Map Info inside the FUN */
-            //wns::scheduler::MapInfoCollectionPtr getTxResources(int frameNr);
-
-            /** @brief return free SubChannelSet to the RS */
-            //lte::timing::SubChannelRangeSet getFreeDLResources(int frameNr, uint32_t groupNumber);
-            //lte::timing::SubChannelRangeSet getFreeULResources(int frameNr, uint32_t groupNumber);
-
-            // fetch scheduled Resources from RS and safe into SuperFrame map
-            //void saveMap(int frameNr);
             /** @brief put scheduled resources from RS and save into SuperFrame map */
             virtual void
             saveDLMap(int frameNr, wns::scheduler::SchedulingMapPtr schedulingMap);
             /** @brief put scheduled resources from RS and save into SuperFrame map */
             virtual void
             saveULMap(int frameNr, wns::scheduler::SchedulingMapPtr schedulingMap);
-
-            //return resourceDedication to RS
-            //std::string getResourceDedication(int frameNr);
-
-            //return scheduling information to the setExpectation method of RS
-            //wns::scheduler::MapInfoCollectionPtr getFreeDLResources(int frameNr);
-            //wns::scheduler::MapInfoCollectionPtr getFreeULResources(int frameNr);
 
             void resetResources(int frameNr);
             void setCurrentPhase();
@@ -175,23 +160,14 @@ namespace lte {
                 wns::scheduler::SchedulingMapProviderInterface* ulmip;
             } friends;
 
+            /** @brief Pointer to InterferenceCache */
+            dll::services::management::InterferenceCache* iCache;
+
             uint32_t pduSize;
             uint32_t lowestSubChannel;
             uint32_t highestSubChannel;
             int framesPerSuperFrame;
 
-            /** @brief free resources (old format) */
-            //std::vector<lte::timing::SubChannelRangeSet> freeDLResources;
-            //std::vector<lte::timing::SubChannelRangeSet> freeULResources;
-            /** @brief free resources (new format) */
-            //std::vector<wns::scheduler::UsableSubChannelVector> dlUsableSubChannels;
-            //std::vector<wns::scheduler::UsableSubChannelVector> ulUsableSubChannels;
-            /** @brief SuperFrame map entries; index=frameNumber.
-                initialized as vector[0..framesPerSuperFrame-1] */
-            // old format:
-            //MapInfoCollectionVector scheduledDLResources;
-            //MapInfoCollectionVector scheduledULResources;
-            // new format:
             SchedulingMapCollectionVector scheduledDLResources;
             SchedulingMapCollectionVector scheduledULResources;
             /** @brief resourceDedication (string "Feeder" or "Universal").

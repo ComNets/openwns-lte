@@ -30,6 +30,7 @@
 #include <LTE/controlplane/associationHandler/AssociationHandler.hpp>
 #include <LTE/controlplane/flowmanagement/FlowManager.hpp>
 #include <LTE/rlc/RLCCommand.hpp>
+#include <LTE/macr/PhyUser.hpp>
 
 #include <DLL/Layer2.hpp>
 #include <DLL/services/control/Association.hpp>
@@ -44,6 +45,7 @@ using namespace wns::ldk;
 using namespace wns::ldk::fun;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(LTEBCHUnitRAP, FunctionalUnit, "lte.controlplane.BCHUnit.RAP", FUNConfigCreator);
+STATIC_FACTORY_REGISTER_WITH_CREATOR(LTEBCHUnitRAPNoSched, FunctionalUnit, "lte.controlplane.BCHUnit.RAPNoSched", FUNConfigCreator);
 STATIC_FACTORY_REGISTER_WITH_CREATOR(LTEBCHUnitUT, FunctionalUnit, "lte.controlplane.BCHUnit.UT", FUNConfigCreator);
 STATIC_FACTORY_REGISTER_WITH_CREATOR(NoBCH, FunctionalUnit, "lte.controlplane.BCHUnit.No", FUNConfigCreator);
 
@@ -57,10 +59,12 @@ LTEBCHUnit::LTEBCHUnit(wns::ldk::fun::FUN* fun, const pyconfig::View& config) :
 
   logger(config.get("logger")),
   layer2(NULL),
-  commandSize(config.get<int>("commandSize"))
+  commandSize(config.get<int>("commandSize")),
+  phyUserName(config.get<std::string>("phyUserName"))
 {
     friends.scheduler = NULL;
     friends.macg = NULL;
+    friends.phyUser = NULL;
 
     rlcReader = NULL;
 }
@@ -117,6 +121,8 @@ void
 LTEBCHUnit::onFUNCreated()
 {
     layer2 = getFUN()->getLayer<dll::ILayer2*>();
+    friends.phyUser = getFUN()->findFriend<lte::macr::PhyUser*>(
+        modeBase + separator + phyUserName);
 }
 
 void
@@ -175,7 +181,6 @@ LTEBCHUnitRAP::doSendData(const CompoundPtr& _compound)
       compound = CompoundPtr(new Compound(getFUN()->createCommandPool()));
       myCommand = activateCommand(compound->getCommandPool());
       myCommand->magic.source = layer2->getDLLAddress();
-      myCommand->peer.acknowledgement = true;
       myCommand->peer.ackedUTs.push_back(_compound);
     }
   else // use the existing BCH compound and just append the Association ACK into it
@@ -183,6 +188,7 @@ LTEBCHUnitRAP::doSendData(const CompoundPtr& _compound)
       myCommand = getCommand(compound->getCommandPool());
       myCommand->peer.ackedUTs.push_back(_compound);
     }
+  myCommand->peer.acknowledgement = true;
 } // doSendData
 
 void
@@ -198,13 +204,34 @@ void
 LTEBCHUnitUT::doOnData(const CompoundPtr& compound)
 {
   /** process incoming BCH transmission */
-    lte::timing::SchedulerCommand* schedulerCommand = friends.scheduler->getCommand(compound->getCommandPool());
+
+  int subBand;
+  wns::service::phy::power::PowerMeasurementPtr phyMeasurementPtr;
+  
+  if(getFUN()->getProxy()->commandIsActivated(compound->getCommandPool(), friends.phyUser))
+  {
+      lte::macr::PhyCommand* phyCommand = friends.phyUser->getCommand(compound->getCommandPool());
+      subBand = phyCommand->local.subBand;
+      phyMeasurementPtr = phyCommand->local.rxPowerMeasurementPtr;
+  }
+  else if(getFUN()->getProxy()->commandIsActivated(compound->getCommandPool(), friends.scheduler))
+  {
+      lte::timing::SchedulerCommand* schedulerCommand;
+      schedulerCommand = friends.scheduler->getCommand(compound->getCommandPool());
+      subBand = schedulerCommand->local.subBand;
+      phyMeasurementPtr = schedulerCommand->local.phyMeasurementPtr;
+  }
+  else
+  {
+    assure(false, "Need PhyUser or Scheduler Command");
+  }
+
   LTEBCHCommand* myCommand = getCommand(compound->getCommandPool());
 
   wns::service::dll::UnicastAddress comingFrom = myCommand->magic.source;
   /** Inform the LTEBCHService about the Measurement */
   assure(bchService, "LTEBCHUnit unexpectedly received a BCH compound.");
-  bchService->storeMeasurement(comingFrom, schedulerCommand->local.phyMeasurementPtr, schedulerCommand->local.subBand);
+  bchService->storeMeasurement(comingFrom, phyMeasurementPtr, subBand);
 
   { // Probe measurement Values
     assure(associationService, "Trying to probe BCH Measurement in a RAP.");
@@ -212,7 +239,6 @@ LTEBCHUnitUT::doOnData(const CompoundPtr& compound)
     if (associationService->hasAssociation())
       if (associationService->getAssociation() == comingFrom)
 	{
-        wns::service::phy::power::PowerMeasurementPtr phyMeasurementPtr = schedulerCommand->local.phyMeasurementPtr;
 	  sinrProbe->put(compound, phyMeasurementPtr->getSINR().get_dB());
 	  rxpProbe->put(compound, phyMeasurementPtr->getRxPower().get_dBm());
 	  interfProbe->put(compound, phyMeasurementPtr->getInterferencePower().get_dBm());
@@ -287,14 +313,56 @@ void LTEBCHUnitRAP::sendBCH(simTimeType duration)
     macgCommand->peer.source = layer2->getDLLAddress();
     macgCommand->peer.dest = wns::service::dll::UnicastAddress();
 
-  if (getConnector()->hasAcceptor(compound)){
+  if (getConnector()->hasAcceptor(compound))
+  {
     MESSAGE_SINGLE(NORMAL, logger, "sendBCH(): BCH created");
-    /** @todo: convert int numbers modulation, coding to string (operator<<) */
-    //MESSAGE_SINGLE(NORMAL, logger, "sendBCH(): BCH created (PhyMode " << modulation << "-" << coding <<")");
     getConnector()->getAcceptor(compound)->sendData(compound);
   }
   else
       assure(false, "Lower FU is not accepting scheduled PDU but is supposed to do so");
 
   compound = CompoundPtr();
+}
+
+LTEBCHUnitRAPNoSched::LTEBCHUnitRAPNoSched(wns::ldk::fun::FUN* fun, const pyconfig::View& config) :
+    LTEBCHUnitRAP(fun, config),
+    phyModePtr(wns::service::phy::phymode::createPhyMode(config.getView("phyMode"))),
+    txPower(config.get<wns::Power>("txPower"))
+{
+}
+
+LTEBCHUnitRAPNoSched::~LTEBCHUnitRAPNoSched()
+{
+}
+
+void 
+LTEBCHUnitRAPNoSched::sendBCH(simTimeType duration)
+{
+    if (compound == CompoundPtr()) //no compound from associationHandler FU
+    {
+        compound = CompoundPtr(new Compound(getFUN()->createCommandPool(),
+                                          wns::ldk::helper::FakePDUPtr(new wns::ldk::helper::FakePDU(1))));
+        LTEBCHCommand* myCommand = activateCommand(compound->getCommandPool());
+        myCommand->magic.source = layer2->getDLLAddress();
+        myCommand->peer.acknowledgement = false;
+        myCommand->peer.ackedUTs.clear();
+    }
+
+    lte::macr::PhyCommand* phyCommand = dynamic_cast<lte::macr::PhyCommand*>(
+        getFUN()->getProxy()->activateCommand(compound->getCommandPool(), friends.phyUser));
+
+    simTimeType startTime = wns::simulator::getEventScheduler()->getTime(); // now
+
+    phyCommand->local.beamforming = false;
+    phyCommand->local.pattern = wns::service::phy::ofdma::PatternPtr(); // NULL Pointer
+    phyCommand->local.start = startTime;
+    phyCommand->local.stop = startTime + duration;
+    phyCommand->local.subBand = 0;
+    phyCommand->local.modeRxTx = lte::macr::PhyCommand::Tx;
+    phyCommand->local.phyModePtr = phyModePtr;
+    phyCommand->magic.txp = txPower;
+    phyCommand->magic.source = getFUN()->getLayer<dll::ILayer2*>()->getNode();
+    phyCommand->magic.destination = NULL; // broadcast
+
+    LTEBCHUnitRAP::sendBCH(duration);
 }
