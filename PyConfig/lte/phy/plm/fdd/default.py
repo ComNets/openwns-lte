@@ -150,6 +150,10 @@ class LTE:
 
         self.phy = PHYLTEFDD(self.numSubchannels * self.subCarriersPerSubChannel)
 
+        self.mac.bchUnitPhyMode = PhyMode("QPSK-lte_m_2_tbs_3624")
+        self.mac.bchUnitPhyMode.symbolDuration = self.mac.fullSymbolDur
+        self.mac.bchUnitPhyMode.subCarriersPerSubChannel = self.phy.phyResourceSize
+
         self.mac.mapHandlerPhyMode = PhyMode("QPSK-lte_m_2_tbs_3624")
         self.mac.mapHandlerPhyMode.symbolDuration = self.mac.fullSymbolDur
         self.mac.mapHandlerPhyMode.subCarriersPerSubChannel = self.phy.phyResourceSize
@@ -163,6 +167,6 @@ class LTE:
         self.phy.txPwrUT = openwns.Scheduler.PowerCapabilities( maxPerSubband     = "14.0 dBm",
                                                                 nominalPerSubband = "4.0 dBm",
                                                                 maxOverall        = "24.0 dBm")
-        self.phy.txPwrBS = openwns.Scheduler.PowerCapabilities( maxPerSubband     = "39.0 dBm",
-                                                                nominalPerSubband = "29.0 dBm",
-                                                                maxOverall        = "49.0 dBm")
+        self.phy.txPwrBS = openwns.Scheduler.PowerCapabilities( maxPerSubband     = "14.0 dBm",
+                                                                nominalPerSubband = "4.0 dBm",
+                                                                maxOverall        = "24.0 dBm")
