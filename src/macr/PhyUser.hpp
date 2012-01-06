@@ -306,6 +306,8 @@ namespace lte{
 
             wns::simulator::Time lastMeasureTime;
 
+            unsigned int lastTimeSlot;
+
             wns::simulator::Time measurementDelay_;
 
             wns::probe::bus::ContextCollectorPtr jsonTracingCC_;

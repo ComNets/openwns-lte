@@ -265,11 +265,11 @@ PhyUser::onData(wns::osi::PDUPtr pdu, wns::service::phy::power::PowerMeasurement
     }
     else if(myCommand->magic.destination != layer2->getNode())
     {
+        // Measure the interference from other nodes
+        measureInterference(myCommand, rxPowerMeasurement->getRxPower());
+  
         if(layer2->getStationType() == wns::service::dll::StationTypes::eNB())
         {
-            // Measure the UL interference from other nodes in eNB
-            measureInterference(myCommand, rxPowerMeasurement->getRxPower());
-  
             // Measure nodes served by other eNBs
             wns::simulator::getEventScheduler()->scheduleDelay(boost::bind(
               &dll::services::management::InterferenceCache::storeMeasurements,
@@ -590,7 +590,6 @@ void
 PhyUser::measureInterference(PhyCommand* myCommand, wns::Power rxPower)
 {
     int sc = myCommand->local.subBand;
-    int timeSlot = myCommand->magic.estimatedSINR.timeSlot; 
     if(es->getTime() > lastMeasureTime)
     {
         for(std::map<int, wns::Power>::iterator it = interf.begin(); 
@@ -603,9 +602,10 @@ PhyUser::measureInterference(PhyCommand* myCommand, wns::Power rxPower)
                                       it->second + wns::Power::from_dBm(-116.4),
                                       dll::services::management::InterferenceCache::Local,
                                       it->first,
-                                      timeSlot);
+                                      lastTimeSlot);
         }
         lastMeasureTime = es->getTime();
+        lastTimeSlot = myCommand->magic.estimatedSINR.timeSlot;
         interf.clear();
     }
     interf[sc] += rxPower;
