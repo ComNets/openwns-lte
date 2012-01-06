@@ -239,7 +239,7 @@ def setupSchedulerDetail(simulator, sched, direction, modes):
             for i in xrange(4, 8):
                 fu.strategy.subStrategies[i].harq = strat
 
-def setupPersistentVoIPScheduler(simulator, la, tbc, reduceMCS, modes, fallback = None):
+def setupPersistentVoIPScheduler(simulator, la, tbc, reduceMCS, modes, fallback = None, returnRandom = False):
     import openwns.Scheduler
     bsNodes = simulator.simulationModel.getNodesByProperty("Type", "eNB")
     for direction in ["UL", "DL"]:
@@ -251,9 +251,10 @@ def setupPersistentVoIPScheduler(simulator, la, tbc, reduceMCS, modes, fallback 
                     if(tbc == "Previous"):
                         assert fallback != None, "Need fallback strategy"
                         fu.strategy.subStrategies[i].resourceGrid.tbChoser = \
-                            openwns.Scheduler.PersistentVoIP.ResourceGrid.PreviousTBC(fallback)
+                            openwns.Scheduler.PersistentVoIP.ResourceGrid.PreviousTBC(fallback, returnRandom)
                     else:
                         fu.strategy.subStrategies[i].resourceGrid.tbChoser.__plugin__ = tbc
+                        fu.strategy.subStrategies[i].resourceGrid.tbChoser.returnRandom = returnRandom
 
                     fu.strategy.subStrategies[i].resourceGrid.linkAdaptation.__plugin__ = la    
                     fu.strategy.subStrategies[i].resourceGrid.linkAdaptation.reduceMCS = reduceMCS    
