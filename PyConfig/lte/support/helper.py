@@ -13,24 +13,24 @@ def connectFUs(pairList):
     for source, destination in pairList:
         source.connect(destination)
 
-def setupPhy(simulator, plmName, scenario):
+def setupPhy(simulator, modes, scenario):
     import rise.scenario.Pathloss
     from openwns.interval import Interval
 
     if scenario == "InH":
-        setupPhyDetail(simulator, 3400, rise.scenario.Pathloss.ITUInH(), dBm(24), dBm(24), plmName, dB(5), dB(7))
+        setupPhyDetail(simulator, 3400, rise.scenario.Pathloss.ITUInH(), dBm(1), dBm(1), modes, dB(5), dB(7))
     elif scenario == "UMa":
-        setupPhyDetail(simulator, 2000, rise.scenario.Pathloss.ITUUMa(), dBm(46), dBm(24), plmName, dB(5), dB(7))
+        setupPhyDetail(simulator, 2000, rise.scenario.Pathloss.ITUUMa(), dBm(29), dBm(3), modes, dB(5), dB(7))
     elif scenario == "UMi":
-        setupPhyDetail(simulator, 2500, rise.scenario.Pathloss.ITUUMi(), dBm(41), dBm(24), plmName, dB(5), dB(7))
+        setupPhyDetail(simulator, 2500, rise.scenario.Pathloss.ITUUMi(), dBm(24), dBm(3), modes, dB(5), dB(7))
     elif scenario == "RMa":
-        setupPhyDetail(simulator, 800, rise.scenario.Pathloss.ITURMa(), dBm(46), dBm(24), plmName, dB(5), dB(7))
+        setupPhyDetail(simulator, 800, rise.scenario.Pathloss.ITURMa(), dBm(29), dBm(3), modes, dB(5), dB(7))
     elif scenario == "SMa":
-        setupPhyDetail(simulator, 2000, rise.scenario.Pathloss.ITUSMa(), dBm(46), dBm(24), plmName, dB(5), dB(7))
+        setupPhyDetail(simulator, 2000, rise.scenario.Pathloss.ITUSMa(), dBm(29), dBm(3), modes, dB(5), dB(7))
     else:
         raise "Unknown scenario %s" % scenario
 
-def setupPhyDetail(simulator, freq, pathloss, bsTxPower, utTxPower, plmName, rxNoiseBS, rxNoiseUT):
+def setupPhyDetail(simulator, freq, pathloss, bsTxPower, utTxPower, modes, rxNoiseBS, rxNoiseUT):
 
     from ofdmaphy.OFDMAPhy import OFDMASystem
     import rise.Scenario
@@ -40,47 +40,58 @@ def setupPhyDetail(simulator, freq, pathloss, bsTxPower, utTxPower, plmName, rxN
     import math
     import scenarios.channelmodel
 
-    plm = lte.phy.plm.getByName(plmName)
-
-    bsNodes = simulator.simulationModel.getNodesByProperty("Type", "BS")
+    bsNodes = simulator.simulationModel.getNodesByProperty("Type", "eNB")
     utNodes = simulator.simulationModel.getNodesByProperty("Type", "UE")
 
-    ofdmaPhySystem = OFDMASystem('ofdma')
-    ofdmaPhySystem.Scenario = rise.Scenario.Scenario()
-    simulator.modules.ofdmaPhy.systems.append(ofdmaPhySystem)
-
     # Large Scale fading model
-    for node in bsNodes + utNodes:
+    for node in bsNodes:
         # TX frequency
-        node.phy.ofdmaStation.txFrequency = freq
-        node.phy.ofdmaStation.rxFrequency = freq
+        for phy in node.phys.values():
+            phy.ofdmaStation.txFrequency = freq
+            phy.ofdmaStation.rxFrequency = freq + 120
+
+    for node in utNodes:
+        # TX frequency
+        for phy in node.phys.values():
+            phy.ofdmaStation.txFrequency = freq + 120
+            phy.ofdmaStation.rxFrequency = freq
+
 
     # Noise figure 
     for bs in bsNodes:
-        bs.phy.ofdmaStation.receiver[0].receiverNoiseFigure = rxNoiseBS
+        for phy in bs.phys.values():
+            phy.ofdmaStation.receiver[0].receiverNoiseFigure = rxNoiseBS
 
     power = fromdBm(bsTxPower)
-    bsNominalTxPower = dBm(power - 10 * math.log10(plm.numSubchannels))
+    bsMaxTxPower = dBm(power + 10 * math.log10(getMaxNumberOfSubchannels(modes)))
     
-    bsPower = openwns.Scheduler.PowerCapabilities(bsTxPower, bsNominalTxPower, bsNominalTxPower)
+    bsPower = openwns.Scheduler.PowerCapabilities(bsMaxTxPower, bsTxPower, bsMaxTxPower)
     
-    # Per subchannel nominal power equals the max power since we assume UTs only use few subchannels
-    utPower = openwns.Scheduler.PowerCapabilities(utTxPower, utTxPower, utTxPower)
-    
-    #for bs in bsNodes:
-    #    bs.dll.dlscheduler.config.txScheduler.registry.powerCapabilitiesAP = bsPower
-    #    bs.dll.dlscheduler.config.txScheduler.registry.powerCapabilitiesUT = utPower
-    #    bs.dll.ulscheduler.config.rxScheduler.registry.powerCapabilitiesAP = bsPower
-    #    bs.dll.ulscheduler.config.rxScheduler.registry.powerCapabilitiesUT = utPower
-        
-        # For broadcasts
-    #    bs.phy.ofdmaStation.txPower = bsTxPower
-    
-    #for ut in utNodes:
-    #    ut.dll.ulscheduler.config.txScheduler.registry.powerCapabilitiesAP = bsPower
-    #    ut.dll.ulscheduler.config.txScheduler.registry.powerCapabilitiesUT = utPower
-    #    ut.phy.ofdmaStation.txPower = bsTxPower
+    power = fromdBm(utTxPower)
+    utMaxTxPower = dBm(power + 10 * math.log10(getMaxNumberOfSubchannels(modes)))
+    utTxPower = dBm(power + 10 * math.log10(getMaxNumberOfSubchannels(modes) / 5))
+    utPower = openwns.Scheduler.PowerCapabilities(utMaxTxPower, utTxPower, utMaxTxPower)
 
+    for bs in bsNodes:
+        fu = getMasterSchedulerFU(simulator, bs, "DL", modes)
+        fu.registry.powerCapabilitiesBS = bsPower        
+        fu.registry.powerCapabilitiesUT = utPower
+        fu = getMasterSchedulerFU(simulator, bs, "UL", modes)
+        fu.registry.powerCapabilitiesBS = bsPower
+        fu.registry.powerCapabilitiesUT = utPower        
+
+        # For broadcasts
+        for phy in bs.phys.values():
+            phy.ofdmaStation.txPower = bsTxPower
+    
+    for ut in utNodes:
+        fu = getSlaveSchedulerFU(simulator, ut, modes)
+        fu.registry.powerCapabilitiesBS = bsPower
+        fu.powerCapabilitiesUT = utPower
+        for phy in ut.phys.values():
+            phy.ofdmaStation.txPower = utTxPower
+
+    setupUL_APC(simulator, modes, 0.0, utTxPower, True)
 
 def getMaxNumberOfSubchannels(modes):
     import lte.modes
@@ -105,7 +116,7 @@ def associateByGeometry(simulator):
 
 
 
-def setupUL_APC(simulator, modes, alpha, pNull):
+def setupUL_APC(simulator, modes, alpha, pNull, onlyIfAlphaNull = False):
     import lte.modes
     import openwns.scheduler.APCStrategy
 
@@ -119,15 +130,16 @@ def setupUL_APC(simulator, modes, alpha, pNull):
             aMode = modeCreator(default = False)
             for fu in fun:
                 if aMode.modeBase + aMode.separator + "resourceSchedulerRX" in fu.commandName:
-                    assert isinstance(
-                        fu.strategy.apcstrategy, 
-                        openwns.scheduler.APCStrategy.LTE_UL), "Uplink APC strategy is not of type LTE_UL"
-                    fu.strategy.apcstrategy.alpha = alpha
-                    fu.strategy.apcstrategy.pNull = pNull
-                    for sstrat in fu.strategy.subStrategies:
-                        if isinstance(sstrat, openwns.Scheduler.PersistentVoIP):
-                            sstrat.resourceGrid.linkAdaptation.alpha = alpha
-                            sstrat.resourceGrid.linkAdaptation.pNull = pNull
+                    if(not isinstance(fu.strategy.apcstrategy, openwns.scheduler.APCStrategy.LTE_UL)):
+                        print "Uplink APC strategy is not of type LTE_UL"
+                        return
+                    if(onlyIfAlphaNull == False or fu.strategy.apcstrategy.alpha == 0.0):
+                        fu.strategy.apcstrategy.alpha = alpha
+                        fu.strategy.apcstrategy.pNull = pNull
+                        for sstrat in fu.strategy.subStrategies:
+                            if isinstance(sstrat, openwns.Scheduler.PersistentVoIP):
+                                sstrat.resourceGrid.linkAdaptation.alpha = alpha
+                                sstrat.resourceGrid.linkAdaptation.pNull = pNull
                     found = True    
         assert found, "Could not find uplink master scheduler in BS"
 
@@ -209,7 +221,7 @@ def setupSchedulerDetail(simulator, sched, direction, modes):
         DSA = openwns.scheduler.DSAStrategy.Random
     elif sched == "PersistentVoIP":
         Strat = openwns.Scheduler.PersistentVoIP
-        DSA = openwns.scheduler.DSAStrategy.LinearFFirst
+        DSA = openwns.scheduler.DSAStrategy.BestEffSINR
     elif sched == "ExhaustiveRR":
         Strat = openwns.Scheduler.ExhaustiveRoundRobin
         DSA = openwns.scheduler.DSAStrategy.LinearFFirst
