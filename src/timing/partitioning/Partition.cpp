@@ -88,7 +88,9 @@ lte::timing::partitioning::SubChannelRangeSet
 Partition::getFreeResources(uint32_t groupNumber) const
 {
     if (grouping.find(groupNumber) == grouping.end())
+    {
         assure(false, "Requested resource info for unknown group!");
+    }
 
     return grouping.find(groupNumber)->second;
 }
@@ -112,7 +114,9 @@ std::string
 Partition::getDedication(uint32_t groupNumber) const
 {
     if (dedication.find(groupNumber) == dedication.end())
+    {
         assure(false, "Requested resource info for unknown group!");
+    }
 
     return dedication.find(groupNumber)->second;
 }
