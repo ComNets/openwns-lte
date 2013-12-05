@@ -48,6 +48,7 @@ namespace lte { namespace controlplane { namespace flowmanagement { namespace fl
 
 namespace lte { namespace controlplane { namespace flowmanagement {
       class FlowManager :
+    virtual public wns::ldk::ControlService,
 	virtual public IFlowSwitching,
 	virtual public wns::ldk::flowseparator::FlowInfoProvider
       {
@@ -223,8 +224,7 @@ namespace lte { namespace controlplane { namespace flowmanagement {
 
       class FlowManagerBS :
 	public FlowManager,
-	public IFlowManagerENB,
-	public wns::ldk::ControlService
+	public IFlowManagerENB
       {
       public:
 	FlowManagerBS(wns::ldk::ControlServiceRegistry* csr, const wns::pyconfig::View& config);
@@ -292,8 +292,7 @@ namespace lte { namespace controlplane { namespace flowmanagement {
 
       class FlowManagerUT :
 	public FlowManager,
-	public IFlowManagerUE,
-	public wns::ldk::ControlService
+	public IFlowManagerUE
       {
       public:
 	FlowManagerUT(wns::ldk::ControlServiceRegistry* csr, const wns::pyconfig::View& config);

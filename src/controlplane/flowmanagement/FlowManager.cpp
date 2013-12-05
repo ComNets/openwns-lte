@@ -56,6 +56,7 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(lte::controlplane::flowmanagement::FlowMana
                                      wns::ldk::CSRConfigCreator);
 
 FlowManager::FlowManager(wns::ldk::ControlServiceRegistry* csr, const wns::pyconfig::View& config) :
+    ControlService(csr),
     layer2(),
     plainDisassociation(false),
     rlcReader(NULL),
