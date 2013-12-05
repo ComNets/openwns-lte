@@ -68,7 +68,7 @@ namespace lte {
                 else if(name == "RxPower")
                     powerMargin = config.get<wns::Power>("margin");
                 else if(name == "Distance")
-                    distanceMargin == config.get<double>("margin");
+                    distanceMargin = config.get<double>("margin");
                 else if(name == "MAC_ID")
                 {
                     assure(!config.isNone("address"), "MAC_ID criterion needs address of serving station");
